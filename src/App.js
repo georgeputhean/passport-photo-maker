@@ -7,8 +7,6 @@ import ReactGA from 'react-ga4'
 import GuideDrawer from './GuideDrawer'
 import { useLanguage } from './translate'
 import { generateSingle, handleSaveSingle, generate4x6, handleSave4x6 } from './SaveImage'
-import { DiscussionEmbed } from 'disqus-react'
-import { Helmet } from 'react-helmet'
 import Color from './Color'
 import CookieConsent from "react-cookie-consent"
 import PRC_Passport_Photo from './Templates/PRC_Passport_Photo.json'
@@ -122,9 +120,6 @@ const NavBar = ({
   setTemplate,
   exportPhoto,
   setExportPhoto,
-  language,
-  getLanguage,
-  setLanguage,
   translate,
   translateObject,
   setEditorDimensions,
@@ -137,13 +132,13 @@ const NavBar = ({
     const selectedTemplateTitle = event.target.value
 
     // Find the template object that matches the selected title
-    const selectedTemplate = TEMPLATES.find((t) => t.title[getLanguage()] === selectedTemplateTitle)
+    const selectedTemplate = TEMPLATES.find((t) => translateObject(t.title) === selectedTemplateTitle)
 
     // Set the selected template
     if (selectedTemplate) {
       ReactGA.event({
-        action: selectedTemplate.title[getLanguage()].toLowerCase().replace(/ /g, "_").replace(/\//g, "_"),
-        label: selectedTemplate.title[getLanguage()],
+        action: translateObject(selectedTemplate.title).toLowerCase().replace(/ /g, "_").replace(/\//g, "_"),
+        label: translateObject(selectedTemplate.title),
       })
       setTemplate(selectedTemplate)
       setExportPhoto({
@@ -171,16 +166,6 @@ const NavBar = ({
     }
   }
 
-  const handleLanguageChange = (event) => {
-    const isChecked = event.target.checked
-    setLanguage(isChecked ? "zh" : "en")
-    ReactGA.event({
-      action: isChecked ? 'chinese' : 'english',
-      category: 'Switch Toggle',
-      label: isChecked ? 'Language to Chinese' : 'Language to English',
-    })
-  }
-
   return (
     <nav>
       <ul>
@@ -198,16 +183,6 @@ const NavBar = ({
               <option key={index} value={translateObject(template.title)}> {translateObject(template.title)}  </option>
             ))}
           </select>
-        </li>
-        <li>
-          <label>
-            <input
-              type="checkbox"
-              role="switch"
-              onChange={handleLanguageChange}
-              checked={getLanguage() === "zh"}
-            />
-            中文/English</label>
         </li>
       </ul>
     </nav>
@@ -1239,71 +1214,6 @@ const Disclaimer = ({
   )
 }
 
-const Disqus = ({
-  template,
-  getLanguage,
-  translateObject
-}) => {
-  function formatStringForURL(inputString) {
-    // Convert the string to lowercase
-    let formattedString = inputString.toLowerCase()
-
-    // Replace non-compatible URL characters with underscores
-    formattedString = formattedString.replace(/[/\\:,.?!"'(){}[\]<>^*%&@#$+=|~`\s]/g, '_')
-
-    // Remove consecutive underscores
-    formattedString = formattedString.replace(/_+/g, '_')
-
-    // Remove leading and trailing underscores
-    formattedString = formattedString.replace(/^_+|_+$/g, '')
-
-    return formattedString
-  }
-
-  // Function to reload Disqus plugin
-  const reloadDisqusPlugin = () => {
-    if (typeof window.DISQUS !== 'undefined') {
-      window.DISQUS.reset({ reload: true })
-    }
-  }
-
-  // Effect hook to listen for changes in color scheme and reload Disqus
-  useEffect(() => {
-    const colorSchemeListener = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = (event) => {
-      reloadDisqusPlugin()
-    }
-    colorSchemeListener.addEventListener('change', handleChange)
-    return () => {
-      colorSchemeListener.removeEventListener('change', handleChange)
-    }
-  }, [])
-
-  // console.log("DEBUG: url:", 'https://jiataihan.dev/passport-photo-maker/' + formatStringForURL(translateObject(template.title)))
-  // console.log("DEBUG: identifier:", formatStringForURL(translateObject(template.title)))
-
-  return (
-    <>
-      <Helmet>
-        <script src="https://YOUR_DISQUS_SHORTNAME.disqus.com/embed.js" async></script>
-      </Helmet>
-      <DiscussionEmbed
-        className="test"
-        key={formatStringForURL(translateObject(template.title))}
-        shortname='passport-photo-maker'
-        config={
-          {
-            url: 'https://jiataihan.dev/passport-photo-maker/' + formatStringForURL(translateObject(template.title)),
-            identifier: 'https://jiataihan.dev/passport-photo-maker/' + formatStringForURL(translateObject(template.title)),
-            title: translateObject(template.title),
-            language: getLanguage() === "zh" ? 'zh' : 'en_US'
-          }
-        }
-      />
-    </>
-  )
-}
-
 // Main App component
 const App = () => {
   // Init Google Analytics
@@ -1362,7 +1272,7 @@ const App = () => {
   const [position, setPosition] = useState({ x: 0.5, y: 0.5 }) // Weirdly, have to set a out-of-boundary number to make moving working when page is loaded.
 
   const editorRef = React.createRef()
-  const { translate, translateObject, setLanguage, getLanguage } = useLanguage()
+  const { translate, translateObject } = useLanguage()
 
   const photoGuides = template
 
@@ -1479,9 +1389,6 @@ const App = () => {
 
   return (
     <div className="app">
-      <div class="banner">
-      {translate("jobMessage1")}<a href="mailto:jiataihan.dev@gmail.com">jiataihan.dev@gmail.com</a>{translate("jobMessage2")}
-  </div>
       <div className="frame">
         <div className="container">
           <NavBar
@@ -1489,8 +1396,6 @@ const App = () => {
             setTemplate={setTemplate}
             exportPhoto={exportPhoto}
             setExportPhoto={setExportPhoto}
-            getLanguage={getLanguage}
-            setLanguage={setLanguage}
             translate={translate}
             translateObject={translateObject}
             setEditorDimensions={setEditorDimensions}
@@ -1609,12 +1514,6 @@ const App = () => {
             >{translate("feedback")}</a>
           </div>
         </div>
-        <Disqus
-          className="container"
-          template={template}
-          getLanguage={getLanguage}
-          translateObject={translateObject}
-        />
         <CookieConsent
           //debug={true}
           flipButtons={true}
