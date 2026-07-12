@@ -21,6 +21,7 @@ import Germany_Passport_Photo from './Templates/Germany_Passport_Photo.json'
 import Australia_Visa_Photo from './Templates/Australia_Passport_Photo.json'
 import Mexico_TN_Visa_Photo from './Templates/Mexico_TN_Visa_Photo.json'
 import Spain_Passport_Photo from './Templates/Spain_Passport_Photo.json'
+import India_Passport_Photo from './Templates/India_Passport_Photo.json'
 import './App.css'
 import ChangeLog from './changelog.json'
 
@@ -39,6 +40,7 @@ const TEMPLATES = [
   PRC_Passport_Photo,
   PRC_Travel_Document,
   US_Passport_Photo,
+  India_Passport_Photo,
   UK_Passport_Photo,
   Canada_Passport_Photo,
   Canada_Visa_Photo,
@@ -142,24 +144,24 @@ const NavBar = ({
       })
       setTemplate(selectedTemplate)
       setExportPhoto({
-        width: parseInt(parseInt(selectedTemplate.width) / MM2INCH * parseInt(selectedTemplate.dpi)),
-        height: parseInt(parseInt(selectedTemplate.height) / MM2INCH * parseInt(selectedTemplate.dpi)),
+        width: parseInt(parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi)),
+        height: parseInt(parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi)),
         size: parseInt(selectedTemplate.size),
-        ratio: parseInt(selectedTemplate.width) / parseInt(selectedTemplate.height),
-        width_mm: selectedTemplate.width,
-        height_mm: selectedTemplate.height,
-        dpi: selectedTemplate.dpi,
+        ratio: parseFloat(selectedTemplate.width) / parseFloat(selectedTemplate.height),
+        width_mm: parseFloat(selectedTemplate.width),
+        height_mm: parseFloat(selectedTemplate.height),
+        dpi: parseFloat(selectedTemplate.dpi),
         width_valid: true,
         height_valid: true,
         size_valid: true,
       })
       setEditorDimensions({
-        width: parseInt(selectedTemplate.width) / MM2INCH * parseInt(selectedTemplate.dpi),
-        height: parseInt(selectedTemplate.height) / MM2INCH * parseInt(selectedTemplate.dpi),
+        width: parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi),
+        height: parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi),
         zoom: calculateEditorZoom(
-          parseInt(selectedTemplate.width) / MM2INCH * parseInt(selectedTemplate.dpi),
-          parseInt(selectedTemplate.height) / MM2INCH * parseInt(selectedTemplate.dpi)),
-        dpi_ratio: selectedTemplate.dpi / (MM2INCH * 10),
+          parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi),
+          parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi)),
+        dpi_ratio: parseFloat(selectedTemplate.dpi) / (MM2INCH * 10),
       })
       setCroppedImage(null)
       updatePreview(editorRef, setCroppedImage)
@@ -1222,7 +1224,8 @@ const App = () => {
     ReactGA.send({ hitType: "pageview", page: window.location.pathname })
   }, [])
 
-  const [template, setTemplate] = useState(TEMPLATES[0]) // Default is China
+  const defaultTemplate = TEMPLATES.find((t) => t.title === "US Passport/Visa Photo") || TEMPLATES[0]
+  const [template, setTemplate] = useState(defaultTemplate) // Default is US
   const [photo, setPhoto] = useState(null)
   const [allowAiModel, setAllowAiModel] = useState(false)
   const [removeBg, setRemoveBg] = useState({ state: false, error: false }) // Toggle for background removal
@@ -1240,26 +1243,26 @@ const App = () => {
   const [croppedImage, setCroppedImage] = useState(null)
 
   const [exportPhoto, setExportPhoto] = useState({
-    width: parseInt(parseInt(template.width) / MM2INCH * parseInt(template.dpi)),
-    height: parseInt(parseInt(template.height) / MM2INCH * parseInt(template.dpi)),
-    size: parseInt(template.size),
-    ratio: parseInt(template.width) / parseInt(template.height),
-    width_mm: template.width,
-    height_mm: template.height,
-    dpi: template.dpi,
+    width: parseInt(parseFloat(defaultTemplate.width) / MM2INCH * parseFloat(defaultTemplate.dpi)),
+    height: parseInt(parseFloat(defaultTemplate.height) / MM2INCH * parseFloat(defaultTemplate.dpi)),
+    size: parseInt(defaultTemplate.size),
+    ratio: parseFloat(defaultTemplate.width) / parseFloat(defaultTemplate.height),
+    width_mm: parseFloat(defaultTemplate.width),
+    height_mm: parseFloat(defaultTemplate.height),
+    dpi: parseFloat(defaultTemplate.dpi),
     width_valid: true,
     height_valid: true,
     size_valid: true,
   })
   const [modals, setModals] = useState({ coffee: false, changelog: false, save: false, disclaimer: false, aiModel: false })
   const [editorDimensions, setEditorDimensions] = useState({
-    width: parseInt(template.width) / MM2INCH * parseInt(template.dpi),
-    height: parseInt(template.height) / MM2INCH * parseInt(template.dpi),
+    width: parseFloat(defaultTemplate.width) / MM2INCH * parseFloat(defaultTemplate.dpi),
+    height: parseFloat(defaultTemplate.height) / MM2INCH * parseFloat(defaultTemplate.dpi),
     zoom: calculateEditorZoom(
-      parseInt(template.width) / MM2INCH * parseInt(template.dpi),
-      parseInt(template.height) / MM2INCH * parseInt(template.dpi),
+      parseFloat(defaultTemplate.width) / MM2INCH * parseFloat(defaultTemplate.dpi),
+      parseFloat(defaultTemplate.height) / MM2INCH * parseFloat(defaultTemplate.dpi),
     ),
-    dpi_ratio: template.dpi / (MM2INCH * 10)
+    dpi_ratio: parseFloat(defaultTemplate.dpi) / (MM2INCH * 10)
   })
   const [initialDistance, setInitialDistance] = useState(null)
   const [initialAngle, setInitialAngle] = useState(null)
