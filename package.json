@@ -7,6 +7,7 @@
     "@fireworks-js/react": "^2.10.7",
     "@imgly/background-removal": "^1.4.1",
     "@imgly/background-removal-data": "^1.4.1",
+    "@mediapipe/tasks-vision": "^0.10.35",
     "@picocss/pico": "^2.0.0-rc3",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",

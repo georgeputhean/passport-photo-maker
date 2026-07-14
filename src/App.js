@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import AvatarEditor from 'react-avatar-editor'
-import imglyRemoveBackground from "@imgly/background-removal"
+import { removeBackground } from './BackgroundRemoval'
 import ReactGA from 'react-ga4'
 //import { Fireworks } from '@fireworks-js/react'
 //import AnimatedText from './AnimatedText'
@@ -8,6 +8,7 @@ import GuideDrawer from './GuideDrawer'
 import { useLanguage } from './translate'
 import { generateSingle, handleSaveSingle, generate4x6, handleSave4x6 } from './SaveImage'
 import Color from './Color'
+import { autoAlignFace } from './AutoAlign'
 import CookieConsent from "react-cookie-consent"
 import PRC_Passport_Photo from './Templates/PRC_Passport_Photo.json'
 import PRC_Travel_Document from './Templates/PRC_Travel_Document_Photo.json'
@@ -30,17 +31,17 @@ const INITIAL_ROTATION = 0
 const ZOOM_FACTOR = 1.01
 const MOVE_FACTOR = 0.005
 const MIN_ZOOM = 0.5
-const MAX_ZOOM = 10
+const MAX_ZOOM = 25
 const ROTATION_THRESHOLD_DEG = 2
 const EXPORT_WIDTH_LIMIT = 2000
 const EXPORT_HEIGHT_LIMIT = 2000
 const EXPORT_SIZE_LIMIT = 2000
 const DEBOUNCE = 250
 const TEMPLATES = [
+  India_Passport_Photo,
   PRC_Passport_Photo,
   PRC_Travel_Document,
   US_Passport_Photo,
-  India_Passport_Photo,
   UK_Passport_Photo,
   Canada_Passport_Photo,
   Canada_Visa_Photo,
@@ -539,6 +540,51 @@ const MiddleColumn = ({
   let iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i)
 
   const [activeControlTab, setActiveControlTab] = useState('tab1')
+  const [aligning, setAligning] = useState({ loading: false, error: null })
+  const [pendingAlign, setPendingAlign] = useState(false)
+
+  const runAutoAlign = useCallback(async () => {
+    if (!photo) return
+    setAligning({ loading: true, error: null })
+    try {
+      const aligned = await autoAlignFace({
+        photoSrc: photo,
+        guides: guide,
+        editorDimensions,
+        maskedPhotoSrc: removeBg.state && processedPhoto ? processedPhoto : undefined,
+      })
+      setRotation(INITIAL_ROTATION)
+      setZoom(aligned.zoom)
+      setPosition(aligned.position)
+      setAligning({ loading: false, error: null })
+      setTimeout(() => updatePreview(editorRef, setCroppedImage), 100)
+    } catch (error) {
+      console.error('Auto align error:', error)
+      setAligning({ loading: false, error: error.code === 'NO_FACE' ? 'NO_FACE' : 'GENERIC' })
+    }
+  }, [photo, guide, editorDimensions, removeBg, processedPhoto, setRotation, setZoom, setPosition, updatePreview, editorRef, setCroppedImage])
+
+  // Run a pending alignment once the user has consented to the AI model
+  useEffect(() => {
+    if (allowAiModel && pendingAlign) {
+      setPendingAlign(false)
+      runAutoAlign()
+    }
+  }, [allowAiModel, pendingAlign, runAutoAlign])
+
+  const handleAutoAlignClick = () => {
+    ReactGA.event({
+      action: 'auto_align',
+      category: 'Button Click',
+      label: 'AI Auto Align',
+    })
+    if (!allowAiModel) {
+      setPendingAlign(true)
+      setModals((prevModals) => ({ ...prevModals, aiModel: true }))
+      return
+    }
+    runAutoAlign()
+  }
 
   return (
     <article className="middle-column"
@@ -641,6 +687,22 @@ const MiddleColumn = ({
                       onClick={() => setZoom((zoom) => (1))}
                     >&#8634;</label>
                   </div>
+                  <div className="control-row3">
+                    <button
+                      className="auto-align-button"
+                      disabled={aligning.loading}
+                      aria-busy={aligning.loading}
+                      onClick={handleAutoAlignClick}
+                    >
+                      {aligning.loading ? translate("autoAlignProcessing") : translate("autoAlignLabel")}
+                    </button>
+                  </div>
+                  {aligning.loading && (<div className="control-row3">
+                    <small>{translate("autoAlignReminder")}</small>
+                  </div>)}
+                  {aligning.error && (<div className="control-row3" style={{ color: "red" }}>
+                    <small>{translate(aligning.error === 'NO_FACE' ? "autoAlignNoFace" : "autoAlignError")}</small>
+                  </div>)}
                 </>
               )}
               {activeControlTab === 'tab2' && (
@@ -747,6 +809,7 @@ const MiddleColumn = ({
                 <button onClick={() => {
                   setModals((prevModals) => ({ ...prevModals, aiModel: false }))
                   setAllowAiModel(false)
+                  setPendingAlign(false)
                 }}>
                   {translate("noButton")}
                 </button>
@@ -1224,8 +1287,8 @@ const App = () => {
     ReactGA.send({ hitType: "pageview", page: window.location.pathname })
   }, [])
 
-  const defaultTemplate = TEMPLATES.find((t) => t.title === "US Passport/Visa Photo") || TEMPLATES[0]
-  const [template, setTemplate] = useState(defaultTemplate) // Default is US
+  const defaultTemplate = TEMPLATES.find((t) => t.title === "Indian Passport Photo") || TEMPLATES[0]
+  const [template, setTemplate] = useState(defaultTemplate) // Default is India
   const [photo, setPhoto] = useState(null)
   const [allowAiModel, setAllowAiModel] = useState(false)
   const [removeBg, setRemoveBg] = useState({ state: false, error: false }) // Toggle for background removal
@@ -1290,35 +1353,14 @@ const App = () => {
 
   const processPhotoForBgRemoval = useCallback(async (photoData) => {
     setLoadingModel(true)
-
-    const configs = [
-      {
-        debug: true,
-        model: "medium",
-        publicPath: window.location.href + "/ai-assets/dist/"
-      },
-      { // If can't load local model, try remote one.
-        debug: true,
-        model: "medium",
-      }
-    ]
-
-    for (const config of configs) {
-      try {
-        const resultBlob = await imglyRemoveBackground(photoData, config)
-        const url = URL.createObjectURL(resultBlob)
-        setProcessedPhoto(url)
-        setLoadingModel(false)
-        return // Exit the loop if successful
-      } catch (error) {
-        console.error('Background removal error:', error)
-        // Continue to the next configuration in case of an error
-      }
+    try {
+      const resultBlob = await removeBackground(photoData)
+      setProcessedPhoto(URL.createObjectURL(resultBlob))
+      setLoadingModel(false)
+    } catch (error) {
+      setRemoveBg({ state: false, error: true })
+      setLoadingModel(false)
     }
-
-    // If all configurations fail, set error state
-    setRemoveBg({ state: false, error: true })
-    setLoadingModel(false)
   }, [])
 
 
