@@ -45,7 +45,8 @@ const createLandmarker = async () => {
       return await FaceLandmarker.createFromOptions(fileset, {
         baseOptions: { modelAssetPath: config.model },
         runningMode: 'IMAGE',
-        numFaces: 1,
+        numFaces: 2,
+        outputFaceBlendshapes: true,
       })
     } catch (error) {
       console.error('Face landmarker loading error:', error)
@@ -55,7 +56,7 @@ const createLandmarker = async () => {
   throw lastError
 }
 
-const getFaceLandmarker = () => {
+export const getFaceLandmarker = () => {
   if (!landmarkerPromise) {
     landmarkerPromise = createLandmarker()
     landmarkerPromise.catch(() => { landmarkerPromise = null })
@@ -63,7 +64,7 @@ const getFaceLandmarker = () => {
   return landmarkerPromise
 }
 
-const loadImage = (src) => new Promise((resolve, reject) => {
+export const loadImage = (src) => new Promise((resolve, reject) => {
   const image = new Image()
   image.onload = () => resolve(image)
   image.onerror = reject
