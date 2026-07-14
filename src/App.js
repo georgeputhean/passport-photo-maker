@@ -9,6 +9,7 @@ import { useLanguage } from './translate'
 import { generateSingle, handleSaveSingle, generate4x6, handleSave4x6 } from './SaveImage'
 import Color from './Color'
 import { autoAlignFace } from './AutoAlign'
+import { checkPhotoCompliance, SEVERITY } from './PhotoCompliance'
 import CookieConsent from "react-cookie-consent"
 import PRC_Passport_Photo from './Templates/PRC_Passport_Photo.json'
 import PRC_Travel_Document from './Templates/PRC_Travel_Document_Photo.json'
@@ -542,6 +543,9 @@ const MiddleColumn = ({
   const [activeControlTab, setActiveControlTab] = useState('tab1')
   const [aligning, setAligning] = useState({ loading: false, error: null })
   const [pendingAlign, setPendingAlign] = useState(false)
+  const [checking, setChecking] = useState({ loading: false, error: null })
+  const [pendingCheck, setPendingCheck] = useState(false)
+  const [complianceResult, setComplianceResult] = useState(null)
 
   const runAutoAlign = useCallback(async () => {
     if (!photo) return
@@ -584,6 +588,54 @@ const MiddleColumn = ({
       return
     }
     runAutoAlign()
+  }
+
+  const runComplianceCheck = useCallback(async () => {
+    if (!photo) return
+    setChecking({ loading: true, error: null })
+    try {
+      const result = await checkPhotoCompliance({
+        photoSrc: photo,
+        maskedPhotoSrc: removeBg.state && processedPhoto ? processedPhoto : undefined,
+      })
+      setComplianceResult(result)
+      setChecking({ loading: false, error: null })
+      if (result.issues.length > 0) {
+        setModals((prevModals) => ({ ...prevModals, photoIssues: true }))
+      }
+    } catch (error) {
+      console.error('Photo compliance check error:', error)
+      setComplianceResult(null)
+      setChecking({ loading: false, error: 'GENERIC' })
+    }
+  }, [photo, removeBg, processedPhoto, setModals])
+
+  // Run a pending compliance check once the user has consented to the AI model
+  useEffect(() => {
+    if (allowAiModel && pendingCheck) {
+      setPendingCheck(false)
+      runComplianceCheck()
+    }
+  }, [allowAiModel, pendingCheck, runComplianceCheck])
+
+  // Discard a stale result once the photo (or crop) changes, so the button
+  // always reflects a fresh check rather than a leftover verdict.
+  useEffect(() => {
+    setComplianceResult(null)
+  }, [photo])
+
+  const handleCheckPhotoClick = () => {
+    ReactGA.event({
+      action: 'check_photo',
+      category: 'Button Click',
+      label: 'Check My Photo',
+    })
+    if (!allowAiModel) {
+      setPendingCheck(true)
+      setModals((prevModals) => ({ ...prevModals, aiModel: true }))
+      return
+    }
+    runComplianceCheck()
   }
 
   return (
@@ -703,6 +755,22 @@ const MiddleColumn = ({
                   {aligning.error && (<div className="control-row3" style={{ color: "red" }}>
                     <small>{translate(aligning.error === 'NO_FACE' ? "autoAlignNoFace" : "autoAlignError")}</small>
                   </div>)}
+                  <div className="control-row3">
+                    <button
+                      className="check-photo-button"
+                      disabled={checking.loading}
+                      aria-busy={checking.loading}
+                      onClick={handleCheckPhotoClick}
+                    >
+                      {checking.loading ? translate("checkPhotoProcessing") : translate("checkPhotoLabel")}
+                    </button>
+                  </div>
+                  {checking.loading && (<div className="control-row3">
+                    <small>{translate("autoAlignReminder")}</small>
+                  </div>)}
+                  {checking.error && (<div className="control-row3" style={{ color: "red" }}>
+                    <small>{translate("checkPhotoError")}</small>
+                  </div>)}
                 </>
               )}
               {activeControlTab === 'tab2' && (
@@ -810,8 +878,36 @@ const MiddleColumn = ({
                   setModals((prevModals) => ({ ...prevModals, aiModel: false }))
                   setAllowAiModel(false)
                   setPendingAlign(false)
+                  setPendingCheck(false)
                 }}>
                   {translate("noButton")}
+                </button>
+              </footer>
+            </article>
+          </dialog>
+          <dialog open={modals.photoIssues} className='modal'>
+            <article>
+              <h4>{translate("photoIssuesTitle")}</h4>
+              <small>{translate("photoIssuesIntro")}</small>
+              <ul>
+                {(complianceResult?.issues || []).map((issue) => (
+                  <li key={issue.id} style={{ color: issue.severity === SEVERITY.HEURISTIC ? "darkorange" : "red" }}>
+                    <small>
+                      {translate(issue.messageKey)}
+                      {issue.severity === SEVERITY.HEURISTIC && <> {translate("lowConfidenceLabel")}</>}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+              <footer>
+                <button onClick={() => {
+                  setModals((prevModals) => ({ ...prevModals, photoIssues: false }))
+                  document.getElementById('selectedFile')?.click()
+                }}>
+                  {translate("chooseNewPhotoButton")}
+                </button>
+                <button onClick={() => setModals((prevModals) => ({ ...prevModals, photoIssues: false }))}>
+                  {translate("continueAnywayButton")}
                 </button>
               </footer>
             </article>
@@ -1317,7 +1413,7 @@ const App = () => {
     height_valid: true,
     size_valid: true,
   })
-  const [modals, setModals] = useState({ coffee: false, changelog: false, save: false, disclaimer: false, aiModel: false })
+  const [modals, setModals] = useState({ coffee: false, changelog: false, save: false, disclaimer: false, aiModel: false, photoIssues: false })
   const [editorDimensions, setEditorDimensions] = useState({
     width: parseFloat(defaultTemplate.width) / MM2INCH * parseFloat(defaultTemplate.dpi),
     height: parseFloat(defaultTemplate.height) / MM2INCH * parseFloat(defaultTemplate.dpi),
