@@ -10,7 +10,7 @@
     {
       "index": "A",
       "title": "Center Guide Line",
-      "instruction": "Align the nose tip to the center line",
+      "instruction": "Nose on center line",
       "start_x": "172.5",
       "start_y": "20",
       "width": "5",
@@ -25,7 +25,7 @@
     {
       "index": "B",
       "title": "Forbidden Area: Top",
-      "instruction": "Do not put top of the head/hair into this area",
+      "instruction": "Don't crop hair here",
       "start_x": "0",
       "start_y": "0",
       "width": "350",
@@ -40,7 +40,7 @@
     {
       "index": "C",
       "title": "Forbidden Area: Bottom",
-      "instruction": "Do not put bottom of the face/chin into this area",
+      "instruction": "Don't crop chin here",
       "start_x": "0",
       "start_y": "400",
       "width": "350",
@@ -55,7 +55,7 @@
     {
       "index": "C",
       "title": "Forbidden Area: Top",
-      "instruction": "Do not put the head(including ears) into this area",
+      "instruction": "Keep ear inside the frame",
       "start_x": "0",
       "start_y": "20",
       "width": "20",
@@ -70,7 +70,7 @@
     {
       "index": "D",
       "title": "Forbidden Area: Bottom",
-      "instruction": "Do not put the head(including ears) into this area",
+      "instruction": "Keep ear inside the frame",
       "start_x": "330",
       "start_y": "20",
       "width": "20",
@@ -85,7 +85,7 @@
     {
       "index": "E",
       "title": "Top Head Area",
-      "instruction": "Put top of the head/hair into this area",
+      "instruction": "Hair top in this band",
       "start_x": "20",
       "start_y": "20",
       "width": "310",
@@ -100,7 +100,7 @@
     {
       "index": "F",
       "title": "Center Square: bottom",
-      "instruction": "Put the edge of the bottom of the face/chin into this area",
+      "instruction": "Chin in this band",
       "start_x": "20",
       "start_y": "360",
       "width": "310",

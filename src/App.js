@@ -57,8 +57,30 @@ const MAX_EDITOR_WIDTH = 330
 const MAX_EDITOR_HEIGHT = 480
 const MM2INCH = 25.4 // Convert millimeter to inch
 
+const GUIDE_COLOR_VARS = {
+  yellow: 'var(--pico-primary)',
+  green: 'var(--guide-green)',
+  red: 'var(--guide-red)',
+  aqua: 'var(--guide-aqua)',
+}
+
+const getTemplateFlag = (title) => {
+  if (title.startsWith('Australia')) return '🇦🇺'
+  if (title.startsWith('Canada')) return '🇨🇦'
+  if (title.startsWith('Germany')) return '🇩🇪'
+  if (title.startsWith('Indian')) return '🇮🇳'
+  if (title.startsWith('Japan')) return '🇯🇵'
+  if (title.startsWith('Malaysia')) return '🇲🇾'
+  if (title.startsWith('Mexico')) return '🇲🇽'
+  if (title.startsWith('Chinese')) return '🇨🇳'
+  if (title.startsWith('Spain')) return '🇪🇸'
+  if (title.startsWith('UK')) return '🇬🇧'
+  if (title.startsWith('US')) return '🇺🇸'
+  return '🌐'
+}
+
 // LoadPhotoButton component
-const LoadPhotoButton = ({ onPhotoLoad, title }) => {
+const LoadPhotoButton = ({ onPhotoLoad, title, compact }) => {
   const MAX_FILE_SIZE = 20000000
   const handlePhotoUpload = (event) => {
     const file = event.target.files[0]
@@ -98,19 +120,28 @@ const LoadPhotoButton = ({ onPhotoLoad, title }) => {
         onChange={handlePhotoUpload}
         accept="image/png, image/jpeg, image/jpg"
       />
-      <div
-        role="button"
-        tabIndex="0"
-        className="load-file-button"
-        onClick={handleClickBrowse}
-        style={{
-          fill: "red",
-          backgroundImage: `url(${process.env.PUBLIC_URL + "/year_of_dragon.svg"})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "100%",
-          backgroundPosition: "bottom right",
-        }}
-      ><kbd style={{ opacity: "0.5", fontSize: "x-large" }}>{title}</kbd></div>
+      {compact ? (
+        <div
+          role="button"
+          tabIndex="0"
+          className="load-file-button-compact"
+          onClick={handleClickBrowse}
+        >{title}</div>
+      ) : (
+        <div
+          role="button"
+          tabIndex="0"
+          className="load-file-button"
+          onClick={handleClickBrowse}
+        >
+          <svg className="load-file-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 15.5V4M12 4L7.5 8.5M12 4l4.5 4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M4.5 15.5v2.75A1.75 1.75 0 006.25 20h11.5a1.75 1.75 0 001.75-1.75V15.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="load-file-title">{title}</span>
+          <span className="load-file-hint">JPG or PNG &middot; Processed locally, never uploaded</span>
+        </div>
+      )}
     </>
   )
 }
@@ -118,6 +149,46 @@ const LoadPhotoButton = ({ onPhotoLoad, title }) => {
 const calculateEditorZoom = (originalWidth, originalHeight) => {
   return Math.min(MAX_EDITOR_WIDTH / originalWidth, MAX_EDITOR_HEIGHT / originalHeight)
 }
+
+const StepIndicator = ({ photo, croppedImage }) => {
+  const step = !photo ? 1 : (!croppedImage ? 2 : 3)
+  const steps = [
+    { n: 1, label: 'Upload' },
+    { n: 2, label: 'Adjust' },
+    { n: 3, label: 'Export' },
+  ]
+  return (
+    <div className="step-indicator">
+      {steps.map((s, i) => (
+        <React.Fragment key={s.n}>
+          <div className="step-item">
+            <div className={'step-dot' + (s.n < step ? ' step-dot-done' : s.n === step ? ' step-dot-active' : ' step-dot-pending')}>
+              {s.n < step ? '✓' : s.n}
+            </div>
+            <span className={'step-label' + (s.n === step ? ' step-label-active' : '')}>{s.label}</span>
+          </div>
+          {i < steps.length - 1 && <div className="step-divider" />}
+        </React.Fragment>
+      ))}
+    </div>
+  )
+}
+
+const ThemeToggle = ({ theme, setTheme }) => (
+  <div className="theme-toggle">
+    <span className="theme-toggle-icon">☀</span>
+    <label style={{ margin: 0 }}>
+      <input
+        type="checkbox"
+        role="switch"
+        checked={theme === 'dark'}
+        onChange={(e) => setTheme(e.target.checked ? 'dark' : 'light')}
+        style={{ margin: 0 }}
+      />
+    </label>
+    <span className="theme-toggle-icon">🌙</span>
+  </div>
+)
 
 const NavBar = ({
   template,
@@ -129,7 +200,11 @@ const NavBar = ({
   setEditorDimensions,
   editorRef,
   setCroppedImage,
-  updatePreview
+  updatePreview,
+  photo,
+  croppedImage,
+  theme,
+  setTheme
 }) => {
 
   const handleTemplateChange = (event) => {
@@ -173,21 +248,31 @@ const NavBar = ({
   return (
     <nav>
       <ul>
-        <li><strong>{translate("app.title")}</strong></li>
+        <li>
+          <div className="nav-brand">
+            <span className="nav-logo-badge">P</span>
+            <strong>{translate("app.title")}</strong>
+          </div>
+        </li>
+      </ul>
+      <ul>
+        <li><StepIndicator photo={photo} croppedImage={croppedImage} /></li>
       </ul>
       <ul>
         <li>
           <select
             aria-label="Templates"
             required
+            className="template-select"
             value={translateObject(template.title)}
             onChange={handleTemplateChange}
           >
             {TEMPLATES.map((template, index) => (
-              <option key={index} value={translateObject(template.title)}> {translateObject(template.title)}  </option>
+              <option key={index} value={translateObject(template.title)}>{getTemplateFlag(translateObject(template.title))} {translateObject(template.title)}</option>
             ))}
           </select>
         </li>
+        <li><ThemeToggle theme={theme} setTheme={setTheme} /></li>
       </ul>
     </nav>
   )
@@ -206,21 +291,32 @@ const LeftColumn = ({
   translateObject,
 }) => {
   const { guide, instruction, width, height } = photoGuides
+  const visibleGuides = guide.filter((g) => g.index !== '↕')
   return (
     photo && (<div className="left-column" style={{ width: `${editorDimensions.width * editorDimensions.zoom}px` }}>
       <article className="guides-section guide-instruction">
-        <small>
-          {translate("width")}: {width}mm <br/>
-          {translate("height")}: {height}mm <br/><br/>
-        </small>
-        <small dangerouslySetInnerHTML={{ __html: translateObject(instruction) }} />
+        <div className="requirements-stats">
+          <div className="requirements-stat">
+            <span className="requirements-stat-label">{translate("width")}</span>
+            <span className="requirements-stat-value">{width}mm</span>
+          </div>
+          <div className="requirements-stat">
+            <span className="requirements-stat-label">{translate("height")}</span>
+            <span className="requirements-stat-value">{height}mm</span>
+          </div>
+        </div>
+        <small className="requirements-instruction" dangerouslySetInnerHTML={{ __html: translateObject(instruction) }} />
       </article>
       <article className="guides-section guide-details">
-        {guide.map((guide, index) => (
-          <div key={index} className="guide-item">
-            <kbd className="color-block" style={{ backgroundColor: guide.color, color: "black" }}><small>{guide.index}</small></kbd>
-            <small>{translateObject(guide.instruction)}</small>
-          </div>
+        <div className="alignment-guide-header">Alignment guide</div>
+        {visibleGuides.map((guide, index) => (
+          <React.Fragment key={index}>
+            {index > 0 && guide.color === 'red' && visibleGuides[index - 1].color !== 'red' && <div className="guide-divider" />}
+            <div className="guide-item">
+              <kbd className="color-block" style={{ backgroundColor: GUIDE_COLOR_VARS[guide.color] || guide.color }}><small>{guide.index}</small></kbd>
+              <small>{translateObject(guide.instruction)}</small>
+            </div>
+          </React.Fragment>
         ))}
       </article>
     </div>)
@@ -709,14 +805,14 @@ const MiddleColumn = ({
               {activeControlTab === 'tab1' && (
                 <>
                   <div className="control-row2">
-                    <div role="button" className="control-button" onClick={handleZoomOut}>−</div>
-                    <div role="button" className="control-button" onClick={handleZoomIn}>+</div>
-                    <div role="button" className="control-button" onClick={handleRotateCounterclockwise}>↺</div>
-                    <div role="button" className="control-button" onClick={handleRotateClockwise}>↻</div>
-                    <div role="button" className="control-button" onClick={handleMoveLeft}>←</div>
-                    <div role="button" className="control-button" onClick={handleMoveRight}>→</div>
-                    <div role="button" className="control-button" onClick={handleMoveUp}>↑</div>
-                    <div role="button" className="control-button" onClick={handleMoveDown}>↓</div>
+                    <div role="button" tabIndex="0" aria-label="Zoom out" title="Zoom out" className="control-button" onClick={handleZoomOut}>−</div>
+                    <div role="button" tabIndex="0" aria-label="Zoom in" title="Zoom in" className="control-button" onClick={handleZoomIn}>+</div>
+                    <div role="button" tabIndex="0" aria-label="Rotate counterclockwise" title="Rotate counterclockwise" className="control-button" onClick={handleRotateCounterclockwise}>↺</div>
+                    <div role="button" tabIndex="0" aria-label="Rotate clockwise" title="Rotate clockwise" className="control-button" onClick={handleRotateClockwise}>↻</div>
+                    <div role="button" tabIndex="0" aria-label="Move left" title="Move left" className="control-button" onClick={handleMoveLeft}>←</div>
+                    <div role="button" tabIndex="0" aria-label="Move right" title="Move right" className="control-button" onClick={handleMoveRight}>→</div>
+                    <div role="button" tabIndex="0" aria-label="Move up" title="Move up" className="control-button" onClick={handleMoveUp}>↑</div>
+                    <div role="button" tabIndex="0" aria-label="Move down" title="Move down" className="control-button" onClick={handleMoveDown}>↓</div>
                   </div>
                   <div className="control-row3 control-row4">
                     <label className="export-label color-label">{translate("zoom")}</label>
@@ -739,7 +835,7 @@ const MiddleColumn = ({
                       onClick={() => setZoom((zoom) => (1))}
                     >&#8634;</label>
                   </div>
-                  <div className="control-row3">
+                  <div className="auto-check-row">
                     <button
                       className="auto-align-button"
                       disabled={aligning.loading}
@@ -748,14 +844,6 @@ const MiddleColumn = ({
                     >
                       {aligning.loading ? translate("autoAlignProcessing") : translate("autoAlignLabel")}
                     </button>
-                  </div>
-                  {aligning.loading && (<div className="control-row3">
-                    <small>{translate("autoAlignReminder")}</small>
-                  </div>)}
-                  {aligning.error && (<div className="control-row3" style={{ color: "red" }}>
-                    <small>{translate(aligning.error === 'NO_FACE' ? "autoAlignNoFace" : "autoAlignError")}</small>
-                  </div>)}
-                  <div className="control-row3">
                     <button
                       className="check-photo-button"
                       disabled={checking.loading}
@@ -765,6 +853,12 @@ const MiddleColumn = ({
                       {checking.loading ? translate("checkPhotoProcessing") : translate("checkPhotoLabel")}
                     </button>
                   </div>
+                  {aligning.loading && (<div className="control-row3">
+                    <small>{translate("autoAlignReminder")}</small>
+                  </div>)}
+                  {aligning.error && (<div className="control-row3" style={{ color: "red" }}>
+                    <small>{translate(aligning.error === 'NO_FACE' ? "autoAlignNoFace" : "autoAlignError")}</small>
+                  </div>)}
                   {checking.loading && (<div className="control-row3">
                     <small>{translate("autoAlignReminder")}</small>
                   </div>)}
@@ -1023,37 +1117,43 @@ const RightColumn = ({
           <article className="preview-container">
             <img src={croppedImage} alt="Cropped preview" className="cropped-preview" height={editorDimensions.height * editorDimensions.zoom / 2} width={editorDimensions.width * editorDimensions.zoom / 2} />
             <div className='export-container' style={{ width: `${editorDimensions.width * editorDimensions.zoom / 2}px` }}>
-              <label className="export-label">{translate("widthLabel")}<br />(px)</label>
-              <input
-                type="number"
-                value={exportPhoto.width}
-                aria-invalid={!exportPhoto.width_valid}
-                onChange={handleWidthChange}
-                className="export-input"
-                style={{ width: `${editorDimensions.width * editorDimensions.zoom / 2.9}px` }}
-              />
+              <label className="export-label">{translate("widthLabel")} (px)</label>
+              <div className="export-input-wrap">
+                <input
+                  type="number"
+                  value={exportPhoto.width}
+                  aria-invalid={!exportPhoto.width_valid}
+                  onChange={handleWidthChange}
+                  className="export-input"
+                />
+                {exportPhoto.width_valid && <span className="export-input-check">✓</span>}
+              </div>
             </div>
             <div className='export-container' style={{ width: `${editorDimensions.width * editorDimensions.zoom / 2}px` }}>
-              <label className="export-label">{translate("heightLabel")}<br />(px)</label>
-              <input
-                type="number"
-                value={exportPhoto.height}
-                aria-invalid={!exportPhoto.height_valid}
-                onChange={handleHeightChange}
-                className="export-input"
-                style={{ width: `${editorDimensions.width * editorDimensions.zoom / 2.9}px` }}
-              />
+              <label className="export-label">{translate("heightLabel")} (px)</label>
+              <div className="export-input-wrap">
+                <input
+                  type="number"
+                  value={exportPhoto.height}
+                  aria-invalid={!exportPhoto.height_valid}
+                  onChange={handleHeightChange}
+                  className="export-input"
+                />
+                {exportPhoto.height_valid && <span className="export-input-check">✓</span>}
+              </div>
             </div>
             <div className='export-container' style={{ width: `${editorDimensions.width * editorDimensions.zoom / 2}px` }}>
-              <label className="export-label" >{translate("sizeLabel")}<br />(KB)</label>
-              <input
-                type="number"
-                value={exportPhoto.size}
-                aria-invalid={!exportPhoto.size_valid}
-                onChange={handleSizeChange}
-                className="export-input"
-                style={{ width: `${editorDimensions.width * editorDimensions.zoom / 2.9}px` }}
-              />
+              <label className="export-label">{translate("sizeLabel")} (KB)</label>
+              <div className="export-input-wrap">
+                <input
+                  type="number"
+                  value={exportPhoto.size}
+                  aria-invalid={!exportPhoto.size_valid}
+                  onChange={handleSizeChange}
+                  className="export-input"
+                />
+                {exportPhoto.size_valid && <span className="export-input-check">✓</span>}
+              </div>
             </div>
             <div
               disabled={!(exportPhoto.width_valid && exportPhoto.height_valid && exportPhoto.size_valid)}
@@ -1069,9 +1169,7 @@ const RightColumn = ({
                 })
               }}
             >{translate("saveTitle")}</div>
-          </article>
-          <article className="guides-section guide-instruction">
-            <LoadPhotoButton onPhotoLoad={onPhotoLoad} title={translate("loadNewPhotoButton")} />
+            <LoadPhotoButton onPhotoLoad={onPhotoLoad} title={translate("loadNewPhotoButton")} compact />
           </article>
         </>
       )}
@@ -1385,6 +1483,15 @@ const App = () => {
 
   const defaultTemplate = TEMPLATES.find((t) => t.title === "Indian Passport Photo") || TEMPLATES[0]
   const [template, setTemplate] = useState(defaultTemplate) // Default is India
+  const [theme, setTheme] = useState(() => {
+    const stored = localStorage.getItem('theme')
+    if (stored === 'dark' || stored === 'light') return stored
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+  })
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('theme', theme)
+  }, [theme])
   const [photo, setPhoto] = useState(null)
   const [allowAiModel, setAllowAiModel] = useState(false)
   const [removeBg, setRemoveBg] = useState({ state: false, error: false }) // Toggle for background removal
@@ -1543,6 +1650,10 @@ const App = () => {
             setCroppedImage={setCroppedImage}
             editorRef={editorRef}
             updatePreview={updatePreview}
+            photo={photo}
+            croppedImage={croppedImage}
+            theme={theme}
+            setTheme={setTheme}
           />
         </div>
         <div className="container">
