@@ -361,7 +361,6 @@ const MiddleColumn = ({
   const lastTouchDistance = useRef(null)
   const [isDragging, setIsDragging] = useState(false)
   const mouseStartRef = useRef({ x: null, y: null })
-  const debounceTimer = useRef(null)
   // Debounce function that allows immediate invocation
   const debounce = (func, wait, immediate) => {
     let timeout;
@@ -788,7 +787,7 @@ const MiddleColumn = ({
             width: editorDimensions.width * editorDimensions.zoom,
           }}
         >
-          <nav role="control-tabs-switch">
+          <nav>
             <ul>
               <li><label
                 onClick={() => setActiveControlTab('tab1')}
@@ -800,7 +799,7 @@ const MiddleColumn = ({
               >{translate("controlTab2")}</label></li>
             </ul>
           </nav>
-          <div role="tabs">
+          <div>
             <section>
               {activeControlTab === 'tab1' && (
                 <>
@@ -1546,13 +1545,13 @@ const App = () => {
   const photoGuides = template
 
   // Function to update the preview
-  const updatePreview = (editorRef, setCroppedImage) => {
+  const updatePreview = useCallback((editorRef, setCroppedImage) => {
     if (editorRef.current) {
       const canvas = editorRef.current.getImageScaledToCanvas()
       canvas.style.touchAction = 'none'
       setCroppedImage(canvas.toDataURL())
     }
-  }
+  }, [])
 
   const processPhotoForBgRemoval = useCallback(async (photoData) => {
     setLoadingModel(true)
@@ -1582,7 +1581,7 @@ const App = () => {
       warmth: 0,
       contrast: 0,
     })
-  }, [editorRef, photo])
+  }, [photo])
 
   useEffect(() => {
     const adjustImageAndSetPhoto = () => {
@@ -1619,7 +1618,7 @@ const App = () => {
       setPhoto(originalPhoto)
       setTimeout(() => updatePreview(editorRef, setCroppedImage), 100) // Update preview immediately after setting photo
     }
-  }, [originalPhoto, processedPhoto, adjustedPhoto, editorRef, adjustedPhoto, updatePreview])
+  }, [originalPhoto, processedPhoto, adjustedPhoto, editorRef, updatePreview, removeBg.state])
 
   useEffect(() => {
     if (removeBg.state && originalPhoto && !processedPhoto && allowAiModel) {
