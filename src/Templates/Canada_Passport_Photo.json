@@ -10,7 +10,7 @@
     {
       "index": "A",
       "title": "Center Guide Line",
-      "instruction": "Align the nose tip to the center line",
+      "instruction": "Nose on center line",
       "start_x": "247.5",
       "start_y": "0",
       "width": "5",
@@ -25,7 +25,7 @@
     {
       "index": "↕",
       "title": "Draggable Indicator",
-      "instruction": "Move the two bars up and down to fit your face",
+      "instruction": "Drag bars to fit your face",
       "start_x": "20",
       "start_y": "38",
       "width": "25",
@@ -40,7 +40,7 @@
     {
       "index": "B",
       "title": "Bar: Top",
-      "instruction": "Put the edge of the top of the head/hair into this area",
+      "instruction": "Hair top in this band",
       "start_x": "0",
       "start_y": "40",
       "width": "500",
@@ -55,7 +55,7 @@
     {
       "index": "C",
       "title": "Bar: Bottom",
-      "instruction": "Put the edge of the bottom of the face/chin into this area",
+      "instruction": "Chin in this band",
       "start_x": "0",
       "start_y": "415",
       "width": "500",

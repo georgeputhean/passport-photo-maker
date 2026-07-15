@@ -10,7 +10,7 @@
     {
       "index": "A",
       "title": "Center Guide Line",
-      "instruction": "Align the nose tip to the center line",
+      "instruction": "Nose on center line",
       "start_x": "172.5",
       "start_y": "0",
       "width": "5",
@@ -25,7 +25,7 @@
     {
       "index": "↕",
       "title": "Draggable Indicator",
-      "instruction": "Move the two bars up and down to fit your face",
+      "instruction": "Drag bars to fit your face",
       "start_x": "20",
       "start_y": "33",
       "width": "25",
@@ -40,7 +40,7 @@
     {
       "index": "B",
       "title": "Bar: Top",
-      "instruction": "Put the edge of the top of the head/hair into this area",
+      "instruction": "Hair top in this band",
       "start_x": "0",
       "start_y": "35",
       "width": "350",
@@ -55,7 +55,7 @@
     {
       "index": "C",
       "title": "Bar: Bottom",
-      "instruction": "Put the edge of the bottom of the face/chin into this area",
+      "instruction": "Chin in this band",
       "start_x": "0",
       "start_y": "400",
       "width": "350",
@@ -70,7 +70,7 @@
     {
       "index": "D",
       "title": "Forbidden Area: Top",
-      "instruction": "Do not put top of the head/hair into this area",
+      "instruction": "Don't crop hair here",
       "start_x": "0",
       "start_y": "0",
       "width": "350",
@@ -85,7 +85,7 @@
     {
       "index": "E",
       "title": "Forbidden Area: Bottom",
-      "instruction": "Do not put bottom of the face/chin into this area",
+      "instruction": "Don't crop chin here",
       "start_x": "0",
       "start_y": "425",
       "width": "350",
@@ -100,7 +100,7 @@
     {
       "index": "F",
       "title": "Forbidden Area: Left",
-      "instruction": "Do not put the head (including ears) into this area",
+      "instruction": "Keep left ear inside the frame",
       "start_x": "0",
       "start_y": "0",
       "width": "20",
@@ -115,7 +115,7 @@
     {
       "index": "G",
       "title": "Forbidden Area: Right",
-      "instruction": "Do not put the head (including ears) into this area",
+      "instruction": "Keep right ear inside the frame",
       "start_x": "330",
       "start_y": "0",
       "width": "20",
