@@ -41,3 +41,7 @@ service-account*.json
 
 # Claude Code local config (session state, permissions, local machine paths)
 .claude/
+
+# local dev tooling / design handoff references (not app source)
+/integration/
+run.bat
