@@ -1,0 +1,3 @@
+{
+  "buildCommand": "cross-env PUBLIC_URL=/ CI=false react-scripts build"
+}
