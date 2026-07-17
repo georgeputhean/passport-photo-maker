@@ -840,12 +840,110 @@ label.color-reset:hover {
   color: #8a6200 !important;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .step-label {
     display: none;
   }
 
   .step-divider {
     width: 10px;
+  }
+
+  /* Stack the 3-column layout into one scrollable column */
+  .container {
+    flex-direction: column;
+    padding: 6px;
+  }
+
+  /* The editor canvas (.photo-area) is a fixed ~330px box (MAX_EDITOR_WIDTH,
+     out of scope to change here) - reclaim padding/margin around it so the
+     total fits real small-phone viewports (~360-375px) instead of only
+     fitting on larger phones/tablets.
+
+     Deliberately NOT using align-items:center here: GuideDrawer.js renders
+     its draggable guide overlays as a *sibling* of .photo-area (not nested
+     inside it), and they only land in the right place today because both
+     .photo-area and GuideDrawer's absolutely-positioned wrapper resolve to
+     the same flex "static position" under the default align-items:stretch.
+     align-items:center on .middle-column breaks that (verified: it shifts
+     the guide overlays ~165px off from the editor). Centering the whole
+     .middle-column as a unit via align-self, instead of centering its
+     children, keeps that internal alignment untouched. */
+  .middle-column {
+    align-self: center;
+    order: 1;
+    padding: 6px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .right-column {
+    order: 2;
+  }
+
+  .left-column {
+    order: 3;
+  }
+
+  /* These columns are sized in JS via inline px styles - only !important can win */
+  .left-column,
+  .right-column {
+    width: 100% !important;
+    max-width: 480px;
+    margin-left: 0;
+    margin-right: 0;
+    align-self: center; /* at tablet widths (~600-768px) they hit the 480px cap - keep them centered like .middle-column instead of flush-left */
+  }
+
+  .export-container,
+  .save-button {
+    width: 100% !important;
+  }
+
+  /* Flex items default to min-width:auto, which stops them shrinking below
+     their image's content size - without this the two save-options refuse
+     to stack and force the dialog wider than the viewport. */
+  .save-option {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+
+  /* Touch targets that measure under ~44px at the base font size */
+  .template-select {
+    padding: 12px 14px;
+    min-height: 44px;
+  }
+
+  .control-tab-label {
+    padding-top: 0.75em;
+    padding-bottom: 0.75em;
+  }
+
+  .modal-button {
+    padding: 0.85em 1em;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .theme-toggle {
+    padding: 12px 14px;
+  }
+
+  .theme-toggle label {
+    padding: 10px;
+    margin: -10px;
+  }
+
+  /* Prevent NavBar's 3 <ul> groups from overflowing on one row */
+  nav {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  nav > ul {
+    flex: 1 1 100%;
+    justify-content: center;
   }
 }
