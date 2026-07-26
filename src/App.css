@@ -1,5 +1,15 @@
 @import "@picocss/pico";
 
+/* Pico grows the root font size up to 131.25% at wide breakpoints (fluid
+   type). That's fine for reading text, but every em/rem-based padding in
+   this app's dense editor UI (nav, buttons, panels) grows right along with
+   it -- on exactly the wide/short screens where vertical room is tightest.
+   Pin it so the layout's actual footprint stays predictable at every
+   viewport instead of quietly ballooning on a bigger screen. */
+html {
+  font-size: 16px !important;
+}
+
 /* ============================================================
    1a — Dark theme tokens (replaces the yellow-on-navy Pico override)
    Paste this whole file over src/App.css
@@ -53,6 +63,14 @@ html {
   scrollbar-width: thin;
 }
 
+/* Pico's default nav <li> padding (16px top/bottom) is generous for a
+   typical marketing site header; the items here already carry their own
+   compact padding (theme-toggle, template-select, step-indicator), so the
+   extra wrapper padding just taxes the vertical budget twice. */
+nav li {
+  padding: 8px 10px;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -73,6 +91,10 @@ html {
 
 .app {
   margin-bottom: 10vh;
+}
+
+.app.app-editing {
+  margin-bottom: 0;
 }
 
 .load-file-button {
@@ -135,12 +157,59 @@ html {
   flex-wrap: wrap;
 }
 
+/* Keeps column wrapping deterministic (matches STACKED_LAYOUT_BREAKPOINT in
+   App.js) so the editor's viewport-based width budget can't accidentally
+   fall between "3 columns in a row" and "3 columns wrapped", which produces
+   a taller layout than either deliberate state. */
+@media (min-width: 820px) {
+  .columns-row {
+    flex-wrap: nowrap;
+    justify-content: center;
+    /* All three columns are meant to be the same size -- stretch each one
+       to match the tallest so left/center/right end up equal height, not
+       just equal width. */
+    align-items: stretch;
+    max-width: 1760px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 24px;
+    padding-right: 24px;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 819px) {
+  .columns-row {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
 .middle-column {
   display: flex;
   flex-direction: column;
   margin-left: 0.25em;
   margin-right: 0.25em;
   margin-top: 0.5em;
+  min-width: 230px;
+  /* It's an <article>, which carries Pico's default 16px padding -- left
+     and right are plain <div>s with none, so without this the three
+     columns don't actually end up the same width. */
+  padding: 0;
+}
+
+.editor-canvas {
+  display: flex;
+  flex-direction: column;
+  /* Deliberately NOT width:100% -- this box must stay exactly as wide as
+     .photo-area (its content), with no internal slack. GuideDrawer's
+     absolutely-positioned overlay has no width of its own and lands via
+     flex's "static position" fallback flush with this container's left
+     edge, which only lines up with the photo when there's no gap between
+     them to drift apart across. Center the whole unit within .middle-column
+     instead (below), which has no such alignment dependency. */
+  flex: 0 0 auto;
+  align-self: center;
 }
 
 .photo-area {
@@ -159,9 +228,20 @@ html {
   display: flex;
   flex-direction: column;
   padding: 0.25em;
+  min-width: 230px;
+  width: 100%;
+  /* Pin the font size instead of inheriting Pico's fluid root scaling
+     (up to 131.25% on wide screens) -- otherwise every em-based padding in
+     this panel grows on a bigger screen, eating the vertical room the
+     editor canvas needs most on exactly those screens. */
+  font-size: 14px;
 }
 
 /* Segmented tab switcher (Transform / Color) */
+.control-container nav li {
+  padding: 0;
+}
+
 .control-tab-label {
   padding-left: 1em;
   padding-right: 1em;
@@ -194,10 +274,9 @@ html {
 
 .control-row3 {
   font-size: small;
-  margin-bottom: 1em;
   color: var(--pico-muted-color);
-  margin-top: 2em;
-  margin-bottom: 2em;
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
 }
 
 .control-row4 {
@@ -292,7 +371,12 @@ label.color-reset:hover {
   align-items: center;
   flex-basis: calc(25% - 10px);
   max-width: calc(25% - 10px);
-  margin: 5px;
+  min-width: 38px;
+  min-height: 44px;
+  margin: 4px;
+  padding: 10px;
+  font-size: 16px;
+  line-height: 1;
   background-color: #1c2028 !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   color: #e3e5ea !important;
@@ -310,11 +394,14 @@ label.color-reset:hover {
   transform: scale(0.96);
 }
 
+/* All three columns share the same width (clamp mirrors getColumnWidth in
+   App.js) so left/center/right read as equal-sized panels. */
 .left-column {
   display: flex;
   flex-direction: column;
   z-index: 0;
-  flex-grow: 1;
+  flex: 0 0 auto;
+  width: clamp(230px, 24vw, 380px);
   margin-left: 0.25em;
   margin-right: 0.25em;
   margin-top: 0.5em;
@@ -448,13 +535,26 @@ label.color-reset:hover {
 }
 
 .theme-toggle-icon {
-  font-size: 14px;
+  flex: 0 0 auto;
+  color: var(--pico-muted-color);
 }
 
 .theme-toggle input[type="checkbox"][role="switch"] {
-  width: 34px;
-  height: 19px;
+  --switch-width: 34px;
+  --switch-height: 19px;
+  width: var(--switch-width);
+  height: var(--switch-height);
   margin: 0;
+  flex: 0 0 auto;
+}
+
+.theme-toggle input[type="checkbox"][role="switch"]::before {
+  width: calc(var(--switch-height) - var(--pico-border-width) * 2);
+  height: calc(var(--switch-height) - var(--pico-border-width) * 2);
+}
+
+.theme-toggle input[type="checkbox"][role="switch"]:checked::before {
+  margin-inline-start: calc(var(--switch-width) - var(--switch-height));
 }
 
 .template-select {
@@ -476,7 +576,16 @@ label.color-reset:hover {
 }
 
 .guide-details {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.guide-item-list {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .guides-section {
@@ -534,7 +643,8 @@ label.color-reset:hover {
   display: flex;
   flex-direction: column;
   z-index: 0;
-  flex-grow: 1;
+  flex: 0 0 auto;
+  width: clamp(230px, 24vw, 380px);
   margin-left: 0.25em;
   margin-right: 0.25em;
   margin-top: 0.5em;
@@ -543,22 +653,44 @@ label.color-reset:hover {
 .preview-container {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
   overflow: hidden;
   width: 100%;
-  justify-content: center;
-  align-items: center;
+  /* Image at top, export fields + save button grouped at bottom, with the
+     flexible gap between them -- so when this panel is stretched to match
+     the other columns' height, the extra room doesn't show up as a single
+     dead zone under everything. */
+  justify-content: space-between;
+  align-items: stretch;
   background-color: var(--pico-card-background-color);
   border: 1px solid var(--pico-card-border-color);
   border-radius: 12px;
   padding: 1em;
+  box-sizing: border-box;
+}
+
+.export-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
 }
 
 .cropped-preview {
+  /* max-width/max-height + auto sizing on both axes scales the image down
+     to fit while keeping its real aspect ratio, so the box is always
+     exactly the photo's shape -- no cropping/letterboxing, no showing the
+     white background as bars around it. (width:100% + height:auto + a
+     max-height forced a box whose ratio didn't match the photo, and
+     object-fit:contain filled the leftover space with the background
+     color instead of the box just being the right shape to begin with.) */
   max-width: 100%;
-  max-height: 100%;
+  max-height: 40vh;
+  width: auto;
+  height: auto;
   background-color: white;
   border-radius: 8px;
-  margin-bottom: 0.5em;
+  margin-bottom: 0.75em;
+  align-self: center;
 }
 
 .export-container {
@@ -569,6 +701,7 @@ label.color-reset:hover {
   align-items: center;
   gap: 10px;
   margin-bottom: 9px;
+  width: 100%;
 }
 
 .export-label {
@@ -580,13 +713,15 @@ label.color-reset:hover {
 
 .export-input-wrap {
   flex: 1;
+  min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: var(--pico-form-element-background-color);
   border: 1px solid var(--pico-form-element-border-color);
   border-radius: 7px;
-  padding: 6px 10px;
+  padding: 8px 12px;
+  box-sizing: border-box;
 }
 
 .export-input-wrap input.export-input[type="number"] {
@@ -642,6 +777,8 @@ label.color-reset:hover {
 
 /* Primary CTA — the ONLY solid-yellow button on the page */
 .save-button {
+  width: 100%;
+  min-height: 44px;
   margin-top: 0.5em;
   background-color: var(--pico-primary) !important;
   color: #12141a !important;
@@ -650,6 +787,7 @@ label.color-reset:hover {
   box-shadow: 0 6px 18px rgba(245, 197, 24, 0.25);
   cursor: pointer;
   transition: filter 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
 }
 
 .save-button:hover {
