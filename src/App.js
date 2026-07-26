@@ -53,9 +53,36 @@ const TEMPLATES = [
   Mexico_TN_Visa_Photo,
   Spain_Passport_Photo,
 ]
-const MAX_EDITOR_WIDTH = 330
-const MAX_EDITOR_HEIGHT = 480
+const MAX_EDITOR_WIDTH = 380
+const MAX_EDITOR_HEIGHT = 640
+const MIN_EDITOR_WIDTH = 230 // matches the CSS min-width on .middle-column/.control-container (button text floor)
+const MIN_EDITOR_HEIGHT = 220
 const MM2INCH = 25.4 // Convert millimeter to inch
+const STACKED_LAYOUT_BREAKPOINT = 820 // below this, left/middle/right columns wrap into a vertical stack
+const CHROME_HEIGHT_FALLBACK = 260 // nav + controls height guess, used only before the real DOM has been measured
+
+// Shared width for all three columns (left/middle/right) -- must stay in
+// sync with the clamp() rule on .left-column/.right-column in App.css and
+// with MAX/MIN_EDITOR_WIDTH above, since the editor's own width budget uses
+// this same function so the photo ends up the same width as the side panels.
+const getColumnWidth = (vw) => Math.min(MAX_EDITOR_WIDTH, Math.max(MIN_EDITOR_WIDTH, vw * 0.24))
+
+// Budget the editor canvas is allowed to occupy on screen, derived from the
+// actual viewport size and the real measured height of the surrounding chrome
+// (nav + transform controls), so the page fits in one screen instead of
+// growing past the fold on short viewports. Never exceeds
+// MAX_EDITOR_WIDTH/HEIGHT, so nothing changes on screens that already fit.
+const getEditorBudget = (chromeHeight = CHROME_HEIGHT_FALLBACK) => {
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const isStacked = vw < STACKED_LAYOUT_BREAKPOINT
+  const widthBudget = isStacked ? vw - 48 : getColumnWidth(vw)
+  const heightBudget = vh - chromeHeight
+  return {
+    width: Math.min(MAX_EDITOR_WIDTH, Math.max(MIN_EDITOR_WIDTH, widthBudget)),
+    height: Math.min(MAX_EDITOR_HEIGHT, Math.max(MIN_EDITOR_HEIGHT, heightBudget)),
+  }
+}
 
 const GUIDE_COLOR_VARS = {
   yellow: 'var(--pico-primary)',
@@ -146,8 +173,8 @@ const LoadPhotoButton = ({ onPhotoLoad, title, compact }) => {
   )
 }
 
-const calculateEditorZoom = (originalWidth, originalHeight) => {
-  return Math.min(MAX_EDITOR_WIDTH / originalWidth, MAX_EDITOR_HEIGHT / originalHeight)
+const calculateEditorZoom = (originalWidth, originalHeight, maxWidth = MAX_EDITOR_WIDTH, maxHeight = MAX_EDITOR_HEIGHT) => {
+  return Math.min(maxWidth / originalWidth, maxHeight / originalHeight)
 }
 
 const StepIndicator = ({ photo, croppedImage }) => {
@@ -174,9 +201,29 @@ const StepIndicator = ({ photo, croppedImage }) => {
   )
 }
 
+const SunIcon = () => (
+  <svg className="theme-toggle-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="4" />
+    <line x1="12" y1="2" x2="12" y2="4" />
+    <line x1="12" y1="20" x2="12" y2="22" />
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+    <line x1="2" y1="12" x2="4" y2="12" />
+    <line x1="20" y1="12" x2="22" y2="12" />
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+  </svg>
+)
+
+const MoonIcon = () => (
+  <svg className="theme-toggle-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" />
+  </svg>
+)
+
 const ThemeToggle = ({ theme, setTheme }) => (
   <div className="theme-toggle">
-    <span className="theme-toggle-icon">☀</span>
+    <SunIcon />
     <label style={{ margin: 0 }}>
       <input
         type="checkbox"
@@ -186,7 +233,7 @@ const ThemeToggle = ({ theme, setTheme }) => (
         style={{ margin: 0 }}
       />
     </label>
-    <span className="theme-toggle-icon">🌙</span>
+    <MoonIcon />
   </div>
 )
 
@@ -204,7 +251,9 @@ const NavBar = ({
   photo,
   croppedImage,
   theme,
-  setTheme
+  setTheme,
+  navRef,
+  editorBudget,
 }) => {
 
   const handleTemplateChange = (event) => {
@@ -237,7 +286,9 @@ const NavBar = ({
         height: parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi),
         zoom: calculateEditorZoom(
           parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi),
-          parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi)),
+          parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi),
+          editorBudget.width,
+          editorBudget.height),
         dpi_ratio: parseFloat(selectedTemplate.dpi) / (MM2INCH * 10),
       })
       setCroppedImage(null)
@@ -246,7 +297,7 @@ const NavBar = ({
   }
 
   return (
-    <nav>
+    <nav ref={navRef}>
       <ul>
         <li>
           <div className="nav-brand">
@@ -293,7 +344,7 @@ const LeftColumn = ({
   const { guide, instruction, width, height } = photoGuides
   const visibleGuides = guide.filter((g) => g.index !== '↕')
   return (
-    photo && (<div className="left-column" style={{ width: `${editorDimensions.width * editorDimensions.zoom}px` }}>
+    photo && (<div className="left-column">
       <article className="guides-section guide-instruction">
         <div className="requirements-stats">
           <div className="requirements-stat">
@@ -309,15 +360,17 @@ const LeftColumn = ({
       </article>
       <article className="guides-section guide-details">
         <div className="alignment-guide-header">Alignment guide</div>
-        {visibleGuides.map((guide, index) => (
-          <React.Fragment key={index}>
-            {index > 0 && guide.color === 'red' && visibleGuides[index - 1].color !== 'red' && <div className="guide-divider" />}
-            <div className="guide-item">
-              <kbd className="color-block" style={{ backgroundColor: GUIDE_COLOR_VARS[guide.color] || guide.color }}><small>{guide.index}</small></kbd>
-              <small>{translateObject(guide.instruction)}</small>
-            </div>
-          </React.Fragment>
-        ))}
+        <div className="guide-item-list">
+          {visibleGuides.map((guide, index) => (
+            <React.Fragment key={index}>
+              {index > 0 && guide.color === 'red' && visibleGuides[index - 1].color !== 'red' && <div className="guide-divider" />}
+              <div className="guide-item">
+                <kbd className="color-block" style={{ backgroundColor: GUIDE_COLOR_VARS[guide.color] || guide.color }}><small>{guide.index}</small></kbd>
+                <small>{translateObject(guide.instruction)}</small>
+              </div>
+            </React.Fragment>
+          ))}
+        </div>
       </article>
     </div>)
   )
@@ -355,6 +408,7 @@ const MiddleColumn = ({
   color,
   position,
   setPosition,
+  controlsRef,
 }) => {
   const { guide } = photoGuides
   const touchStartRef = useRef({ x: null, y: null })
@@ -737,55 +791,56 @@ const MiddleColumn = ({
     <article className="middle-column"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}>
-      <div
-        className="photo-area"
-        style={{
-          position: 'relative',
-          width: editorDimensions.width * editorDimensions.zoom,
-          height: editorDimensions.height * editorDimensions.zoom,
-        }}
-      >
-        {!photo && <LoadPhotoButton onPhotoLoad={onPhotoLoad} title={translate("selectPhotoButton")} />}
-        <div className="photo-transform" style={{
-          position: 'absolute', // Adjust positioning as needed
-          left: '50%',
-          top: '50%',
-          transform: `translate(-50%, -50%) scale(${editorDimensions.zoom})`,
-        }}>
-          {photo && (
-            <AvatarEditor
-              ref={editorRef}
-              image={photo}
-              width={editorDimensions.width}
-              height={editorDimensions.height}
-              color={[255, 255, 255, 0.6]} // RGBA
-              scale={zoom}
-              border={0}
-              rotate={rotation}
-              position={position}
-              onWheel={handleMouseScroll}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              disableBoundaryChecks={true}
-            />
-          )}
+      <div className="editor-canvas">
+        <div
+          className="photo-area"
+          style={{
+            position: 'relative',
+            width: editorDimensions.width * editorDimensions.zoom,
+            height: editorDimensions.height * editorDimensions.zoom,
+          }}
+        >
+          {!photo && <LoadPhotoButton onPhotoLoad={onPhotoLoad} title={translate("selectPhotoButton")} />}
+          <div className="photo-transform" style={{
+            position: 'absolute', // Adjust positioning as needed
+            left: '50%',
+            top: '50%',
+            transform: `translate(-50%, -50%) scale(${editorDimensions.zoom})`,
+          }}>
+            {photo && (
+              <AvatarEditor
+                ref={editorRef}
+                image={photo}
+                width={editorDimensions.width}
+                height={editorDimensions.height}
+                color={[255, 255, 255, 0.6]} // RGBA
+                backgroundColor="#ffffff" // matches the white the exported photo gets; keeps bg-removed photos white in dark mode
+                scale={zoom}
+                border={0}
+                rotate={rotation}
+                position={position}
+                onWheel={handleMouseScroll}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                disableBoundaryChecks={true}
+              />
+            )}
+          </div>
         </div>
+        {
+          photo && options.guide && (
+            <GuideDrawer
+              guides={guide}
+              editorDimensions={editorDimensions}
+            />
+          )
+        }
       </div>
-      {
-        photo && options.guide && (
-          <GuideDrawer
-            guides={guide}
-            editorDimensions={editorDimensions}
-          />
-        )
-      }
       {photo && (
         <div
+          ref={controlsRef}
           className="control-container"
-          style={{
-            width: editorDimensions.width * editorDimensions.zoom,
-          }}
         >
           <nav>
             <ul>
@@ -1110,148 +1165,71 @@ const RightColumn = ({
   }
 
   return (
-    photo && (<div className="right-column" style={{ width: `${editorDimensions.width * editorDimensions.zoom / 2}px` }}>
+    photo && (<div className="right-column">
       {croppedImage && (
         <>
           <article className="preview-container">
-            <img src={croppedImage} alt="Cropped preview" className="cropped-preview" height={editorDimensions.height * editorDimensions.zoom / 2} width={editorDimensions.width * editorDimensions.zoom / 2} />
-            <div className='export-container' style={{ width: `${editorDimensions.width * editorDimensions.zoom / 2}px` }}>
-              <label className="export-label">{translate("widthLabel")} (px)</label>
-              <div className="export-input-wrap">
-                <input
-                  type="number"
-                  value={exportPhoto.width}
-                  aria-invalid={!exportPhoto.width_valid}
-                  onChange={handleWidthChange}
-                  className="export-input"
-                />
-                {exportPhoto.width_valid && <span className="export-input-check">✓</span>}
+            <img src={croppedImage} alt="Cropped preview" className="cropped-preview" />
+            <div className="export-panel">
+              <div className='export-container'>
+                <label className="export-label">{translate("widthLabel")} (px)</label>
+                <div className="export-input-wrap">
+                  <input
+                    type="number"
+                    value={exportPhoto.width}
+                    aria-invalid={!exportPhoto.width_valid}
+                    onChange={handleWidthChange}
+                    className="export-input"
+                  />
+                  {exportPhoto.width_valid && <span className="export-input-check">✓</span>}
+                </div>
               </div>
-            </div>
-            <div className='export-container' style={{ width: `${editorDimensions.width * editorDimensions.zoom / 2}px` }}>
-              <label className="export-label">{translate("heightLabel")} (px)</label>
-              <div className="export-input-wrap">
-                <input
-                  type="number"
-                  value={exportPhoto.height}
-                  aria-invalid={!exportPhoto.height_valid}
-                  onChange={handleHeightChange}
-                  className="export-input"
-                />
-                {exportPhoto.height_valid && <span className="export-input-check">✓</span>}
+              <div className='export-container'>
+                <label className="export-label">{translate("heightLabel")} (px)</label>
+                <div className="export-input-wrap">
+                  <input
+                    type="number"
+                    value={exportPhoto.height}
+                    aria-invalid={!exportPhoto.height_valid}
+                    onChange={handleHeightChange}
+                    className="export-input"
+                  />
+                  {exportPhoto.height_valid && <span className="export-input-check">✓</span>}
+                </div>
               </div>
-            </div>
-            <div className='export-container' style={{ width: `${editorDimensions.width * editorDimensions.zoom / 2}px` }}>
-              <label className="export-label">{translate("sizeLabel")} (KB)</label>
-              <div className="export-input-wrap">
-                <input
-                  type="number"
-                  value={exportPhoto.size}
-                  aria-invalid={!exportPhoto.size_valid}
-                  onChange={handleSizeChange}
-                  className="export-input"
-                />
-                {exportPhoto.size_valid && <span className="export-input-check">✓</span>}
+              <div className='export-container'>
+                <label className="export-label">{translate("sizeLabel")} (KB)</label>
+                <div className="export-input-wrap">
+                  <input
+                    type="number"
+                    value={exportPhoto.size}
+                    aria-invalid={!exportPhoto.size_valid}
+                    onChange={handleSizeChange}
+                    className="export-input"
+                  />
+                  {exportPhoto.size_valid && <span className="export-input-check">✓</span>}
+                </div>
               </div>
+              <div
+                disabled={!(exportPhoto.width_valid && exportPhoto.height_valid && exportPhoto.size_valid)}
+                role="button"
+                className="save-button"
+                onClick={() => {
+                  setModals((prevModals) => ({ ...prevModals, save: true }))
+                  ReactGA.event({
+                    action: 'generate_photo',
+                    category: 'Button Click',
+                    label: 'Generate photo',
+                  })
+                }}
+              >{translate("saveTitle")}</div>
+              <LoadPhotoButton onPhotoLoad={onPhotoLoad} title={translate("loadNewPhotoButton")} compact />
             </div>
-            <div
-              disabled={!(exportPhoto.width_valid && exportPhoto.height_valid && exportPhoto.size_valid)}
-              role="button"
-              className="save-button"
-              style={{ width: `${editorDimensions.width * editorDimensions.zoom / 2}px` }}
-              onClick={() => {
-                setModals((prevModals) => ({ ...prevModals, save: true }))
-                ReactGA.event({
-                  action: 'generate_photo',
-                  category: 'Button Click',
-                  label: 'Generate photo',
-                })
-              }}
-            >{translate("saveTitle")}</div>
-            <LoadPhotoButton onPhotoLoad={onPhotoLoad} title={translate("loadNewPhotoButton")} compact />
           </article>
         </>
       )}
     </div>)
   )
-}
-
-const BuyMeACoffee = ({
-  translate,
-  modals,
-  setModals,
-}) => {
-  const [copied, setCopied] = useState(false)
-  const kbdRef = useRef(null)
-  const handleCopy = () => {
-    const emailText = 'hjt486@gmail.com'
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(emailText).then(() => {
-        setCopied(true)
-      }).catch((error) => {
-        console.error('Error copying text:', error)
-      })
-    } else {
-      // Clipboard API not supported, provide a fallback action here
-      console.warn('Clipboard API not supported.')
-    }
-  }
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (kbdRef.current && !kbdRef.current.contains(e.target)) {
-        setCopied(false)
-      }
-    }
-
-    document.addEventListener('click', handleClickOutside)
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside)
-    }
-  }, [])
-
-  return (<>
-    <dialog open={modals.coffee} className='modal'>
-      <article>
-        <h2>{translate("buyMeACoffeeTitle")}</h2>
-        <div>
-          <div className="save-option-container">
-            <div className="save-option">
-              <img src="https://jiataihan.dev/assets/css/hid.hid" width={300} alt="WeChat" className="wechat-logo" />
-              <p className="save-text" >{translate("buyMeACoffeeWeChat")}</p>
-            </div>
-            <div className="save-option">
-              {/* <img src={process.env.PUBLIC_URL + "/BuyMeACoffee/zelle.png"} width={300} alt="Zelle" className="zelle-logo" /> */}
-              <img src={process.env.PUBLIC_URL + "/BuyMeACoffee/paypal.png"} width={300} alt="Paypal" className="paypal-logo" />
-              <textarea id="emailAddress" hidden="true">hjt486@gmail.com</textarea>
-              <div>
-                <kbd onClick={handleCopy} ref={kbdRef} className="save-text">hjt486@gmail.com</kbd>
-                {copied && (<sup><kbd style={{ fontSize: "xx-small", color: "var(--pico-color)", background: "var(--pico-primary-background)" }}>{translate("buyMeCopied")}</kbd></sup>)}
-              </div>
-              <p className="save-text" >{translate("buyMeACoffeePaypalZelle")}</p>
-            </div>
-          </div>
-          <p className="save-text" >{translate("buyMeACoffeeWords")}</p>
-        </div>
-        <footer>
-          <button onClick={() => setModals((prevModals) => ({ ...prevModals, coffee: false }))}>OK</button>
-        </footer>
-      </article>
-    </dialog>
-    <div
-      role="button"
-      className="outline modal-button"
-      onClick={() => {
-        setModals((prevModals) => ({ ...prevModals, coffee: true }))
-        ReactGA.event({
-          action: 'buy_me_a_coffee',
-          category: 'Button Click',
-          label: 'Buy Me A Coffee',
-        })
-      }}>
-      {translate("buyMeACoffeeButton")}
-    </div>
-  </>)
 }
 
 const Changelog = ({
@@ -1519,15 +1497,17 @@ const App = () => {
     height_valid: true,
     size_valid: true,
   })
-  const [modals, setModals] = useState({ coffee: false, changelog: false, save: false, disclaimer: false, aiModel: false, photoIssues: false })
-  const [editorDimensions, setEditorDimensions] = useState({
-    width: parseFloat(defaultTemplate.width) / MM2INCH * parseFloat(defaultTemplate.dpi),
-    height: parseFloat(defaultTemplate.height) / MM2INCH * parseFloat(defaultTemplate.dpi),
-    zoom: calculateEditorZoom(
-      parseFloat(defaultTemplate.width) / MM2INCH * parseFloat(defaultTemplate.dpi),
-      parseFloat(defaultTemplate.height) / MM2INCH * parseFloat(defaultTemplate.dpi),
-    ),
-    dpi_ratio: parseFloat(defaultTemplate.dpi) / (MM2INCH * 10)
+  const [modals, setModals] = useState({ changelog: false, save: false, disclaimer: false, aiModel: false, photoIssues: false })
+  const [editorBudget, setEditorBudget] = useState(() => getEditorBudget())
+  const [editorDimensions, setEditorDimensions] = useState(() => {
+    const width = parseFloat(defaultTemplate.width) / MM2INCH * parseFloat(defaultTemplate.dpi)
+    const height = parseFloat(defaultTemplate.height) / MM2INCH * parseFloat(defaultTemplate.dpi)
+    return {
+      width,
+      height,
+      zoom: calculateEditorZoom(width, height, editorBudget.width, editorBudget.height),
+      dpi_ratio: parseFloat(defaultTemplate.dpi) / (MM2INCH * 10)
+    }
   })
   const [initialDistance, setInitialDistance] = useState(null)
   const [initialAngle, setInitialAngle] = useState(null)
@@ -1540,6 +1520,9 @@ const App = () => {
   const [position, setPosition] = useState({ x: 0.5, y: 0.5 }) // Weirdly, have to set a out-of-boundary number to make moving working when page is loaded.
 
   const editorRef = React.createRef()
+  const navRef = useRef(null)
+  const controlsRef = useRef(null)
+  const footerRef = useRef(null)
   const { translate, translateObject } = useLanguage()
 
   const photoGuides = template
@@ -1552,6 +1535,54 @@ const App = () => {
       setCroppedImage(canvas.toDataURL())
     }
   }, [])
+
+  // Recompute how much room the editor canvas is allowed to take up,
+  // based on the real height of the nav + transform controls, so the page
+  // fits in one screen instead of growing past the fold. Only ever updates
+  // editorDimensions.zoom (the on-screen scale) -- never width/height (the
+  // template's true output pixels) or the user's pan/zoom/rotation.
+  useEffect(() => {
+    let debounceId = null
+    const recalc = () => {
+      const navHeight = navRef.current ? navRef.current.getBoundingClientRect().height : 0
+      const controlsHeight = controlsRef.current ? controlsRef.current.getBoundingClientRect().height : 0
+      const footerHeight = footerRef.current ? footerRef.current.getBoundingClientRect().height : 0
+      const chromeHeight = navHeight + controlsHeight + footerHeight + 56
+      setEditorBudget((prev) => {
+        const next = getEditorBudget(chromeHeight)
+        if (Math.abs(next.width - prev.width) < 1 && Math.abs(next.height - prev.height) < 1) return prev
+        return next
+      })
+    }
+    const scheduleRecalc = () => {
+      clearTimeout(debounceId)
+      debounceId = setTimeout(recalc, 100)
+    }
+    scheduleRecalc()
+    window.addEventListener('resize', scheduleRecalc)
+    let observer = null
+    if (window.ResizeObserver) {
+      observer = new ResizeObserver(scheduleRecalc)
+      if (navRef.current) observer.observe(navRef.current)
+      if (controlsRef.current) observer.observe(controlsRef.current)
+      if (footerRef.current) observer.observe(footerRef.current)
+    }
+    return () => {
+      window.removeEventListener('resize', scheduleRecalc)
+      clearTimeout(debounceId)
+      if (observer) observer.disconnect()
+    }
+  }, [photo])
+
+  // Keep editorDimensions.zoom in sync with the latest budget without
+  // touching the template's real pixel dimensions.
+  useEffect(() => {
+    setEditorDimensions((prev) => {
+      const nextZoom = calculateEditorZoom(prev.width, prev.height, editorBudget.width, editorBudget.height)
+      if (Math.abs(nextZoom - prev.zoom) < 0.001) return prev
+      return { ...prev, zoom: nextZoom }
+    })
+  }, [editorBudget])
 
   const processPhotoForBgRemoval = useCallback(async (photoData) => {
     setLoadingModel(true)
@@ -1635,7 +1666,7 @@ const App = () => {
   }
 
   return (
-    <div className="app">
+    <div className={`app${photo ? ' app-editing' : ''}`}>
       <div className="frame">
         <div className="container">
           <NavBar
@@ -1653,9 +1684,11 @@ const App = () => {
             croppedImage={croppedImage}
             theme={theme}
             setTheme={setTheme}
+            navRef={navRef}
+            editorBudget={editorBudget}
           />
         </div>
-        <div className="container">
+        <div className="container columns-row">
           <LeftColumn
             photo={photo}
             options={options}
@@ -1700,6 +1733,7 @@ const App = () => {
             color={color}
             position={position}
             setPosition={setPosition}
+            controlsRef={controlsRef}
           />
           <RightColumn
             editorRef={editorRef}
@@ -1734,12 +1768,7 @@ const App = () => {
             croppedImag={croppedImage}
           />
         </div>
-        <div className="container">
-          <BuyMeACoffee
-            translate={translate}
-            modals={modals}
-            setModals={setModals}
-          />
+        <div className="container" ref={footerRef}>
           <Changelog
             translate={translate}
             modals={modals}
@@ -1771,11 +1800,9 @@ const App = () => {
           overlay={true}
           acceptOnOverlayClick={true}
           enableDeclineButton
-          onDecline={() => {
-            window.location.href = 'https://www.google.com'
-          }}
           visible="byCookieValue"
           hideOnAccept={true}
+          hideOnDecline={true}
           location="bottom"
           buttonText={translate("Agree")}
           declineButtonText={translate("Disagree")}
