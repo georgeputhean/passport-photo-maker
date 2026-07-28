@@ -10,7 +10,7 @@ import { generateSingle, handleSaveSingle, generate4x6, handleSave4x6 } from './
 import Color from './Color'
 import { autoAlignFace } from './AutoAlign'
 import { checkPhotoCompliance, SEVERITY } from './PhotoCompliance'
-import CookieConsent from "react-cookie-consent"
+import CookieConsent, { getCookieConsentValue } from "react-cookie-consent"
 import PRC_Passport_Photo from './Templates/PRC_Passport_Photo.json'
 import PRC_Travel_Document from './Templates/PRC_Travel_Document_Photo.json'
 import US_Passport_Photo from './Templates/US_Passport_Photo.json'
@@ -239,61 +239,21 @@ const ThemeToggle = ({ theme, setTheme }) => (
 
 const NavBar = ({
   template,
-  setTemplate,
+  selectTemplate,
   exportPhoto,
-  setExportPhoto,
   translate,
   translateObject,
-  setEditorDimensions,
-  editorRef,
-  setCroppedImage,
-  updatePreview,
   photo,
   croppedImage,
   theme,
   setTheme,
   navRef,
-  editorBudget,
 }) => {
 
   const handleTemplateChange = (event) => {
     const selectedTemplateTitle = event.target.value
-
-    // Find the template object that matches the selected title
     const selectedTemplate = TEMPLATES.find((t) => translateObject(t.title) === selectedTemplateTitle)
-
-    // Set the selected template
-    if (selectedTemplate) {
-      ReactGA.event({
-        action: translateObject(selectedTemplate.title).toLowerCase().replace(/ /g, "_").replace(/\//g, "_"),
-        label: translateObject(selectedTemplate.title),
-      })
-      setTemplate(selectedTemplate)
-      setExportPhoto({
-        width: parseInt(parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi)),
-        height: parseInt(parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi)),
-        size: parseInt(selectedTemplate.size),
-        ratio: parseFloat(selectedTemplate.width) / parseFloat(selectedTemplate.height),
-        width_mm: parseFloat(selectedTemplate.width),
-        height_mm: parseFloat(selectedTemplate.height),
-        dpi: parseFloat(selectedTemplate.dpi),
-        width_valid: true,
-        height_valid: true,
-        size_valid: true,
-      })
-      setEditorDimensions({
-        width: parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi),
-        height: parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi),
-        zoom: calculateEditorZoom(
-          parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi),
-          parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi),
-          editorBudget.width,
-          editorBudget.height),
-        dpi_ratio: parseFloat(selectedTemplate.dpi) / (MM2INCH * 10),
-      })
-      setCroppedImage(null)
-      updatePreview(editorRef, setCroppedImage)
-    }
+    selectTemplate(selectedTemplate)
   }
 
   return (
@@ -1450,13 +1410,49 @@ const Disclaimer = ({
   )
 }
 
+// Pushes a Google Consent Mode v2 update. public/index.html sets the default (all
+// denied) before this file ever loads; this is only called once the user has made
+// a choice via the CookieConsent banner (or already had one stored from a prior visit).
+const updateConsent = (granted) => {
+  if (typeof window === 'undefined' || typeof window.gtag !== 'function') return
+  const status = granted ? 'granted' : 'denied'
+  window.gtag('consent', 'update', {
+    ad_storage: status,
+    ad_user_data: status,
+    ad_personalization: status,
+    analytics_storage: status,
+  })
+}
+
 // Main App component
 const App = () => {
-  // Init Google Analytics
+  // Init Google Analytics (no-op until REACT_APP_GA_MEASUREMENT_ID is configured with the site owner's own GA4 property)
   useEffect(() => {
-    ReactGA.initialize('G-V3MNPTJ8CY')
+    const gaMeasurementId = process.env.REACT_APP_GA_MEASUREMENT_ID
+    if (!gaMeasurementId) return
+    ReactGA.initialize(gaMeasurementId)
     ReactGA.send({ hitType: "pageview", page: window.location.pathname })
   }, [])
+
+  // Whether the user has already accepted cookies (this visit or a prior one)
+  const [consentGiven, setConsentGiven] = useState(() => getCookieConsentValue() === 'true')
+  useEffect(() => {
+    if (consentGiven) updateConsent(true)
+  }, [consentGiven])
+
+  // Load Google AdSense only once REACT_APP_ADSENSE_CLIENT_ID is configured (after
+  // approval) AND the user has consented - never loads with a placeholder/unset ID.
+  useEffect(() => {
+    const adsenseClientId = process.env.REACT_APP_ADSENSE_CLIENT_ID
+    if (!adsenseClientId || !consentGiven) return
+    if (document.querySelector('script[data-adsbygoogle-loader]')) return
+    const script = document.createElement('script')
+    script.async = true
+    script.crossOrigin = 'anonymous'
+    script.dataset.adsbygoogleLoader = 'true'
+    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`
+    document.head.appendChild(script)
+  }, [consentGiven])
 
   const defaultTemplate = TEMPLATES.find((t) => t.title === "Indian Passport Photo") || TEMPLATES[0]
   const [template, setTemplate] = useState(defaultTemplate) // Default is India
@@ -1584,6 +1580,52 @@ const App = () => {
     })
   }, [editorBudget])
 
+  // Applies a template: export dimensions, editor sizing, and a GA event. Shared by
+  // the NavBar dropdown (NavBar.handleTemplateChange) and the mount-time ?template=
+  // handler below, which lets the /photos/<country>.html landing pages deep-link
+  // straight into the matching template.
+  const selectTemplate = useCallback((selectedTemplate) => {
+    if (!selectedTemplate) return
+    ReactGA.event({
+      action: translateObject(selectedTemplate.title).toLowerCase().replace(/ /g, "_").replace(/\//g, "_"),
+      label: translateObject(selectedTemplate.title),
+    })
+    setTemplate(selectedTemplate)
+    setExportPhoto({
+      width: parseInt(parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi)),
+      height: parseInt(parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi)),
+      size: parseInt(selectedTemplate.size),
+      ratio: parseFloat(selectedTemplate.width) / parseFloat(selectedTemplate.height),
+      width_mm: parseFloat(selectedTemplate.width),
+      height_mm: parseFloat(selectedTemplate.height),
+      dpi: parseFloat(selectedTemplate.dpi),
+      width_valid: true,
+      height_valid: true,
+      size_valid: true,
+    })
+    setEditorDimensions({
+      width: parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi),
+      height: parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi),
+      zoom: calculateEditorZoom(
+        parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi),
+        parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi),
+        editorBudget.width,
+        editorBudget.height),
+      dpi_ratio: parseFloat(selectedTemplate.dpi) / (MM2INCH * 10),
+    })
+    setCroppedImage(null)
+    updatePreview(editorRef, setCroppedImage)
+  }, [translateObject, editorRef, updatePreview, editorBudget])
+
+  // Deep link from a /photos/<country>.html landing page, e.g. /?template=US%20Passport%2FVisa%20Photo
+  useEffect(() => {
+    const requestedTitle = new URLSearchParams(window.location.search).get('template')
+    if (!requestedTitle) return
+    const requestedTemplate = TEMPLATES.find((t) => translateObject(t.title) === requestedTitle)
+    if (requestedTemplate) selectTemplate(requestedTemplate)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const processPhotoForBgRemoval = useCallback(async (photoData) => {
     setLoadingModel(true)
     try {
@@ -1671,21 +1713,15 @@ const App = () => {
         <div className="container">
           <NavBar
             template={template}
-            setTemplate={setTemplate}
+            selectTemplate={selectTemplate}
             exportPhoto={exportPhoto}
-            setExportPhoto={setExportPhoto}
             translate={translate}
             translateObject={translateObject}
-            setEditorDimensions={setEditorDimensions}
-            setCroppedImage={setCroppedImage}
-            editorRef={editorRef}
-            updatePreview={updatePreview}
             photo={photo}
             croppedImage={croppedImage}
             theme={theme}
             setTheme={setTheme}
             navRef={navRef}
-            editorBudget={editorBudget}
           />
         </div>
         <div className="container columns-row">
@@ -1780,9 +1816,25 @@ const App = () => {
             className="outline modal-button"
           >
             <a
+              href="/photos/"
+              onClick={() => {
+                ReactGA.event({
+                  action: 'view_all_countries',
+                  category: 'Button Click',
+                  label: 'All Countries',
+                })
+              }}
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >All Countries</a>
+          </div>
+          <div
+            role="button"
+            className="outline modal-button"
+          >
+            <a
               target="_blank"
               rel="noreferrer"
-              href="https://github.com/hjt486/passport-photo-maker/issues"
+              href="https://github.com/georgeputhean/passport-photo-maker/issues"
               onClick={() => {
                 ReactGA.event({
                   action: 'feedback',
@@ -1800,6 +1852,13 @@ const App = () => {
           overlay={true}
           acceptOnOverlayClick={true}
           enableDeclineButton
+          onAccept={() => setConsentGiven(true)}
+          onDecline={() => {
+            // Declining only withholds analytics/ad consent (Consent Mode stays "denied") -
+            // the editor itself needs no cookies, so the user stays on the site.
+            setConsentGiven(false)
+            updateConsent(false)
+          }}
           visible="byCookieValue"
           hideOnAccept={true}
           hideOnDecline={true}
@@ -1813,7 +1872,8 @@ const App = () => {
           }}
           buttonStyle={{}}
         >
-          {translate("disclaimer3")}
+          {translate("disclaimer3")}{" "}
+          <a href="/privacy-policy.html" style={{ color: "inherit", textDecoration: "underline" }}>{translate("privacyPolicyLink")}</a>
         </CookieConsent>
       </div>
     </div>

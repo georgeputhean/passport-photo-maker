@@ -1,0 +1,248 @@
+{
+  "US Passport/Visa Photo": {
+    "slug": "us-passport-photo",
+    "metaTitle": "US Passport Photo Size & Requirements (2026) - Free Online Maker",
+    "metaDescription": "US passport and visa photos must be 2x2 inches (51x51mm) at 300 DPI on a white background. Make one online free, with automatic background removal.",
+    "h1": "US Passport & Visa Photo Size and Requirements",
+    "sourceLabel": "U.S. Department of State",
+    "sourceUrl": "https://travel.state.gov/content/travel/en/passports/how-apply/photos.html",
+    "intro": [
+      "A US passport or visa photo must be exactly 2x2 inches (51x51mm), with the head sized and centered to specific proportions, printed on plain white or off-white background.",
+      "This tool lets you upload any photo of yourself, automatically removes the background, and crops it to the exact 2x2 inch, 300 DPI specification the State Department requires - all in your browser, for free."
+    ],
+    "faqs": [
+      { "q": "What size does a US passport photo need to be?", "a": "2 x 2 inches (51 x 51 mm), with your head between 1 inch and 1 3/8 inches from chin to top of head, per the U.S. Department of State's photo requirements." },
+      { "q": "What background color is required?", "a": "A plain white or off-white background, with no shadows, patterns, or objects behind you." },
+      { "q": "Can I wear glasses in a US passport photo?", "a": "As of recent State Department guidance, glasses are generally not permitted in passport photos except for documented medical reasons. Check the official page above for the current rule before submitting." },
+      { "q": "How recent does the photo need to be?", "a": "It should be taken within the last 6 months and reflect your current appearance." },
+      { "q": "Can I take the photo myself and print it at home?", "a": "Yes - the State Department accepts photos printed on photo-quality paper at the correct size, or submitted electronically for online renewals where eligible. This tool exports both a single 2x2 photo and a 4x6 print layout with multiple copies." }
+    ]
+  },
+  "UK Passport Photo": {
+    "slug": "uk-passport-photo",
+    "metaTitle": "UK Passport Photo Size & Requirements (2026) - Free Online Maker",
+    "metaDescription": "UK passport photos must be 35x45mm on a plain light-colored background. Make a compliant UK passport photo online free, with automatic background removal.",
+    "h1": "UK Passport Photo Size and Requirements",
+    "sourceLabel": "GOV.UK",
+    "sourceUrl": "https://www.gov.uk/photos-for-passports/photo-requirements",
+    "intro": [
+      "A UK passport photo must measure 35x45mm, showing a full front-facing view of your face against a plain, light-colored (usually cream or light grey) background.",
+      "This tool crops and resizes your photo to the exact 35x45mm dimensions at high resolution, with an AI background remover so you don't need a studio backdrop."
+    ],
+    "faqs": [
+      { "q": "What size is a UK passport photo?", "a": "35mm wide by 45mm tall, per GOV.UK's official photo requirements." },
+      { "q": "What background does GOV.UK require?", "a": "A plain, light-colored background such as cream or light grey, with no patterns or shadows." },
+      { "q": "Can I smile in a UK passport photo?", "a": "No - GOV.UK requires a neutral expression with your mouth closed, looking straight at the camera." },
+      { "q": "Are glasses allowed?", "a": "Glasses are discouraged and may cause rejection due to glare or frame covering the eyes; check the current GOV.UK guidance before submitting." },
+      { "q": "Can I upload the photo for an online passport renewal?", "a": "Yes - GOV.UK's online service accepts a digital photo upload that matches these dimensions and specifications." }
+    ]
+  },
+  "Canada Passport Photo": {
+    "slug": "canada-passport-photo",
+    "metaTitle": "Canada Passport Photo Size & Requirements (2026) - Free Maker",
+    "metaDescription": "Canadian passport photos must be 50x70mm on a plain white background. Create a compliant photo online free, with automatic background removal.",
+    "h1": "Canada Passport Photo Size and Requirements",
+    "sourceLabel": "Government of Canada",
+    "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-passports/photos.html",
+    "intro": [
+      "A Canadian passport photo must be 50x70mm, larger than most countries' passport photos, with a plain white background and a neutral expression.",
+      "This tool sizes your photo to exactly 50x70mm at print resolution and removes the background automatically so it's ready to submit or print."
+    ],
+    "faqs": [
+      { "q": "What size is a Canadian passport photo?", "a": "50mm wide by 70mm tall, per the Government of Canada's photo requirements page." },
+      { "q": "What background is required?", "a": "A plain white background with no shadows or texture." },
+      { "q": "How old can the photo be?", "a": "It must be taken within the last 6 months and show your current appearance." },
+      { "q": "Do I need two copies?", "a": "Yes, Canadian passport applications typically require two identical printed photos - this tool's 4x6 print layout can lay out multiple copies on one sheet." },
+      { "q": "Can glasses be worn?", "a": "Generally no, unless for medical reasons with supporting documentation - confirm on the official page above." }
+    ]
+  },
+  "Canada Visa Photo": {
+    "slug": "canada-visa-photo",
+    "metaTitle": "Canada Visa Photo Size & Requirements (2026) - Free Online Maker",
+    "metaDescription": "Canadian visa (temporary resident) photos must be 35x45mm on a plain white background. Make one online free, with automatic background removal.",
+    "h1": "Canada Visa Photo Size and Requirements",
+    "sourceLabel": "Government of Canada (IRCC)",
+    "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/temporary-resident-visa-application-photograph-specifications.html",
+    "intro": [
+      "A Canadian temporary resident visa photo must be 35x45mm - smaller than the Canadian passport photo - with a plain white or light-colored background.",
+      "This tool crops your photo to exactly 35x45mm and removes the background automatically, matching IRCC's visa photo specification."
+    ],
+    "faqs": [
+      { "q": "What size is a Canada visa photo?", "a": "35mm wide by 45mm tall, per IRCC's temporary resident visa photograph specifications - different from the 50x70mm Canadian passport photo size." },
+      { "q": "Is this the same as a Canadian passport photo?", "a": "No. Visa photos (35x45mm) and passport photos (50x70mm) use different sizes, even though both require a plain white background and neutral expression." },
+      { "q": "What background is required?", "a": "A plain white or light-colored background with even lighting and no shadows." },
+      { "q": "How recent must the photo be?", "a": "Within the last 6 months, showing your current appearance." },
+      { "q": "Can I submit this photo digitally?", "a": "IRCC's online application portal accepts a digital upload meeting these dimensions and file-size specifications." }
+    ]
+  },
+  "Indian Passport Photo": {
+    "slug": "india-passport-photo",
+    "metaTitle": "Indian Passport Photo Size & Requirements (2026) - Free Maker",
+    "metaDescription": "Indian passport photos must be 35x45mm (2x2 inch) on a white background. Make a compliant photo online free, with automatic background removal.",
+    "h1": "Indian Passport Photo Size and Requirements",
+    "sourceLabel": "Passport Seva / VFS Global",
+    "sourceUrl": "https://services.vfsglobal.com/usa/en/ind/apply-passport",
+    "intro": [
+      "An Indian passport photo must be 35x45mm with a plain white background, front-facing, with a neutral expression and both ears visible.",
+      "This tool crops your photo to the exact 35x45mm specification and removes the background automatically so it meets Passport Seva's photo standard."
+    ],
+    "faqs": [
+      { "q": "What size is an Indian passport photo?", "a": "35mm wide by 45mm tall (roughly 2x2 inches), per Passport Seva / VFS Global's application guidance." },
+      { "q": "What background color is needed?", "a": "A plain white background, evenly lit with no shadows." },
+      { "q": "Should ears be visible in the photo?", "a": "Yes - both ears should generally be visible, and hair should not cover the face." },
+      { "q": "How recent should the photo be?", "a": "It should be a recent photo, typically taken within the last 6 months." },
+      { "q": "Can I wear glasses?", "a": "Glasses are generally discouraged due to glare and reflection rules - confirm current guidance on the official application page." }
+    ]
+  },
+  "Chinese Passport/Visa Photo": {
+    "slug": "china-passport-visa-photo",
+    "metaTitle": "Chinese Passport & Visa Photo Size (2026) - Free Online Maker",
+    "metaDescription": "Chinese passport and visa photos must be 33x48mm on a plain light-colored background. Make one online free, with automatic background removal.",
+    "h1": "Chinese Passport & Visa Photo Size and Requirements",
+    "sourceLabel": "China Visa Application Service Center",
+    "sourceUrl": "https://www.visaforchina.cn/SGP2_EN/generalinformation/news/282849.shtml",
+    "intro": [
+      "A Chinese passport or visa photo must be 33x48mm, front-facing, with a plain light-colored (typically white or light blue) background and a small maximum file size for electronic submission.",
+      "This tool crops your photo to the exact 33x48mm specification, keeps the file size small, and removes the background automatically."
+    ],
+    "faqs": [
+      { "q": "What size is a Chinese passport/visa photo?", "a": "33mm wide by 48mm tall, per the China Visa Application Service Center's photo specification." },
+      { "q": "What background color is required?", "a": "A plain, light-colored background - white or light blue depending on the specific application - with no shadows." },
+      { "q": "Is there a maximum file size?", "a": "Yes - Chinese passport/visa applications typically enforce a small maximum file size (around 70KB in this tool's default template) for electronic submission; check the current limit on the official page." },
+      { "q": "Can I wear glasses in the photo?", "a": "Generally photos without glasses are preferred to avoid glare - check the latest guidance on the official page above." },
+      { "q": "How recent must the photo be?", "a": "It should be a recent photo taken within the last 6 months." }
+    ]
+  },
+  "Chinese Travel Document Photo": {
+    "slug": "china-travel-document-photo",
+    "metaTitle": "Chinese Travel Document Photo Size - Free Online Maker",
+    "metaDescription": "Create a Chinese travel document photo online free, sized to a proportional scaling of the standard passport photo, with automatic background removal.",
+    "h1": "Chinese Travel Document Photo Size",
+    "sourceLabel": null,
+    "sourceUrl": null,
+    "intro": [
+      "The Chinese travel document (used for certain re-entry and travel permit applications) does not have a single, consistently published photo specification in the same way the standard passport photo does. This template uses a 30x40mm size, proportionally scaled from the standard Chinese passport photo, as a practical starting point.",
+      "Because requirements can vary by document type and issuing office, always confirm the exact photo specification with the office processing your application before submitting. This tool still gives you a clean, correctly proportioned, background-removed photo to start from."
+    ],
+    "faqs": [
+      { "q": "What size is a Chinese travel document photo?", "a": "This tool uses 30x40mm, a proportional scaling of the standard Chinese passport photo (33x48mm), since travel document requirements are not consistently published in one place." },
+      { "q": "Is this size guaranteed to be accepted?", "a": "Not guaranteed - always verify the exact requirement with the specific office or consulate handling your travel document application." },
+      { "q": "What background should I use?", "a": "A plain, light-colored background is the safest default, consistent with the standard Chinese passport/visa photo." },
+      { "q": "Can I still use the background removal tool?", "a": "Yes - the AI background removal and manual cropping work the same way as every other template on this site." }
+    ]
+  },
+  "Japan Passport/Visa Photo": {
+    "slug": "japan-passport-visa-photo",
+    "metaTitle": "Japan Passport & Visa Photo Size (2026) - Free Online Maker",
+    "metaDescription": "Japanese passport and visa photos must be 35x45mm on a plain white background. Make one online free, with automatic background removal.",
+    "h1": "Japan Passport & Visa Photo Size and Requirements",
+    "sourceLabel": "Ministry of Foreign Affairs of Japan",
+    "sourceUrl": "https://www.mofa.go.jp/mofaj/toko/passport/ic_photo.html",
+    "intro": [
+      "A Japanese passport or visa photo must be 35x45mm, front-facing, with a plain white or light-colored background and no shadows.",
+      "This tool crops your photo to the exact 35x45mm specification and removes the background automatically to match Japan's Ministry of Foreign Affairs photo standard."
+    ],
+    "faqs": [
+      { "q": "What size is a Japanese passport photo?", "a": "35mm wide by 45mm tall, per the Ministry of Foreign Affairs of Japan's photo specification." },
+      { "q": "What background color is required?", "a": "A plain white or very light background with no shadows or patterns." },
+      { "q": "How recent should the photo be?", "a": "It should be taken within the last 6 months." },
+      { "q": "Is a neutral expression required?", "a": "Yes - a neutral expression with mouth closed and eyes open, facing forward." },
+      { "q": "Can I wear glasses?", "a": "Glasses are discouraged due to glare/reflection rules - check the current guidance on the official page above." }
+    ]
+  },
+  "Malaysia Passport Photo": {
+    "slug": "malaysia-passport-photo",
+    "metaTitle": "Malaysia Passport Photo Size & Requirements - Free Maker",
+    "metaDescription": "Malaysian passport photos must be 35x50mm on a plain white background. Make a compliant photo online free, with automatic background removal.",
+    "h1": "Malaysia Passport Photo Size and Requirements",
+    "sourceLabel": "Immigration Department of Malaysia",
+    "sourceUrl": "https://www.imi.gov.my/index.php/en/main-services/passport/malaysian-international-passport/",
+    "intro": [
+      "A Malaysian passport photo must be 35x50mm, front-facing, with a plain white background and a neutral expression.",
+      "This tool crops your photo to exactly 35x50mm and removes the background automatically to match the Immigration Department of Malaysia's photo standard."
+    ],
+    "faqs": [
+      { "q": "What size is a Malaysian passport photo?", "a": "35mm wide by 50mm tall, per the Immigration Department of Malaysia's passport service guidance." },
+      { "q": "What background is required?", "a": "A plain white background with no shadows." },
+      { "q": "How recent must the photo be?", "a": "It should be a recent photo, typically within the last 6 months." },
+      { "q": "Can I wear a headscarf or religious head covering?", "a": "Yes, religious head coverings are generally permitted as long as the full face remains visible - confirm current rules on the official page above." },
+      { "q": "Are glasses allowed?", "a": "Generally discouraged due to glare - check the latest guidance before submitting." }
+    ]
+  },
+  "Mexico TN Visa Photo": {
+    "slug": "mexico-tn-visa-photo",
+    "metaTitle": "Mexico TN Visa Photo Size & Requirements - Free Online Maker",
+    "metaDescription": "Mexico TN visa photos must be 31x39mm on a plain white background. Make a compliant photo online free, with automatic background removal.",
+    "h1": "Mexico TN Visa Photo Size and Requirements",
+    "sourceLabel": "Consulate of Mexico",
+    "sourceUrl": "https://consulmex.sre.gob.mx/leamington/index.php/non-mexicans/visas/115-temporary-resident-visa",
+    "intro": [
+      "A Mexico TN (temporary resident) visa photo must be 31x39mm, front-facing, with a plain white background.",
+      "This tool crops your photo to exactly 31x39mm and removes the background automatically to match the consulate's temporary resident visa photo specification."
+    ],
+    "faqs": [
+      { "q": "What size is a Mexico TN visa photo?", "a": "31mm wide by 39mm tall, per the consulate's temporary resident visa application guidance." },
+      { "q": "What background is required?", "a": "A plain white background, evenly lit, with no shadows." },
+      { "q": "How recent should the photo be?", "a": "It should be a recent photo taken within the last 6 months." },
+      { "q": "Is a neutral expression required?", "a": "Yes - a neutral expression, mouth closed, facing the camera directly." },
+      { "q": "Should I check with my specific consulate?", "a": "Yes - visa photo requirements can vary slightly by consulate location, so confirm the current specification on the official page above before applying." }
+    ]
+  },
+  "Spain Passport Photo": {
+    "slug": "spain-passport-photo",
+    "metaTitle": "Spain Passport Photo Size & Requirements - Free Online Maker",
+    "metaDescription": "Spanish passport photos must be 26x32mm on a plain light background. Make a compliant photo online free, with automatic background removal.",
+    "h1": "Spain Passport Photo Size and Requirements",
+    "sourceLabel": "Ministerio del Interior (Spain)",
+    "sourceUrl": "https://www.interior.gob.es/opencms/es/servicios-al-ciudadano/tramites-y-gestiones/pasaporte/procedimiento-de-expedicion/",
+    "intro": [
+      "A Spanish passport photo must be 26x32mm - one of the smallest passport photo sizes - with a plain light-colored background and precise head positioning.",
+      "This tool crops your photo to exactly 26x32mm at high resolution (600 DPI) and removes the background automatically, with head-positioning guides so the smaller frame is still easy to get right."
+    ],
+    "faqs": [
+      { "q": "What size is a Spanish passport photo?", "a": "26mm wide by 32mm tall, per Spain's Ministerio del Interior passport procedure guidance." },
+      { "q": "Why is the resolution higher than other countries' photos?", "a": "Because the photo itself is physically smaller, a higher DPI (600 in this tool) is used to keep enough pixel detail for printing." },
+      { "q": "What background color is required?", "a": "A plain, light, uniform background with no shadows." },
+      { "q": "How recent must the photo be?", "a": "It should be a recent photo, generally taken within the last 6 months." },
+      { "q": "Where do the head-positioning guides come from?", "a": "In addition to the official Ministerio del Interior page, this tool's head-positioning guides reference makepassportphoto.com's published guidance for Spanish passport photos." }
+    ]
+  },
+  "Australia Passport/Visa Photo": {
+    "slug": "australia-passport-visa-photo",
+    "metaTitle": "Australia Passport & Visa Photo Size - Free Online Maker",
+    "metaDescription": "Australian passport and visa photos must be 35x45mm on a plain white background. Make one online free, with automatic background removal.",
+    "h1": "Australia Passport & Visa Photo Size and Requirements",
+    "sourceLabel": "Australian Passport Office",
+    "sourceUrl": "https://www.passports.gov.au/PhotoGuidelines",
+    "intro": [
+      "An Australian passport or visa photo must be 35x45mm, front-facing, with a plain white background and a neutral expression.",
+      "This tool crops your photo to exactly 35x45mm and removes the background automatically to match the Australian Passport Office's photo guidelines."
+    ],
+    "faqs": [
+      { "q": "What size is an Australian passport photo?", "a": "35mm wide by 45mm tall, per the Australian Passport Office's photo guidelines." },
+      { "q": "What background is required?", "a": "A plain white background with even lighting and no shadows." },
+      { "q": "How recent should the photo be?", "a": "It should be taken within the last 6 months." },
+      { "q": "Is a neutral expression required?", "a": "Yes - a neutral expression with your mouth closed, looking directly at the camera." },
+      { "q": "Can this photo also be used for an Australian visa application?", "a": "Yes - Australian visa applications generally use the same 35x45mm photo specification as the passport." }
+    ]
+  },
+  "Germany Passport/Visa Photo": {
+    "slug": "germany-passport-visa-photo",
+    "metaTitle": "Germany Passport & Visa Photo Size - Free Online Maker",
+    "metaDescription": "German passport and visa (biometric) photos must be 35x45mm on a plain light background. Make one online free, with automatic background removal.",
+    "h1": "Germany Passport & Visa Photo Size and Requirements",
+    "sourceLabel": "German Missions Abroad",
+    "sourceUrl": "https://www.germany.info/blob/906790/6e3eee9fd4d86e16aaefe0e92d809332/dd-sample-photos-data.pdf",
+    "intro": [
+      "A German biometric passport or visa photo must be 35x45mm, front-facing, with a plain light-colored background and strict, ICAO-style positioning of the head and eyes.",
+      "This tool crops your photo to exactly 35x45mm and removes the background automatically to match the German biometric photo sample sheet."
+    ],
+    "faqs": [
+      { "q": "What size is a German passport photo?", "a": "35mm wide by 45mm tall, per the German Missions Abroad biometric photo sample sheet." },
+      { "q": "What background color is required?", "a": "A plain, light, uniform background (typically light grey) with no shadows." },
+      { "q": "How strict is the head positioning?", "a": "German biometric photos follow ICAO-style rules with specific tolerances for head height and centering - use this tool's guide lines to line up your face precisely." },
+      { "q": "How recent must the photo be?", "a": "It should be a recent photo, typically within the last 6 months." },
+      { "q": "Are glasses allowed?", "a": "Only without glare or tinted lenses, and frames must not cover the eyes - confirm current rules on the official PDF above." }
+    ]
+  }
+}

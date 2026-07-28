@@ -3,6 +3,19 @@
 
 <head>
   <meta charset="utf-8" />
+  <script>
+    // Google Consent Mode v2: deny ad/analytics storage by default. src/App.js
+    // updates this to "granted" once the cookie banner is accepted (or was
+    // already accepted on a prior visit) - required for AdSense in the EEA/UK.
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { window.dataLayer.push(arguments); }
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      analytics_storage: 'denied',
+    });
+  </script>
   <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#000000" />
@@ -21,18 +34,35 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-  <title>Passport & Visa Photo Maker</title>
-  <meta name="description" content="Easily generate passport and visa photos. Fast, simple, and supports multiple countries.">
-  <meta name="keywords" content="passport photo maker, visa photo maker, photo requirements, passport photo, visa photo, online photo maker, Chinese passport, passport renewal, consulate app">
-  <meta property="og:title" content="Passport & Visa Photo Maker">
-  <meta property="og:description" content="Easily generate passport and visa photos. Fast, simple, and supports multiple countries.">
-  <meta property="og:url" content="https://jiataihan.dev/passport-photo-maker/">
+  <title>Passport & Visa Photo Maker - Free Online Photo Tool for 13 Countries</title>
+  <meta name="description" content="Create a passport or visa photo online, free. Auto background removal, correct size and DPI for US, UK, Canada, India, China, and 8 more countries. No download, no signup.">
+  <meta name="keywords" content="passport photo maker, visa photo maker, passport photo size, passport photo requirements, visa photo requirements, online photo maker, passport photo online, passport photo background removal, US passport photo, UK passport photo, Canada passport photo, India passport photo, China passport photo">
+  <link rel="canonical" href="%REACT_APP_SITE_URL%/" />
+  <meta property="og:title" content="Passport & Visa Photo Maker - Free Online Photo Tool">
+  <meta property="og:description" content="Create a passport or visa photo online, free. Auto background removal, correct size and DPI for 13 countries. No download, no signup.">
+  <meta property="og:url" content="%REACT_APP_SITE_URL%/">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="logo192.png">
+  <meta property="og:image" content="%REACT_APP_SITE_URL%/logo512.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Passport & Visa Photo Maker">
-  <meta name="twitter:description" content="A simple, easy-to-use online tool for quickly generating passport and visa photos that meet the requirements of different countries.">
-  <meta name="twitter:image" content="logo192.png">
+  <meta name="twitter:title" content="Passport & Visa Photo Maker - Free Online Photo Tool">
+  <meta name="twitter:description" content="Create a passport or visa photo online, free. Auto background removal, correct size and DPI for 13 countries. No download, no signup.">
+  <meta name="twitter:image" content="%REACT_APP_SITE_URL%/logo512.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Passport & Visa Photo Maker",
+    "url": "%REACT_APP_SITE_URL%/",
+    "applicationCategory": "PhotographyApplication",
+    "operatingSystem": "Any (web browser)",
+    "description": "Free online tool to create passport and visa photos that meet the size, background, and DPI requirements of 13 countries, with AI background removal. Photos are processed locally in the browser and never uploaded.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
 </head>
 
 <body>

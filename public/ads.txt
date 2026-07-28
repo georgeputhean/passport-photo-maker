@@ -1,0 +1,8 @@
+# ads.txt - https://iabtechlab.com/ads-txt/
+#
+# Once this site is approved for Google AdSense, add the publisher line Google
+# gives you here, in the form:
+#   google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+#
+# No ad network is authorized to sell inventory on this domain until that line
+# is added.
