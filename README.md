@@ -1,7 +1,7 @@
 <div id="top"></div>
 <br />
 <div align="center">
-  <a href="https://passport-photo-maker-pi.vercel.app/">
+  <a href="https://passportphotoedit.com/">
     <img src="public/logo512.png" alt="Logo" width="128" height="128">
   </a>
 
@@ -10,7 +10,7 @@
   <p align="center">
     No image editing knowledge and no software download required. Just a few taps on your phone's browser, or a few clicks on your computer, and you can easily remove the background and generate passport or visa photos that meet the standards of different countries.
     <br />
-    <a href="https://passport-photo-maker-pi.vercel.app/"><strong>{ Click here to get started }</strong></a>
+    <a href="https://passportphotoedit.com/"><strong>{ Click here to get started }</strong></a>
     <br />
     <a href="https://www.youtube.com/watch?v=z6podleci5E"><strong>{ Click here to watch the video tutorial }</strong></a>
     <br />
