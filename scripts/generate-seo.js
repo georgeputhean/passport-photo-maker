@@ -16,6 +16,7 @@ const ROOT = path.join(__dirname, '..')
 const TEMPLATES_DIR = path.join(ROOT, 'src', 'Templates')
 const PUBLIC_DIR = path.join(ROOT, 'public')
 const PHOTOS_DIR = path.join(PUBLIC_DIR, 'photos')
+const GUIDES_DIR = path.join(PUBLIC_DIR, 'guides')
 const OG_DIR = path.join(PUBLIC_DIR, 'og')
 const MM_PER_INCH = 25.4
 
@@ -51,6 +52,222 @@ const AFFILIATE_PARTNERS = [
   { name: 'Walmart', envVar: 'REACT_APP_AFFILIATE_WALMART_URL', fallbackUrl: 'https://www.walmart.com/cp/photo-center-passport-photos/1078557' },
   { name: 'Shutterfly', envVar: 'REACT_APP_AFFILIATE_SHUTTERFLY_URL', fallbackUrl: 'https://www.shutterfly.com/passport-photos' },
 ]
+
+// Pricing researched via web search in July 2026, not scraped live at build
+// time - it drifts. Each entry says how it was checked: 'primary' means we
+// fetched the operator's own page directly; 'secondary' means the operator's
+// own pricing page blocked automated fetches (403), so the figure is only
+// corroborated across several independent 2026 comparison sites, not
+// independently confirmed against the source - flagged as such on the page.
+const RETAILERS = [
+  {
+    slug: 'walgreens-passport-photo',
+    name: 'Walgreens',
+    price: '$16.99',
+    priceConfidence: 'secondary',
+    details: 'for two 2x2 in. printed photos, with a free digital copy emailed to you.',
+    process: 'Walk in to the photo counter at any Walgreens with a photo department - no appointment needed. Photos are typically ready within a few minutes.',
+    sourceUrl: 'https://photo.walgreens.com/store/passport-photos',
+    sourceLabel: 'Walgreens Photo',
+    affiliate: { name: 'Walgreens', envVar: 'REACT_APP_AFFILIATE_WALGREENS_URL', fallbackUrl: 'https://www.walgreens.com/topic/passport-photos.jsp' },
+  },
+  {
+    slug: 'cvs-passport-photo',
+    name: 'CVS',
+    price: '$16.99-$17.99',
+    priceConfidence: 'secondary',
+    details: 'for two 2x2 in. printed photos taken at the photo counter; sources disagree on the exact figure. A digital copy is a separate paid add-on at some locations.',
+    process: 'Walk in to the photo counter at a CVS with a photo department - no appointment needed in most cases.',
+    sourceUrl: 'https://www.cvs.com/content/passport-photos',
+    sourceLabel: 'CVS Photo',
+    affiliate: { name: 'CVS', envVar: 'REACT_APP_AFFILIATE_CVS_URL', fallbackUrl: 'https://www.cvs.com/content/passport-photos' },
+  },
+  {
+    slug: 'walmart-passport-photo',
+    name: 'Walmart',
+    price: '$7.64',
+    priceConfidence: 'secondary',
+    details: 'for two 2x2 in. printed photos at locations with a Photo Center - the cheapest of the major retail chains. No digital copy is included with the standard in-store service.',
+    process: 'Check that your local Walmart has a Photo Center before going (not all do), then walk in - no appointment needed.',
+    sourceUrl: 'https://www.walmart.com/cp/photo-center-passport-photos/1078557',
+    sourceLabel: 'Walmart Photo Center',
+    affiliate: { name: 'Walmart', envVar: 'REACT_APP_AFFILIATE_WALMART_URL', fallbackUrl: 'https://www.walmart.com/cp/photo-center-passport-photos/1078557' },
+  },
+  {
+    slug: 'usps-passport-photo',
+    name: 'USPS',
+    price: '$15.00',
+    priceConfidence: 'primary',
+    details: 'as a flat Post Office acceptance fee, per USPS\'s own site. Not all post offices offer photo service - many do, but availability and whether you need an appointment vary by location.',
+    process: 'Use the USPS online appointment scheduler or call ahead to confirm your local post office offers passport photos before visiting.',
+    sourceUrl: 'https://www.usps.com/international/passports.htm',
+    sourceLabel: 'USPS',
+    affiliate: null,
+  },
+]
+
+const GUIDE_PAGES = [
+  ...RETAILERS.map((r) => ({ slug: r.slug, title: `${r.name} Passport Photo Price` })),
+  { slug: 'passport-photo-cost', title: 'Passport Photo Cost: Every Option Compared' },
+  { slug: 'print-passport-photos-at-home', title: 'How to Print Passport Photos at Home' },
+  { slug: 'ai-edited-passport-photos-2026', title: 'Can You Use AI to Edit a Passport Photo? (2026 Rules)' },
+]
+
+function affiliateUrl(affiliate) {
+  return process.env[affiliate.envVar] || affiliate.fallbackUrl
+}
+
+function renderRetailerGuide(retailer) {
+  const confidenceNote = retailer.priceConfidence === 'primary'
+    ? `Checked directly against ${escapeHtml(retailer.sourceLabel)}'s own site, ${BUILD_DATE}.`
+    : `${escapeHtml(retailer.sourceLabel)}'s own pricing page didn't load for us to check directly, so this figure is corroborated across several independent 2026 comparison sites rather than confirmed against the primary source. Prices vary by location and change - call ahead or confirm in-store.`
+
+  const visitLink = retailer.affiliate
+    ? `<p><a target="_blank" rel="sponsored noopener" href="${escapeHtml(affiliateUrl(retailer.affiliate))}">Visit ${escapeHtml(retailer.name)}'s passport photo page &rarr;</a> <span class="seo-source-note">(may be a sponsored link - see disclosure below)</span></p>`
+    : `<p><a target="_blank" rel="noreferrer" href="${escapeHtml(retailer.sourceUrl)}">Find a participating post office &rarr;</a></p>`
+
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / <a href="/guides/passport-photo-cost.html">Passport photo cost</a> / ${escapeHtml(retailer.name)}</nav>
+<h1>${escapeHtml(retailer.name)} Passport Photo: Price and How It Works</h1>
+<p><strong>${escapeHtml(retailer.price)}</strong> ${escapeHtml(retailer.details)}</p>
+<p class="seo-source-note">${confidenceNote}</p>
+<h2>How it works</h2>
+<p>${escapeHtml(retailer.process)}</p>
+${visitLink}
+<h2>A free alternative</h2>
+<p>You can also make a compliant photo here for free and print it yourself: our editor exports a 4x6 sheet packed with as many copies as fit, with dotted cut guides, ready for a standard photo-paper print - typically well under a dollar at a drugstore print kiosk or your own printer.</p>
+<a class="seo-cta" href="/">Make a free passport photo &rarr;</a>
+<p><a href="/guides/print-passport-photos-at-home.html">Full guide: how to print passport photos at home &rarr;</a></p>
+<h2>Compare all options</h2>
+<p>See how ${escapeHtml(retailer.name)} stacks up against the other retailers and the DIY option on our <a href="/guides/passport-photo-cost.html">passport photo cost comparison</a> page.</p>
+${renderAffiliateSection()}
+${renderAdSlot('footer')}
+`
+  return renderLayout({
+    title: `${retailer.name} Passport Photo Price 2026 - Passport & Visa Photo Maker`,
+    description: `${retailer.name} passport photo price and how the process works, plus a free way to make and print a compliant photo yourself.`,
+    canonicalPath: `/guides/${retailer.slug}.html`,
+    ldJson: [],
+    bodyHtml,
+  })
+}
+
+function renderCostComparisonPage() {
+  const rows = RETAILERS.map((r) => `    <tr><th><a href="/guides/${r.slug}.html">${escapeHtml(r.name)}</a></th><td>${escapeHtml(r.price)}</td></tr>`).join('\n')
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / Passport photo cost</nav>
+<h1>Passport Photo Cost: Every Option Compared (2026)</h1>
+<p>A passport photo costs anywhere from $0 to about $18 depending on where you get it. Here's what the major U.S. options charge, and the free alternative.</p>
+<table class="seo-spec">
+  <tbody>
+${rows}
+    <tr><th>This tool + your own printer</th><td>Free (editor) - typically under $1 to print</td></tr>
+  </tbody>
+</table>
+<p class="seo-source-note">Prices researched via web search in 2026 and, where noted on each retailer's page, checked directly against the source; retail prices vary by location and change over time. Confirm before you go.</p>
+<h2>Why the DIY option is so much cheaper</h2>
+<p>Retail photo counters charge for a service: taking the photo, checking it against the spec, and printing it in-store. If you take your own photo, this tool checks the size, background, and framing against the requirement automatically and exports a 4x6 print sheet with multiple copies and cut guides - so all you're paying for is the print itself, typically well under a dollar at a drugstore print kiosk or your own printer.</p>
+<a class="seo-cta" href="/">Make a free passport photo &rarr;</a>
+<h2>Individual retailer guides</h2>
+<ul class="seo-index-list">
+${RETAILERS.map((r) => `  <li><a href="/guides/${r.slug}.html">${escapeHtml(r.name)} passport photo</a></li>`).join('\n')}
+  <li><a href="/guides/print-passport-photos-at-home.html">How to print passport photos at home</a></li>
+</ul>
+${renderAffiliateSection()}
+${renderAdSlot('footer')}
+`
+  return renderLayout({
+    title: 'Passport Photo Cost: Every Option Compared (2026) - Passport & Visa Photo Maker',
+    description: 'What Walgreens, CVS, Walmart, and USPS charge for passport photos in 2026, compared to making one free and printing it yourself.',
+    canonicalPath: '/guides/passport-photo-cost.html',
+    ldJson: [],
+    bodyHtml,
+  })
+}
+
+function renderPrintAtHomeGuidePage() {
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / Print passport photos at home</nav>
+<h1>How to Print Passport Photos at Home</h1>
+<p>You don't need a photo counter to get a print-ready passport photo - a home printer or a drugstore print kiosk can produce one that meets spec, for a fraction of the in-store price. See the full <a href="/guides/passport-photo-cost.html">cost comparison</a> for how much that saves.</p>
+<h2>1. Make the photo</h2>
+<p>Pick your country/document in the <a href="/">editor</a>, upload a photo, and export. This handles the cropping, sizing, and DPI automatically - the part most home attempts get wrong.</p>
+<h2>2. Export the 4x6 print sheet, not just the single photo</h2>
+<p>Alongside the single photo file, the editor can export a 4x6 sheet packed with as many copies as fit at the correct size, with dotted cut guides between them - one print gets you multiple copies instead of paying per photo.</p>
+<h2>3. Print settings that actually matter</h2>
+<ul class="seo-checklist">
+  <li>Use actual photo paper (matte or glossy), not plain printer paper - most requirements expect photo-quality stock.</li>
+  <li>Print at "actual size" or "100%" - never "fit to page" or "shrink to fit", which rescales the photo and throws off the exact dimensions.</li>
+  <li>If printing yourself, set the printer to its highest quality/photo mode; the file is already generated at the correct DPI for the document, but a low print-quality setting can still soften fine detail.</li>
+  <li>A drugstore photo kiosk (Walgreens, CVS, Walmart, Costco, and similar all have them) will print a 4x6 you upload for well under a dollar - upload the sheet file exported above and print at 4x6, not a cropped/auto-enhanced setting.</li>
+</ul>
+<h2>4. Cut carefully</h2>
+<p>Cut along the dotted guides with a straight edge or paper cutter. A slightly uneven cut is a common, avoidable rejection reason - take your time.</p>
+<a class="seo-cta" href="/">Make your photo now &rarr;</a>
+${renderAdSlot('incontent')}
+<h2>FAQ</h2>
+<div class="seo-faq-item"><h3>Will a home-printed photo be accepted?</h3><p>Requirements are generally about the photo meeting the size/background/quality spec, not where it was printed - but always check the official source linked on your country's page, since a small number of application types require professional printing specifically.</p></div>
+<div class="seo-faq-item"><h3>What paper size do I need?</h3><p>Standard 4x6 in. photo paper is enough for most passport photo sizes printed multiple-up with this tool's print-sheet export; check your printer or kiosk supports 4x6 prints.</p></div>
+<div class="seo-faq-item"><h3>Can I use an inkjet printer?</h3><p>Yes, as long as it can print at photo quality on photo paper - results vary more by paper and print-quality setting than by printer brand.</p></div>
+${renderAdSlot('footer')}
+`
+  return renderLayout({
+    title: 'How to Print Passport Photos at Home - Passport & Visa Photo Maker',
+    description: 'How to export and print a compliant passport photo yourself, with the right paper, print settings, and a 4x6 sheet with multiple copies and cut guides.',
+    canonicalPath: '/guides/print-passport-photos-at-home.html',
+    ldJson: [],
+    bodyHtml,
+  })
+}
+
+function renderAiEditingGuidePage() {
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / AI-edited passport photos in 2026</nav>
+<h1>Can You Use AI to Edit a Passport Photo? (2026 Rules)</h1>
+<p>For a US passport or visa: no. As of 2026, the U.S. State Department's guidance says not to change your photo using computer software, phone apps, filters, or artificial intelligence, and that submitted photos are checked for this - see the <a href="https://travel.state.gov/content/travel/en/passports/how-apply/photos.html" target="_blank" rel="noreferrer">official photo requirements page</a>.</p>
+<h2>What counts as "editing"</h2>
+<p>The rule draws a line between two different kinds of changes:</p>
+<ul class="seo-checklist">
+  <li><strong>Format changes (fine):</strong> cropping to the required size, resizing, correcting DPI, converting the file format.</li>
+  <li><strong>Appearance changes (not accepted for a US application):</strong> replacing or editing the background, smoothing skin, changing eye color, removing blemishes, fixing red-eye, or any AI-generated or AI-retouched image.</li>
+</ul>
+<p>Multiple 2026 reports describe automated detection flagging altered photos before a human even reviews them, including background replacement specifically - see the sources at the bottom of this page. We haven't independently verified every detail of how the detection works, only that the underlying no-alteration policy is real and current.</p>
+<h2>Why this exists</h2>
+<p>The stated purpose is protecting the facial biometric matching used by border officials and identity verification systems - an altered background or smoothed/retouched face can interfere with that matching even if the photo looks fine to a person.</p>
+<h2>What to do instead</h2>
+<ul class="seo-checklist">
+  <li>Retake the photo against a genuine plain white or off-white wall, rather than removing the background afterward.</li>
+  <li>Use good, even lighting so you don't need to fix shadows in post-processing.</li>
+  <li>Use this tool's <strong>Compliance Mode</strong> for the US template - it only crops and resizes, with no option to alter the background, so there's nothing to accidentally get flagged.</li>
+  <li>If you've already used a background-removal tool (including this one's Edit Mode) for a US application, retake the photo rather than submitting the altered version.</li>
+</ul>
+<a class="seo-cta" href="/?template=US%20Passport%2FVisa%20Photo">Use Compliance Mode for a US photo &rarr;</a>
+<h2>What about other countries?</h2>
+<p>We've specifically confirmed the US policy above. We have not found a published ban on background removal for the other countries this tool supports, but policies are changing across the industry - check the official source on each <a href="/photos/">country's page</a> before using background removal for any government application, and default to caution if you're unsure.</p>
+${renderAdSlot('incontent')}
+<h2>FAQ</h2>
+<div class="seo-faq-item"><h3>Is cropping considered "editing" too?</h3><p>No - cropping, resizing, and correcting DPI are format changes and are explicitly fine. The restriction is on changing what's actually in the photo (background, skin, features), not its dimensions.</p></div>
+<div class="seo-faq-item"><h3>What if my photo was rejected and I don't know why?</h3><p>A rejected application doesn't always explain the exact reason. If you used any background removal, filter, or retouching app, that's now one of the most likely causes - retake against a plain wall and avoid editing tools entirely for the resubmission.</p></div>
+<div class="seo-faq-item"><h3>Does this apply to visa photos too, or just passports?</h3><p>The State Department guidance covers passport photos; many visa photo requirements reference the same standard. Check the specific application's instructions.</p></div>
+<p class="seo-source-note">Sources: <a href="https://travel.state.gov/content/travel/en/passports/how-apply/photos.html" target="_blank" rel="noreferrer">U.S. Department of State passport photo requirements</a> (official, primary source - fetching it directly returned an access-denied response for us, so this page's wording is corroborated via multiple independent 2026 news/guide sources rather than a live quote). Reported on by multiple outlets in 2026 covering the policy and rejection trend; this page summarizes rather than reproduces any single article. Always check the official page above, which supersedes anything summarized here.</p>
+${renderAdSlot('footer')}
+`
+  return renderLayout({
+    title: 'Can You Use AI to Edit a Passport Photo? 2026 Rules Explained',
+    description: 'The U.S. State Department does not accept AI-edited or background-replaced passport photos as of 2026. What counts as editing, why it matters, and what to do instead.',
+    canonicalPath: '/guides/ai-edited-passport-photos-2026.html',
+    ldJson: [{
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: [
+        { '@type': 'Question', name: 'Is cropping considered "editing" too?', acceptedAnswer: { '@type': 'Answer', text: 'No - cropping, resizing, and correcting DPI are format changes and are explicitly fine. The restriction is on changing what\'s actually in the photo (background, skin, features), not its dimensions.' } },
+        { '@type': 'Question', name: 'What if my photo was rejected and I don\'t know why?', acceptedAnswer: { '@type': 'Answer', text: 'A rejected application doesn\'t always explain the exact reason. If you used any background removal, filter, or retouching app, that\'s now one of the most likely causes - retake against a plain wall and avoid editing tools entirely for the resubmission.' } },
+        { '@type': 'Question', name: 'Does this apply to visa photos too, or just passports?', acceptedAnswer: { '@type': 'Answer', text: 'The State Department guidance covers passport photos; many visa photo requirements reference the same standard. Check the specific application\'s instructions.' } },
+      ],
+    }],
+    bodyHtml,
+  })
+}
 
 const seoContent = JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'seoContent.json'), 'utf8'))
 const aiEditingPolicy = JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'aiEditingPolicy.json'), 'utf8'))
@@ -300,7 +517,7 @@ ${bodyHtml}
 </main>
 <footer class="seo-footer">
   <span>&copy; ${new Date().getFullYear()} Passport &amp; Visa Photo Maker</span>
-  <span><a href="/photos/">All countries</a> &middot; <a href="/about.html">About</a> &middot; <a href="/methodology.html">Methodology</a> &middot; <a href="/contact.html">Contact</a> &middot; <a href="/privacy-policy.html">Privacy Policy</a></span>
+  <span><a href="/photos/">All countries</a> &middot; <a href="/guides/passport-photo-cost.html">Guides</a> &middot; <a href="/about.html">About</a> &middot; <a href="/methodology.html">Methodology</a> &middot; <a href="/contact.html">Contact</a> &middot; <a href="/privacy-policy.html">Privacy Policy</a></span>
 </footer>${consentBanner()}
 </body>
 </html>
@@ -616,6 +833,9 @@ function renderLlmsTxt(entries) {
     '## Country and document requirements',
     ...entries.map((e) => `- [${e.content.h1}](${SITE_URL}/photos/${e.content.slug}.html)`),
     '',
+    '## Guides',
+    ...GUIDE_PAGES.map((g) => `- [${g.title}](${SITE_URL}/guides/${g.slug}.html)`),
+    '',
   ]
   return lines.join('\n')
 }
@@ -653,6 +873,7 @@ function renderSitemap(entries) {
     `${SITE_URL}/`,
     `${SITE_URL}/photos/`,
     ...entries.map((e) => `${SITE_URL}/photos/${e.content.slug}.html`),
+    ...GUIDE_PAGES.map((g) => `${SITE_URL}/guides/${g.slug}.html`),
     `${SITE_URL}/about.html`,
     `${SITE_URL}/contact.html`,
     `${SITE_URL}/methodology.html`,
@@ -690,6 +911,7 @@ async function main() {
 
   fs.mkdirSync(PHOTOS_DIR, { recursive: true })
   fs.mkdirSync(OG_DIR, { recursive: true })
+  fs.mkdirSync(GUIDES_DIR, { recursive: true })
 
   entries.forEach(({ template, content }) => {
     fs.writeFileSync(path.join(PHOTOS_DIR, `${content.slug}.html`), renderPhotoPage(template, content, entries))
@@ -698,6 +920,13 @@ async function main() {
   for (const { template, content } of entries) {
     await generateOgImage(content, deriveSpec(template))
   }
+
+  RETAILERS.forEach((retailer) => {
+    fs.writeFileSync(path.join(GUIDES_DIR, `${retailer.slug}.html`), renderRetailerGuide(retailer))
+  })
+  fs.writeFileSync(path.join(GUIDES_DIR, 'passport-photo-cost.html'), renderCostComparisonPage())
+  fs.writeFileSync(path.join(GUIDES_DIR, 'print-passport-photos-at-home.html'), renderPrintAtHomeGuidePage())
+  fs.writeFileSync(path.join(GUIDES_DIR, 'ai-edited-passport-photos-2026.html'), renderAiEditingGuidePage())
 
   fs.writeFileSync(path.join(PHOTOS_DIR, 'index.html'), renderIndexPage(entries))
   fs.writeFileSync(path.join(PUBLIC_DIR, 'privacy-policy.html'), renderPrivacyPolicyPage())
