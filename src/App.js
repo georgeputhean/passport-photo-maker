@@ -365,6 +365,8 @@ const MiddleColumn = ({
   allowAiModel,
   setAllowAiModel,
   aiEditingRestricted,
+  aiEditingMode,
+  setAiEditingMode,
   aiEditingAcknowledged,
   setAiEditingAcknowledged,
   updatePreview,
@@ -1005,8 +1007,7 @@ const MiddleColumn = ({
                 <button onClick={() => {
                   setModals((prevModals) => ({ ...prevModals, aiEditingWarning: false }))
                   setAiEditingAcknowledged(true)
-                  setRemoveBg({ state: true, error: false })
-                  if (!allowAiModel) setModals((prevModals) => ({ ...prevModals, aiModel: true }))
+                  setAiEditingMode('edit')
                   ReactGA.event({
                     action: 'ai_editing_warning_continue',
                     category: 'Compliance Warning',
@@ -1055,33 +1056,71 @@ const MiddleColumn = ({
               </footer>
             </article>
           </dialog>
-          <div className="control-row1">
-            <small>
-              <label>
-                <input
-                  disabled={iOS}
-                  type="checkbox"
-                  role="switch"
-                  checked={removeBg.state && allowAiModel}
-                  onChange={(e) => {
-                    const checked = e.target.checked
-                    if (checked && aiEditingRestricted && !aiEditingAcknowledged) {
-                      setModals((prevModals) => ({ ...prevModals, aiEditingWarning: true }))
-                      return
-                    }
-                    setRemoveBg({ state: checked, error: false })
-                    if (!allowAiModel) setModals((prevModals) => ({ ...prevModals, aiModel: true }))
-                    ReactGA.event({
-                      action: checked ? 'ai_enabled' : 'ai_disabled',
-                      category: 'Switch Toggle',
-                      label: checked ? 'AI Enabled' : 'AI Disabled',
-                    })
-                  }}
-                />{removeBg.state && loadingModel ? translate("backgroundRemovalProcessing") : translate("backgroundRemovalLabel")}
-              </label>
-            </small>
-            <div aria-busy={removeBg.state && loadingModel}></div>
-          </div>
+          {aiEditingRestricted && aiEditingMode !== 'edit' ? (
+            <div className="control-row1">
+              <small>{translate("complianceModeNotice")}</small>
+              <button
+                type="button"
+                className="outline"
+                onClick={() => {
+                  if (aiEditingAcknowledged) {
+                    setAiEditingMode('edit')
+                  } else {
+                    setModals((prevModals) => ({ ...prevModals, aiEditingWarning: true }))
+                  }
+                  ReactGA.event({
+                    action: 'switch_to_edit_mode_clicked',
+                    category: 'Compliance Mode',
+                    label: 'Switch to Edit Mode',
+                  })
+                }}
+              >
+                {translate("switchToEditModeButton")}
+              </button>
+            </div>
+          ) : (
+            <div className="control-row1">
+              <small>
+                <label>
+                  <input
+                    disabled={iOS}
+                    type="checkbox"
+                    role="switch"
+                    checked={removeBg.state && allowAiModel}
+                    onChange={(e) => {
+                      const checked = e.target.checked
+                      setRemoveBg({ state: checked, error: false })
+                      if (!allowAiModel) setModals((prevModals) => ({ ...prevModals, aiModel: true }))
+                      ReactGA.event({
+                        action: checked ? 'ai_enabled' : 'ai_disabled',
+                        category: 'Switch Toggle',
+                        label: checked ? 'AI Enabled' : 'AI Disabled',
+                      })
+                    }}
+                  />{removeBg.state && loadingModel ? translate("backgroundRemovalProcessing") : translate("backgroundRemovalLabel")}
+                </label>
+              </small>
+              <div aria-busy={removeBg.state && loadingModel}></div>
+            </div>
+          )}
+          {aiEditingRestricted && aiEditingMode === 'edit' && (<div className="control-row3">
+            <small>{translate("editModeActiveNotice")}</small>{" "}
+            <button
+              type="button"
+              className="outline"
+              onClick={() => {
+                setAiEditingMode('compliance')
+                setRemoveBg({ state: false, error: false })
+                ReactGA.event({
+                  action: 'back_to_compliance_mode',
+                  category: 'Compliance Mode',
+                  label: 'Back to Compliance Mode',
+                })
+              }}
+            >
+              {translate("backToComplianceModeButton")}
+            </button>
+          </div>)}
           {removeBg.state && loadingModel && (<div className="control-row3">
             <small>{translate("backgroundRemovalReminder")}</small>
           </div>)}
@@ -1509,6 +1548,7 @@ const App = () => {
   const [allowAiModel, setAllowAiModel] = useState(false)
   const [removeBg, setRemoveBg] = useState({ state: false, error: false }) // Toggle for background removal
   const [aiEditingAcknowledged, setAiEditingAcknowledged] = useState(false) // Has the user dismissed the AI-editing compliance warning this session?
+  const [aiEditingMode, setAiEditingMode] = useState('compliance') // 'compliance' (crop/resize only) or 'edit' (background removal unlocked) - only meaningful when aiEditingRestricted
   const [loadingModel, setLoadingModel] = useState(false) // State for loading model 
   const [originalPhoto, setOriginalPhoto] = useState(null)
   const [processedPhoto, setProcessedPhoto] = useState(null)
@@ -1633,6 +1673,10 @@ const App = () => {
       label: translateObject(selectedTemplate.title),
     })
     setTemplate(selectedTemplate)
+    setAiEditingMode('compliance')
+    if (aiEditingPolicy[selectedTemplate.title]?.restricted) {
+      setRemoveBg({ state: false, error: false })
+    }
     setExportPhoto({
       width: parseInt(parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi)),
       height: parseInt(parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi)),
@@ -1807,6 +1851,8 @@ const App = () => {
             allowAiModel={allowAiModel}
             setAllowAiModel={setAllowAiModel}
             aiEditingRestricted={aiEditingRestricted}
+            aiEditingMode={aiEditingMode}
+            setAiEditingMode={setAiEditingMode}
             aiEditingAcknowledged={aiEditingAcknowledged}
             setAiEditingAcknowledged={setAiEditingAcknowledged}
             updatePreview={updatePreview}

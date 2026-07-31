@@ -1,6 +1,6 @@
 {
   "US Passport/Visa Photo": {
     "restricted": true,
-    "note": "As of 2026, U.S. State Department guidance says not to alter your photo using computer software, phone apps, filters, or artificial intelligence - including replacing the background - and that submitted photos are checked for signs of this. Cropping, resizing, and correcting DPI are format changes and are fine; changing the background or retouching your appearance is not. If you're applying for a US passport or visa, we recommend retaking your photo against a plain white or off-white wall instead of using background removal."
+    "note": "As of 2026, U.S. State Department guidance says not to alter your photo using computer software, phone apps, filters, or artificial intelligence - including replacing the background - and that submitted photos are checked for signs of this. Cropping, resizing, and correcting DPI are format changes and are fine; changing the background or retouching your appearance is not. This tool defaults to Compliance Mode for this document - crop and resize only, no background changes. If you're applying for a US passport or visa, we recommend staying in Compliance Mode and retaking your photo against a plain white or off-white wall instead of switching to Edit Mode."
   }
 }
