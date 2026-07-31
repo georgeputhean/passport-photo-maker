@@ -28,6 +28,8 @@
   "switchToEditModeButton": "Switch to Edit Mode →",
   "editModeActiveNotice": "Edit Mode is on: background removal is available, but the U.S. State Department may not accept an altered photo.",
   "backToComplianceModeButton": "Back to Compliance Mode",
+  "customWidthLabel": "Width (mm)",
+  "customHeightLabel": "Height (mm)",
   "autoAlignLabel": "✨ Auto Align",
   "autoAlignProcessing": "Aligning...",
   "autoAlignReminder": "It may take a while for the first time, please be patient...",

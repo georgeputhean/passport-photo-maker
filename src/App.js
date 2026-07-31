@@ -39,6 +39,23 @@ const EXPORT_WIDTH_LIMIT = 2000
 const EXPORT_HEIGHT_LIMIT = 2000
 const EXPORT_SIZE_LIMIT = 2000
 const DEBOUNCE = 250
+const CUSTOM_SIZE_TITLE = 'Custom Size'
+const MIN_CUSTOM_SIZE_MM = 10
+const MAX_CUSTOM_SIZE_MM = 200
+// Not a real document type - no official spec exists to guide against or to
+// publish a requirements page for (see generate-seo.js's seoContent lookup),
+// and it deliberately isn't in aiEditingPolicy.json, so it gets the normal
+// (non-restricted) background-removal flow.
+const CUSTOM_SIZE_TEMPLATE = {
+  title: CUSTOM_SIZE_TITLE,
+  width: '35',
+  height: '45',
+  dpi: '300',
+  format: 'jpg',
+  size: '500',
+  instruction: 'Enter your own width and height in millimeters above. There\'s no official spec for a custom size, so there are no alignment guides - crop carefully to your own requirement.',
+  guide: [],
+}
 const TEMPLATES = [
   India_Passport_Photo,
   PRC_Passport_Photo,
@@ -53,6 +70,7 @@ const TEMPLATES = [
   Germany_Passport_Photo,
   Mexico_TN_Visa_Photo,
   Spain_Passport_Photo,
+  CUSTOM_SIZE_TEMPLATE,
 ]
 const MAX_EDITOR_WIDTH = 380
 const MAX_EDITOR_HEIGHT = 640
@@ -104,6 +122,7 @@ const getTemplateFlag = (title) => {
   if (title.startsWith('Spain')) return '🇪🇸'
   if (title.startsWith('UK')) return '🇬🇧'
   if (title.startsWith('US')) return '🇺🇸'
+  if (title === CUSTOM_SIZE_TITLE) return '📐'
   return '🌐'
 }
 
@@ -257,6 +276,31 @@ const NavBar = ({
     selectTemplate(selectedTemplate)
   }
 
+  const isCustomSize = template.title === CUSTOM_SIZE_TITLE
+  const [customDraft, setCustomDraft] = useState({ width: template.width, height: template.height })
+
+  // Reset the draft to the template's current values whenever a different
+  // custom-size selection starts (e.g. switching away and back), so stale
+  // typed-but-uncommitted text from a previous visit doesn't linger.
+  useEffect(() => {
+    if (isCustomSize) setCustomDraft({ width: template.width, height: template.height })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCustomSize])
+
+  const handleCustomDimensionChange = (field) => (e) => {
+    const raw = e.target.value
+    setCustomDraft((prev) => ({ ...prev, [field]: raw }))
+    const value = parseFloat(raw)
+    if (!isNaN(value) && value >= MIN_CUSTOM_SIZE_MM && value <= MAX_CUSTOM_SIZE_MM) {
+      selectTemplate({ ...template, [field]: raw })
+    }
+  }
+
+  const isDraftValid = (field) => {
+    const value = parseFloat(customDraft[field])
+    return !isNaN(value) && value >= MIN_CUSTOM_SIZE_MM && value <= MAX_CUSTOM_SIZE_MM
+  }
+
   return (
     <nav ref={navRef}>
       <ul>
@@ -284,6 +328,32 @@ const NavBar = ({
             ))}
           </select>
         </li>
+        {isCustomSize && (
+          <li className="custom-size-inputs">
+            <label>
+              <small>{translate("customWidthLabel")}</small>
+              <input
+                type="number"
+                inputMode="decimal"
+                aria-label="Custom width in millimeters"
+                aria-invalid={!isDraftValid('width')}
+                value={customDraft.width}
+                onChange={handleCustomDimensionChange('width')}
+              />
+            </label>
+            <label>
+              <small>{translate("customHeightLabel")}</small>
+              <input
+                type="number"
+                inputMode="decimal"
+                aria-label="Custom height in millimeters"
+                aria-invalid={!isDraftValid('height')}
+                value={customDraft.height}
+                onChange={handleCustomDimensionChange('height')}
+              />
+            </label>
+          </li>
+        )}
         <li><ThemeToggle theme={theme} setTheme={setTheme} /></li>
       </ul>
     </nav>

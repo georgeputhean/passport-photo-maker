@@ -896,13 +896,19 @@ function updateRobotsTxt() {
   fs.writeFileSync(robotsPath, updated)
 }
 
+// Templates with no official spec to publish a requirements page for - not a
+// missing-data bug, so excluded from the "no seoContent entry" warning below.
+const NO_LANDING_PAGE_EXPECTED = new Set(['Custom Size'])
+
 async function main() {
   const templates = loadTemplates()
   const entries = templates
     .map((template) => {
       const content = seoContent[template.title]
       if (!content) {
-        console.warn(`[generate-seo] No src/seoContent.json entry for template "${template.title}" - skipping its landing page.`)
+        if (!NO_LANDING_PAGE_EXPECTED.has(template.title)) {
+          console.warn(`[generate-seo] No src/seoContent.json entry for template "${template.title}" - skipping its landing page.`)
+        }
         return null
       }
       return { template, content }
