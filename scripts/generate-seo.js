@@ -6,6 +6,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const sharp = require('sharp')
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development'
 require('dotenv').config({ path: path.join(__dirname, '..', envFile) })
@@ -15,6 +16,7 @@ const ROOT = path.join(__dirname, '..')
 const TEMPLATES_DIR = path.join(ROOT, 'src', 'Templates')
 const PUBLIC_DIR = path.join(ROOT, 'public')
 const PHOTOS_DIR = path.join(PUBLIC_DIR, 'photos')
+const OG_DIR = path.join(PUBLIC_DIR, 'og')
 const MM_PER_INCH = 25.4
 
 const SITE_URL = (process.env.REACT_APP_SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')
@@ -215,8 +217,58 @@ function deriveSpec(template) {
   }
 }
 
-function renderLayout({ title, description, canonicalPath, ldJson, bodyHtml }) {
+// Text-only (no emoji - color-emoji fonts aren't reliably available in a
+// headless build container). font-family is a named-font stack, not just the
+// generic "sans-serif" keyword: on this system, librsvg (which sharp uses
+// for SVG rasterization) resolves the bare "sans-serif" keyword to a SERIF
+// font (confirmed by rendering a test image) but resolves named fonts
+// correctly. "Liberation Sans" is metric-compatible with Arial and commonly
+// preinstalled on Linux build images; "sans-serif" stays as the last-resort
+// fallback. Not verified on Vercel's actual Linux build container - check a
+// generated /og/*.png after the first deploy.
+function renderOgSvg(content, spec) {
+  const title = escapeHtml(content.h1)
+  const specLine = `${spec.widthMm} × ${spec.heightMm} mm (${spec.widthIn}" × ${spec.heightIn}") · ${spec.dpi} DPI`
+  return `<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#0f172a"/>
+  <text x="80" y="120" font-family="Arial, Helvetica, Liberation Sans, sans-serif" font-size="30" font-weight="700" fill="#93c5fd">Passport &amp; Visa Photo Maker</text>
+  <text x="80" y="280" font-family="Arial, Helvetica, Liberation Sans, sans-serif" font-size="54" font-weight="700" fill="#ffffff">
+${wrapSvgText(title, 22).map((line, i) => `    <tspan x="80" dy="${i === 0 ? 0 : 64}">${escapeHtml(line)}</tspan>`).join('\n')}
+  </text>
+  <text x="80" y="460" font-family="Arial, Helvetica, Liberation Sans, sans-serif" font-size="34" fill="#e2e8f0">${escapeHtml(specLine)}</text>
+  <text x="80" y="560" font-family="Arial, Helvetica, Liberation Sans, sans-serif" font-size="26" fill="#94a3b8">Free · processed in your browser, never uploaded</text>
+</svg>`
+}
+
+// Naive word-wrap for SVG <tspan> lines - country titles run long enough
+// ("Australia Passport & Visa Photo Size and Requirements") to overflow a
+// single 1200px-wide line at a readable font size.
+function wrapSvgText(text, maxCharsPerLine) {
+  const words = text.replace(/&amp;/g, '&').split(' ')
+  const lines = []
+  let current = ''
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word
+    if (next.length > maxCharsPerLine && current) {
+      lines.push(current)
+      current = word
+    } else {
+      current = next
+    }
+  }
+  if (current) lines.push(current)
+  return lines.slice(0, 3)
+}
+
+async function generateOgImage(content, spec) {
+  const svg = renderOgSvg(content, spec)
+  await sharp(Buffer.from(svg)).png().toFile(path.join(OG_DIR, `${content.slug}.png`))
+}
+
+function renderLayout({ title, description, canonicalPath, ldJson, bodyHtml, ogImagePath }) {
   const canonicalUrl = `${SITE_URL}${canonicalPath}`
+  const ogImageUrl = `${SITE_URL}${ogImagePath || '/logo512.png'}`
+  const twitterCard = ogImagePath ? 'summary_large_image' : 'summary'
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -231,9 +283,11 @@ function renderLayout({ title, description, canonicalPath, ldJson, bodyHtml }) {
 <meta property="og:description" content="${escapeHtml(description)}">
 <meta property="og:url" content="${canonicalUrl}">
 <meta property="og:type" content="article">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="${ogImageUrl}">
+<meta name="twitter:card" content="${twitterCard}">
 <meta name="twitter:title" content="${escapeHtml(title)}">
 <meta name="twitter:description" content="${escapeHtml(description)}">
+<meta name="twitter:image" content="${ogImageUrl}">
 ${(ldJson || []).map((obj) => `<script type="application/ld+json">${JSON.stringify(obj)}</script>`).join('\n')}${consentAndAdsHead()}
 </head>
 <body>
@@ -370,6 +424,7 @@ ${renderAdSlot('footer')}
     canonicalPath,
     ldJson,
     bodyHtml,
+    ogImagePath: `/og/${content.slug}.png`,
   })
 }
 
@@ -620,7 +675,7 @@ function updateRobotsTxt() {
   fs.writeFileSync(robotsPath, updated)
 }
 
-function main() {
+async function main() {
   const templates = loadTemplates()
   const entries = templates
     .map((template) => {
@@ -634,10 +689,15 @@ function main() {
     .filter(Boolean)
 
   fs.mkdirSync(PHOTOS_DIR, { recursive: true })
+  fs.mkdirSync(OG_DIR, { recursive: true })
 
   entries.forEach(({ template, content }) => {
     fs.writeFileSync(path.join(PHOTOS_DIR, `${content.slug}.html`), renderPhotoPage(template, content, entries))
   })
+
+  for (const { template, content } of entries) {
+    await generateOgImage(content, deriveSpec(template))
+  }
 
   fs.writeFileSync(path.join(PHOTOS_DIR, 'index.html'), renderIndexPage(entries))
   fs.writeFileSync(path.join(PUBLIC_DIR, 'privacy-policy.html'), renderPrivacyPolicyPage())
@@ -649,7 +709,10 @@ function main() {
   updateIndexHtml(entries)
   updateRobotsTxt()
 
-  console.log(`[generate-seo] Generated ${entries.length} landing pages + index + sitemap + about/contact/methodology + llms.txt (SITE_URL=${SITE_URL}).`)
+  console.log(`[generate-seo] Generated ${entries.length} landing pages + OG images + index + sitemap + about/contact/methodology + llms.txt (SITE_URL=${SITE_URL}).`)
 }
 
-main()
+main().catch((err) => {
+  console.error('[generate-seo] Failed:', err)
+  process.exit(1)
+})
