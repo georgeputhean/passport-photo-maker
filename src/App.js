@@ -25,6 +25,7 @@ import Australia_Visa_Photo from './Templates/Australia_Passport_Photo.json'
 import Mexico_TN_Visa_Photo from './Templates/Mexico_TN_Visa_Photo.json'
 import Spain_Passport_Photo from './Templates/Spain_Passport_Photo.json'
 import India_Passport_Photo from './Templates/India_Passport_Photo.json'
+import Netherlands_Passport_Photo from './Templates/Netherlands_Passport_Photo.json'
 import './App.css'
 import ChangeLog from './changelog.json'
 
@@ -70,6 +71,7 @@ const TEMPLATES = [
   Germany_Passport_Photo,
   Mexico_TN_Visa_Photo,
   Spain_Passport_Photo,
+  Netherlands_Passport_Photo,
   CUSTOM_SIZE_TEMPLATE,
 ]
 const MAX_EDITOR_WIDTH = 380
@@ -118,6 +120,7 @@ const getTemplateFlag = (title) => {
   if (title.startsWith('Japan')) return '🇯🇵'
   if (title.startsWith('Malaysia')) return '🇲🇾'
   if (title.startsWith('Mexico')) return '🇲🇽'
+  if (title.startsWith('Netherlands')) return '🇳🇱'
   if (title.startsWith('Chinese')) return '🇨🇳'
   if (title.startsWith('Spain')) return '🇪🇸'
   if (title.startsWith('UK')) return '🇬🇧'
