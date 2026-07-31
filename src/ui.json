@@ -48,7 +48,7 @@
   "yesButton": "Confirm",
   "noButton": "Cancel",
   "aiConfirmTitle": "Download AI Model？",
-  "aiConfirmText": "Click \"Confirm\" to allow downloading AI pre-trained models (~80MB for background removal, ~15MB for auto align). Each model only needs to download once for this session.",
+  "aiConfirmText": "Click \"Confirm\" to allow downloading AI pre-trained models (~45MB for background removal, ~15MB for auto align). Each model only needs to download once for this session.",
   "loadNewPhotoButton": "Load a different photo",
   "widthLabel": "Width",
   "heightLabel": "Height",

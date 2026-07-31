@@ -18,6 +18,7 @@ const PHOTOS_DIR = path.join(PUBLIC_DIR, 'photos')
 const MM_PER_INCH = 25.4
 
 const SITE_URL = (process.env.REACT_APP_SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')
+const BUILD_DATE = new Date().toISOString().slice(0, 10)
 
 // Ads and affiliate links are opt-in via env vars (same "blank disables" convention
 // as REACT_APP_GA_MEASUREMENT_ID / REACT_APP_ADSENSE_CLIENT_ID below). With no valid
@@ -50,6 +51,24 @@ const AFFILIATE_PARTNERS = [
 ]
 
 const seoContent = JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'seoContent.json'), 'utf8'))
+const aiEditingPolicy = JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'aiEditingPolicy.json'), 'utf8'))
+
+const GENERIC_CHECKLIST = [
+  'Neutral facial expression, mouth closed, both eyes open',
+  'Face the camera directly, with no head tilt',
+  'No hats or head coverings, except for religious or medical reasons - your full face must still be visible',
+  'A recent photo, typically taken within the last 6 months',
+  'A plain, evenly lit background with no shadows, patterns, or other people or objects',
+  'Glasses are discouraged or restricted by a growing number of countries due to glare - check the official source below for this document specifically',
+]
+
+const AT_HOME_STEPS = [
+  'Stand about 3-6 feet in front of a plain, light-colored wall with no shadow falling behind you.',
+  'Use even, natural light facing you - a window works well. Avoid harsh overhead light, backlighting, or a direct flash, which all cast shadows.',
+  'Hold the camera at eye level, at arm’s length or propped on a stand, and look straight into it.',
+  'Keep a neutral expression, mouth closed, both eyes open, and remove hats or sunglasses.',
+  'Take a few shots, then upload the sharpest one here - cropping to the exact size, and background removal if you use it, are handled automatically.',
+]
 
 // Renders only an empty, labeled placeholder container - never an <ins> tag and
 // never an adsbygoogle.js push. Real ad markup is created client-side by
@@ -234,7 +253,49 @@ ${bodyHtml}
 `
 }
 
-function renderPhotoPage(template, content) {
+function renderAlterationPolicy(template) {
+  const policy = aiEditingPolicy[template.title]
+  const note = policy?.restricted
+    ? policy.note
+    : 'We have not found a published rule specifically banning background removal or other AI editing for this document as of this writing - but policies are changing across the industry, and getting it wrong can mean a rejected application. Always check the official source below for the current rule before using background removal, and when in doubt, use only cropping and resizing.'
+  return `
+<h2>Can you use AI background removal for this photo?</h2>
+<p>${escapeHtml(note)}</p>
+`
+}
+
+function renderChecklist() {
+  return `
+<h2>General photo rules</h2>
+<p>These apply broadly, but always confirm the specifics for this document on the official source below.</p>
+<ul class="seo-checklist">
+${GENERIC_CHECKLIST.map((item) => `  <li>${escapeHtml(item)}</li>`).join('\n')}
+</ul>
+`
+}
+
+function renderAtHomeSteps() {
+  return `
+<h2>How to take this photo at home</h2>
+<ol class="seo-steps">
+${AT_HOME_STEPS.map((step) => `  <li>${escapeHtml(step)}</li>`).join('\n')}
+</ol>
+<p>Many governments accept a digital photo upload for online applications as well as a printed photo for in-person or mail applications - check the official source below for which your application needs. This tool exports both a single photo file and a 4x6 print sheet, so either way you're covered.</p>
+`
+}
+
+function renderRelatedCountries(entries, content) {
+  const others = entries.filter((e) => e.content.slug !== content.slug).slice(0, 6)
+  if (others.length === 0) return ''
+  return `
+<h2>Other countries and documents</h2>
+<ul class="seo-index-list">
+${others.map((e) => `  <li><a href="/photos/${e.content.slug}.html">${escapeHtml(e.content.h1)}</a></li>`).join('\n')}
+</ul>
+`
+}
+
+function renderPhotoPage(template, content, entries) {
   const spec = deriveSpec(template)
   const canonicalPath = `/photos/${content.slug}.html`
   const ctaHref = `/?template=${encodeURIComponent(template.title)}`
@@ -260,6 +321,12 @@ function renderPhotoPage(template, content) {
         { '@type': 'ListItem', position: 3, name: content.h1, item: `${SITE_URL}${canonicalPath}` },
       ],
     },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'HowTo',
+      name: `How to take a ${content.h1}`,
+      step: AT_HOME_STEPS.map((step) => ({ '@type': 'HowToStep', text: step })),
+    },
   ]
 
   const bodyHtml = `
@@ -275,6 +342,9 @@ ${content.intro.map((p) => `<p>${escapeHtml(p)}</p>`).join('\n')}
   </tbody>
 </table>
 <a class="seo-cta" href="${ctaHref}">Make this photo now &rarr;</a>
+${renderAlterationPolicy(template)}
+${renderChecklist()}
+${renderAtHomeSteps()}
 ${renderAffiliateSection()}
 ${renderAdSlot('incontent')}
 <h2>Frequently asked questions</h2>
@@ -283,6 +353,7 @@ ${content.sourceUrl
       ? `<p class="seo-source-note">Source: <a target="_blank" rel="noreferrer" href="${content.sourceUrl}">${escapeHtml(content.sourceLabel)}</a>. Requirements change over time - always confirm the current specification before submitting.</p>`
       : `<p class="seo-source-note">This document type does not have one consistently published official specification - always confirm the exact requirement with the office processing your application.</p>`
     }
+${renderRelatedCountries(entries, content)}
 ${renderAdSlot('footer')}
 `
 
@@ -293,6 +364,79 @@ ${renderAdSlot('footer')}
     ldJson,
     bodyHtml,
   })
+}
+
+const HOME_FAQS = [
+  {
+    q: 'Is this passport photo maker actually free?',
+    a: 'Yes. The editor, background removal, and the multi-copy 4x6 print layout are all free, with no signup, no watermark, and no paywalled export.',
+  },
+  {
+    q: 'Do my photos get uploaded anywhere?',
+    a: 'No. Cropping, background removal, and face alignment all run locally in your browser using in-browser AI models. Your photo itself is never sent to a server.',
+  },
+  {
+    q: 'Which countries and documents are supported?',
+    a: 'US, UK, Canada (passport and visa), India, China (passport/visa and travel document), Japan, Malaysia, Germany, Australia, Mexico TN visa, and Spain - each with its own exact size, DPI, and background requirements.',
+  },
+  {
+    q: 'Will the background removal always be accepted?',
+    a: 'Not necessarily. As of 2026, the U.S. State Department’s guidance says not to alter your photo with software, filters, or AI, including background replacement - only cropping, resizing, and similar format changes are safe for a US application. Rules differ by country, so check the official source linked on each country’s page before submitting.',
+  },
+  {
+    q: 'What size and format do I get?',
+    a: 'The exact millimeter/inch dimensions and DPI required for the document you pick, exported as a single photo and, where useful, a 4x6 print sheet with multiple copies.',
+  },
+  {
+    q: 'Do I need to install anything?',
+    a: 'No. It runs entirely in your browser on desktop or mobile - no app download, no account.',
+  },
+]
+
+function renderHomepageSeoBlock(entries) {
+  const countryLinks = entries
+    .map((e) => `    <li><a href="/photos/${e.content.slug}.html">${escapeHtml(e.content.h1)}</a></li>`)
+    .join('\n')
+
+  const faqHtml = HOME_FAQS
+    .map((f) => `  <div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`)
+    .join('\n')
+
+  return `<div id="seo-content">
+<h1>Passport &amp; Visa Photo Maker</h1>
+<p>Create a passport or visa photo online, free, for ${entries.length} countries and document types. Upload a photo, and this tool crops it to the exact size and DPI required, with an option to remove the background automatically - all processed locally in your browser, never uploaded to a server.</p>
+<h2>How it works</h2>
+<ol class="seo-steps">
+  <li>Pick your country or document type below, or from the editor.</li>
+  <li>Upload a photo and, if you want, remove the background with one click.</li>
+  <li>Download the correctly sized photo, or a 4x6 print sheet with multiple copies.</li>
+</ol>
+<h2>Your photo never leaves your device</h2>
+<p>Background removal and face alignment run on in-browser AI models, not a server. The only network activity is downloading the (non-photo) model files themselves. See the <a href="/privacy-policy.html">Privacy Policy</a> for details.</p>
+<h2>Supported countries and documents</h2>
+<ul class="seo-index-list">
+${countryLinks}
+</ul>
+<a class="seo-cta" href="/photos/">See full requirements for every country &rarr;</a>
+<h2>Frequently asked questions</h2>
+${faqHtml}
+<p class="seo-source-note">Photo requirements are set by each country’s government and can change. Always confirm the current specification on the official source linked from that country’s page before submitting.</p>
+</div>`
+}
+
+function updateIndexHtml(entries) {
+  const indexPath = path.join(PUBLIC_DIR, 'index.html')
+  const html = fs.readFileSync(indexPath, 'utf8')
+  const block = renderHomepageSeoBlock(entries)
+  const updated = html.replace(
+    /<!-- SEO_CONTENT_START -->[\s\S]*<!-- SEO_CONTENT_END -->/,
+    `<!-- SEO_CONTENT_START -->\n${block}\n  <!-- SEO_CONTENT_END -->`
+  )
+  if (updated === html && !html.includes('SEO_CONTENT_START')) {
+    console.warn('[generate-seo] public/index.html has no SEO_CONTENT markers - skipping homepage content injection.')
+    return
+  }
+  fs.writeFileSync(indexPath, updated)
 }
 
 function renderIndexPage(entries) {
@@ -355,15 +499,15 @@ function renderPrivacyPolicyPage() {
 
 function renderSitemap(entries) {
   const urls = [
-    { loc: `${SITE_URL}/`, priority: '1.0' },
-    { loc: `${SITE_URL}/photos/`, priority: '0.8' },
-    ...entries.map((e) => ({ loc: `${SITE_URL}/photos/${e.content.slug}.html`, priority: '0.9' })),
-    { loc: `${SITE_URL}/privacy-policy.html`, priority: '0.3' },
+    `${SITE_URL}/`,
+    `${SITE_URL}/photos/`,
+    ...entries.map((e) => `${SITE_URL}/photos/${e.content.slug}.html`),
+    `${SITE_URL}/privacy-policy.html`,
   ]
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map((u) => `  <url><loc>${u.loc}</loc><priority>${u.priority}</priority></url>`).join('\n')}
+${urls.map((loc) => `  <url><loc>${loc}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join('\n')}
 </urlset>
 `
 }
@@ -393,12 +537,13 @@ function main() {
   fs.mkdirSync(PHOTOS_DIR, { recursive: true })
 
   entries.forEach(({ template, content }) => {
-    fs.writeFileSync(path.join(PHOTOS_DIR, `${content.slug}.html`), renderPhotoPage(template, content))
+    fs.writeFileSync(path.join(PHOTOS_DIR, `${content.slug}.html`), renderPhotoPage(template, content, entries))
   })
 
   fs.writeFileSync(path.join(PHOTOS_DIR, 'index.html'), renderIndexPage(entries))
   fs.writeFileSync(path.join(PUBLIC_DIR, 'privacy-policy.html'), renderPrivacyPolicyPage())
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), renderSitemap(entries))
+  updateIndexHtml(entries)
   updateRobotsTxt()
 
   console.log(`[generate-seo] Generated ${entries.length} landing pages + index + sitemap + privacy policy (SITE_URL=${SITE_URL}).`)
