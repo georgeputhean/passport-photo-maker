@@ -15,6 +15,10 @@
 /public/photos/
 /public/sitemap.xml
 /public/privacy-policy.html
+/public/about.html
+/public/contact.html
+/public/methodology.html
+/public/llms.txt
 
 # misc
 .DS_Store

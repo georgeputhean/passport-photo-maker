@@ -246,7 +246,7 @@ ${bodyHtml}
 </main>
 <footer class="seo-footer">
   <span>&copy; ${new Date().getFullYear()} Passport &amp; Visa Photo Maker</span>
-  <span><a href="/photos/">All countries</a> &middot; <a href="/privacy-policy.html">Privacy Policy</a></span>
+  <span><a href="/photos/">All countries</a> &middot; <a href="/about.html">About</a> &middot; <a href="/methodology.html">Methodology</a> &middot; <a href="/contact.html">Contact</a> &middot; <a href="/privacy-policy.html">Privacy Policy</a></span>
 </footer>${consentBanner()}
 </body>
 </html>
@@ -285,7 +285,14 @@ ${AT_HOME_STEPS.map((step) => `  <li>${escapeHtml(step)}</li>`).join('\n')}
 }
 
 function renderRelatedCountries(entries, content) {
-  const others = entries.filter((e) => e.content.slug !== content.slug).slice(0, 6)
+  const rest = entries.filter((e) => e.content.slug !== content.slug)
+  // Rotate the starting point by this page's own position instead of always
+  // slicing the first 6 - otherwise every page links the same handful of
+  // countries and the rest get almost no internal links.
+  const startIndex = entries.findIndex((e) => e.content.slug === content.slug)
+  const others = rest.length <= 6
+    ? rest
+    : Array.from({ length: 6 }, (_, i) => rest[(startIndex + i) % rest.length])
   if (others.length === 0) return ''
   return `
 <h2>Other countries and documents</h2>
@@ -469,6 +476,95 @@ ${entries.map((e) => `  <li><a href="/photos/${e.content.slug}.html">${escapeHtm
   })
 }
 
+function renderAboutPage() {
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / About</nav>
+<h1>About Passport &amp; Visa Photo Maker</h1>
+<p>Passport &amp; Visa Photo Maker is a free, open-source tool for creating passport and visa photos that meet a country's exact size, background, and DPI requirements - entirely in your browser.</p>
+<h2>Why it works this way</h2>
+<p>A passport photo means uploading a picture of your face to something. Most tools do that by sending it to a server. This one doesn't: cropping, background removal, and face alignment all run locally using in-browser AI models (ONNX Runtime Web and MediaPipe). The only network requests they make are to download the model files themselves - never your photo. See the <a href="/privacy-policy.html">Privacy Policy</a> for the full detail, and the <a href="/methodology.html">Methodology</a> page for how requirement data is sourced.</p>
+<h2>Open source</h2>
+<p>The code is public on <a href="https://github.com/georgeputhean/passport-photo-maker" target="_blank" rel="noreferrer">GitHub</a>, so the "processed locally, never uploaded" claim above is something you can verify yourself, not just take on faith.</p>
+<h2>What it isn't</h2>
+<p>This is not a government service and isn't affiliated with any passport or visa issuing authority. It doesn't guarantee a photo will be accepted - requirements vary by country and change over time, so always confirm against the official source linked on each <a href="/photos/">country's page</a> before submitting.</p>
+<a class="seo-cta" href="/">Open the photo editor &rarr;</a>
+`
+  return renderLayout({
+    title: 'About - Passport & Visa Photo Maker',
+    description: 'A free, open-source passport and visa photo tool that processes your photo entirely in your browser - it is never uploaded to a server.',
+    canonicalPath: '/about.html',
+    ldJson: [],
+    bodyHtml,
+  })
+}
+
+function renderContactPage() {
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / Contact</nav>
+<h1>Contact</h1>
+<p>Found a bug, an incorrect requirement, or have a question? Open an issue on GitHub and it'll be seen:</p>
+<a class="seo-cta" href="https://github.com/georgeputhean/passport-photo-maker/issues" target="_blank" rel="noreferrer">Open an issue on GitHub &rarr;</a>
+<p class="seo-source-note">This is the same channel used for bug reports, feature requests, and requirement corrections - see the <a href="/methodology.html">Methodology</a> page for how country requirements are sourced.</p>
+`
+  return renderLayout({
+    title: 'Contact - Passport & Visa Photo Maker',
+    description: 'How to report a bug, an incorrect requirement, or ask a question about Passport & Visa Photo Maker.',
+    canonicalPath: '/contact.html',
+    ldJson: [],
+    bodyHtml,
+  })
+}
+
+function renderMethodologyPage(entries) {
+  const sourceRows = entries
+    .filter((e) => e.content.sourceUrl)
+    .map((e) => `    <tr><th>${escapeHtml(e.content.h1)}</th><td><a target="_blank" rel="noreferrer" href="${e.content.sourceUrl}">${escapeHtml(e.content.sourceLabel)}</a></td></tr>`)
+    .join('\n')
+
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / Methodology</nav>
+<h1>Methodology: how requirements are sourced</h1>
+<p>Every country page on this site links directly to the government or consular source its size, background, and DPI figures come from - listed below in one place.</p>
+<h2>Official sources by country/document</h2>
+<table class="seo-spec">
+  <tbody>
+${sourceRows}
+  </tbody>
+</table>
+<h2>What we don't do</h2>
+<p>We don't claim continuous, dated verification against every source - requirements can change without notice, and a page that says "last verified" without an actual repeat check would be more misleading than useful. Instead, every country page links its official source directly so you can check the current wording yourself before submitting a photo.</p>
+<h2>Corrections</h2>
+<p>If a requirement here is out of date or wrong, please <a href="/contact.html">report it</a> - corrections are the main way this data stays accurate.</p>
+`
+  return renderLayout({
+    title: 'Methodology - Passport & Visa Photo Maker',
+    description: 'How passport and visa photo requirements on this site are sourced, with a direct link to the official government source for every country and document.',
+    canonicalPath: '/methodology.html',
+    ldJson: [],
+    bodyHtml,
+  })
+}
+
+function renderLlmsTxt(entries) {
+  const lines = [
+    '# Passport & Visa Photo Maker',
+    '',
+    '> Free, open-source tool that creates passport and visa photos meeting exact government size/background/DPI requirements, processed entirely in-browser (photos are never uploaded).',
+    '',
+    '## Main',
+    `- [Photo editor](${SITE_URL}/): upload a photo, pick a country, crop/remove background, export at the correct size.`,
+    `- [All countries](${SITE_URL}/photos/): index of every supported country and document type.`,
+    `- [About](${SITE_URL}/about.html): what this tool is and how the privacy architecture works.`,
+    `- [Methodology](${SITE_URL}/methodology.html): official source for every country's requirements.`,
+    `- [Privacy Policy](${SITE_URL}/privacy-policy.html)`,
+    '',
+    '## Country and document requirements',
+    ...entries.map((e) => `- [${e.content.h1}](${SITE_URL}/photos/${e.content.slug}.html)`),
+    '',
+  ]
+  return lines.join('\n')
+}
+
 function renderPrivacyPolicyPage() {
   const bodyHtml = `
 <nav class="seo-breadcrumb"><a href="/">Home</a> / Privacy Policy</nav>
@@ -502,6 +598,9 @@ function renderSitemap(entries) {
     `${SITE_URL}/`,
     `${SITE_URL}/photos/`,
     ...entries.map((e) => `${SITE_URL}/photos/${e.content.slug}.html`),
+    `${SITE_URL}/about.html`,
+    `${SITE_URL}/contact.html`,
+    `${SITE_URL}/methodology.html`,
     `${SITE_URL}/privacy-policy.html`,
   ]
 
@@ -542,11 +641,15 @@ function main() {
 
   fs.writeFileSync(path.join(PHOTOS_DIR, 'index.html'), renderIndexPage(entries))
   fs.writeFileSync(path.join(PUBLIC_DIR, 'privacy-policy.html'), renderPrivacyPolicyPage())
+  fs.writeFileSync(path.join(PUBLIC_DIR, 'about.html'), renderAboutPage())
+  fs.writeFileSync(path.join(PUBLIC_DIR, 'contact.html'), renderContactPage())
+  fs.writeFileSync(path.join(PUBLIC_DIR, 'methodology.html'), renderMethodologyPage(entries))
+  fs.writeFileSync(path.join(PUBLIC_DIR, 'llms.txt'), renderLlmsTxt(entries))
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), renderSitemap(entries))
   updateIndexHtml(entries)
   updateRobotsTxt()
 
-  console.log(`[generate-seo] Generated ${entries.length} landing pages + index + sitemap + privacy policy (SITE_URL=${SITE_URL}).`)
+  console.log(`[generate-seo] Generated ${entries.length} landing pages + index + sitemap + about/contact/methodology + llms.txt (SITE_URL=${SITE_URL}).`)
 }
 
 main()
