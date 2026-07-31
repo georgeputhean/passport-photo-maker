@@ -244,5 +244,24 @@
       { "q": "How recent must the photo be?", "a": "It should be a recent photo, typically within the last 6 months." },
       { "q": "Are glasses allowed?", "a": "Only without glare or tinted lenses, and frames must not cover the eyes - confirm current rules on the official PDF above." }
     ]
+  },
+  "Netherlands Passport Photo": {
+    "slug": "netherlands-passport-photo",
+    "metaTitle": "Netherlands Passport Photo Size & Requirements (2026) - Free Maker",
+    "metaDescription": "Dutch passport photos must be 35x45mm at a minimum of 400 DPI, on a white, light grey, or light blue background. Make one online free.",
+    "h1": "Netherlands Passport Photo Size and Requirements",
+    "sourceLabel": "Rijksoverheid (Dutch Government)",
+    "sourceUrl": "https://www.rijksoverheid.nl/onderwerpen/paspoort-en-identiteitskaart/eisen-pasfoto-paspoort-id-kaart",
+    "intro": [
+      "A Dutch passport or ID card photo must be 35x45mm at a minimum of 400 DPI, front-facing, on a plain white, light grey, or light blue background with no gradient.",
+      "This tool crops your photo to exactly 35x45mm at 400 DPI and removes the background automatically to match the Rijksoverheid photo requirements."
+    ],
+    "faqs": [
+      { "q": "What size is a Dutch passport photo?", "a": "35mm wide by 45mm tall, per the Rijksoverheid (Dutch government) photo requirements page." },
+      { "q": "What background color is required?", "a": "Light grey, light blue, or white - uniform, single-colored, with no gradient." },
+      { "q": "Is there a minimum resolution?", "a": "Yes - a minimum of 400 DPI, higher than most other countries this tool supports. This template is set to export at 400 DPI to match." },
+      { "q": "How tall should my face be in the photo?", "a": "Per the official page, chin-to-crown height should be 26-30mm for applicants aged 11 and up (19-30mm for children under 10). This tool's alignment guide bars approximate that range, but there was no exact published diagram for where the top and bottom bands sit within the frame, so treat the guide lines as a close approximation and check your result against the official page before submitting." },
+      { "q": "Can I wear a head covering for religious reasons?", "a": "Yes - per the official guidance, a head covering worn for religious or ideological reasons is allowed if it's solid, single-colored, and contrasts with the background." }
+    ]
   }
 }

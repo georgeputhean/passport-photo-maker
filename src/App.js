@@ -10,6 +10,7 @@ import { generateSingle, handleSaveSingle, generate4x6, handleSave4x6 } from './
 import Color from './Color'
 import { autoAlignFace } from './AutoAlign'
 import { checkPhotoCompliance, SEVERITY } from './PhotoCompliance'
+import aiEditingPolicy from './aiEditingPolicy.json'
 import CookieConsent, { getCookieConsentValue } from "react-cookie-consent"
 import PRC_Passport_Photo from './Templates/PRC_Passport_Photo.json'
 import PRC_Travel_Document from './Templates/PRC_Travel_Document_Photo.json'
@@ -24,6 +25,7 @@ import Australia_Visa_Photo from './Templates/Australia_Passport_Photo.json'
 import Mexico_TN_Visa_Photo from './Templates/Mexico_TN_Visa_Photo.json'
 import Spain_Passport_Photo from './Templates/Spain_Passport_Photo.json'
 import India_Passport_Photo from './Templates/India_Passport_Photo.json'
+import Netherlands_Passport_Photo from './Templates/Netherlands_Passport_Photo.json'
 import './App.css'
 import ChangeLog from './changelog.json'
 
@@ -38,6 +40,23 @@ const EXPORT_WIDTH_LIMIT = 2000
 const EXPORT_HEIGHT_LIMIT = 2000
 const EXPORT_SIZE_LIMIT = 2000
 const DEBOUNCE = 250
+const CUSTOM_SIZE_TITLE = 'Custom Size'
+const MIN_CUSTOM_SIZE_MM = 10
+const MAX_CUSTOM_SIZE_MM = 200
+// Not a real document type - no official spec exists to guide against or to
+// publish a requirements page for (see generate-seo.js's seoContent lookup),
+// and it deliberately isn't in aiEditingPolicy.json, so it gets the normal
+// (non-restricted) background-removal flow.
+const CUSTOM_SIZE_TEMPLATE = {
+  title: CUSTOM_SIZE_TITLE,
+  width: '35',
+  height: '45',
+  dpi: '300',
+  format: 'jpg',
+  size: '500',
+  instruction: 'Enter your own width and height in millimeters above. There\'s no official spec for a custom size, so there are no alignment guides - crop carefully to your own requirement.',
+  guide: [],
+}
 const TEMPLATES = [
   India_Passport_Photo,
   PRC_Passport_Photo,
@@ -52,6 +71,8 @@ const TEMPLATES = [
   Germany_Passport_Photo,
   Mexico_TN_Visa_Photo,
   Spain_Passport_Photo,
+  Netherlands_Passport_Photo,
+  CUSTOM_SIZE_TEMPLATE,
 ]
 const MAX_EDITOR_WIDTH = 380
 const MAX_EDITOR_HEIGHT = 640
@@ -99,10 +120,12 @@ const getTemplateFlag = (title) => {
   if (title.startsWith('Japan')) return '🇯🇵'
   if (title.startsWith('Malaysia')) return '🇲🇾'
   if (title.startsWith('Mexico')) return '🇲🇽'
+  if (title.startsWith('Netherlands')) return '🇳🇱'
   if (title.startsWith('Chinese')) return '🇨🇳'
   if (title.startsWith('Spain')) return '🇪🇸'
   if (title.startsWith('UK')) return '🇬🇧'
   if (title.startsWith('US')) return '🇺🇸'
+  if (title === CUSTOM_SIZE_TITLE) return '📐'
   return '🌐'
 }
 
@@ -256,6 +279,31 @@ const NavBar = ({
     selectTemplate(selectedTemplate)
   }
 
+  const isCustomSize = template.title === CUSTOM_SIZE_TITLE
+  const [customDraft, setCustomDraft] = useState({ width: template.width, height: template.height })
+
+  // Reset the draft to the template's current values whenever a different
+  // custom-size selection starts (e.g. switching away and back), so stale
+  // typed-but-uncommitted text from a previous visit doesn't linger.
+  useEffect(() => {
+    if (isCustomSize) setCustomDraft({ width: template.width, height: template.height })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCustomSize])
+
+  const handleCustomDimensionChange = (field) => (e) => {
+    const raw = e.target.value
+    setCustomDraft((prev) => ({ ...prev, [field]: raw }))
+    const value = parseFloat(raw)
+    if (!isNaN(value) && value >= MIN_CUSTOM_SIZE_MM && value <= MAX_CUSTOM_SIZE_MM) {
+      selectTemplate({ ...template, [field]: raw })
+    }
+  }
+
+  const isDraftValid = (field) => {
+    const value = parseFloat(customDraft[field])
+    return !isNaN(value) && value >= MIN_CUSTOM_SIZE_MM && value <= MAX_CUSTOM_SIZE_MM
+  }
+
   return (
     <nav ref={navRef}>
       <ul>
@@ -283,6 +331,32 @@ const NavBar = ({
             ))}
           </select>
         </li>
+        {isCustomSize && (
+          <li className="custom-size-inputs">
+            <label>
+              <small>{translate("customWidthLabel")}</small>
+              <input
+                type="number"
+                inputMode="decimal"
+                aria-label="Custom width in millimeters"
+                aria-invalid={!isDraftValid('width')}
+                value={customDraft.width}
+                onChange={handleCustomDimensionChange('width')}
+              />
+            </label>
+            <label>
+              <small>{translate("customHeightLabel")}</small>
+              <input
+                type="number"
+                inputMode="decimal"
+                aria-label="Custom height in millimeters"
+                aria-invalid={!isDraftValid('height')}
+                value={customDraft.height}
+                onChange={handleCustomDimensionChange('height')}
+              />
+            </label>
+          </li>
+        )}
         <li><ThemeToggle theme={theme} setTheme={setTheme} /></li>
       </ul>
     </nav>
@@ -363,6 +437,11 @@ const MiddleColumn = ({
   setModals,
   allowAiModel,
   setAllowAiModel,
+  aiEditingRestricted,
+  aiEditingMode,
+  setAiEditingMode,
+  aiEditingAcknowledged,
+  setAiEditingAcknowledged,
   updatePreview,
   setColor,
   color,
@@ -993,6 +1072,36 @@ const MiddleColumn = ({
               </footer>
             </article>
           </dialog>
+          <dialog open={modals.aiEditingWarning} className='modal'>
+            <article>
+              <h4>{translate("aiEditingWarningTitle")}</h4>
+              <small>{translate("aiEditingWarningText")}</small>
+              <footer>
+                <button onClick={() => {
+                  setModals((prevModals) => ({ ...prevModals, aiEditingWarning: false }))
+                  setAiEditingAcknowledged(true)
+                  setAiEditingMode('edit')
+                  ReactGA.event({
+                    action: 'ai_editing_warning_continue',
+                    category: 'Compliance Warning',
+                    label: 'Continue Anyway',
+                  })
+                }}>
+                  {translate("continueAnywayButton")}
+                </button>
+                <button onClick={() => {
+                  setModals((prevModals) => ({ ...prevModals, aiEditingWarning: false }))
+                  ReactGA.event({
+                    action: 'ai_editing_warning_cancel',
+                    category: 'Compliance Warning',
+                    label: 'Cancel',
+                  })
+                }}>
+                  {translate("noButton")}
+                </button>
+              </footer>
+            </article>
+          </dialog>
           <dialog open={modals.photoIssues} className='modal'>
             <article>
               <h4>{translate("photoIssuesTitle")}</h4>
@@ -1020,28 +1129,71 @@ const MiddleColumn = ({
               </footer>
             </article>
           </dialog>
-          <div className="control-row1">
-            <small>
-              <label>
-                <input
-                  disabled={iOS}
-                  type="checkbox"
-                  role="switch"
-                  checked={removeBg.state && allowAiModel}
-                  onChange={(e) => {
-                    setRemoveBg({ state: e.target.checked, error: false })
-                    if (!allowAiModel) setModals((prevModals) => ({ ...prevModals, aiModel: true }))
-                    ReactGA.event({
-                      action: e.target.checked ? 'ai_enabled' : 'ai_disabled',
-                      category: 'Switch Toggle',
-                      label: e.target.checked ? 'AI Enabled' : 'AI Disabled',
-                    })
-                  }}
-                />{removeBg.state && loadingModel ? translate("backgroundRemovalProcessing") : translate("backgroundRemovalLabel")}
-              </label>
-            </small>
-            <div aria-busy={removeBg.state && loadingModel}></div>
-          </div>
+          {aiEditingRestricted && aiEditingMode !== 'edit' ? (
+            <div className="control-row1">
+              <small>{translate("complianceModeNotice")}</small>
+              <button
+                type="button"
+                className="outline"
+                onClick={() => {
+                  if (aiEditingAcknowledged) {
+                    setAiEditingMode('edit')
+                  } else {
+                    setModals((prevModals) => ({ ...prevModals, aiEditingWarning: true }))
+                  }
+                  ReactGA.event({
+                    action: 'switch_to_edit_mode_clicked',
+                    category: 'Compliance Mode',
+                    label: 'Switch to Edit Mode',
+                  })
+                }}
+              >
+                {translate("switchToEditModeButton")}
+              </button>
+            </div>
+          ) : (
+            <div className="control-row1">
+              <small>
+                <label>
+                  <input
+                    disabled={iOS}
+                    type="checkbox"
+                    role="switch"
+                    checked={removeBg.state && allowAiModel}
+                    onChange={(e) => {
+                      const checked = e.target.checked
+                      setRemoveBg({ state: checked, error: false })
+                      if (!allowAiModel) setModals((prevModals) => ({ ...prevModals, aiModel: true }))
+                      ReactGA.event({
+                        action: checked ? 'ai_enabled' : 'ai_disabled',
+                        category: 'Switch Toggle',
+                        label: checked ? 'AI Enabled' : 'AI Disabled',
+                      })
+                    }}
+                  />{removeBg.state && loadingModel ? translate("backgroundRemovalProcessing") : translate("backgroundRemovalLabel")}
+                </label>
+              </small>
+              <div aria-busy={removeBg.state && loadingModel}></div>
+            </div>
+          )}
+          {aiEditingRestricted && aiEditingMode === 'edit' && (<div className="control-row3">
+            <small>{translate("editModeActiveNotice")}</small>{" "}
+            <button
+              type="button"
+              className="outline"
+              onClick={() => {
+                setAiEditingMode('compliance')
+                setRemoveBg({ state: false, error: false })
+                ReactGA.event({
+                  action: 'back_to_compliance_mode',
+                  category: 'Compliance Mode',
+                  label: 'Back to Compliance Mode',
+                })
+              }}
+            >
+              {translate("backToComplianceModeButton")}
+            </button>
+          </div>)}
           {removeBg.state && loadingModel && (<div className="control-row3">
             <small>{translate("backgroundRemovalReminder")}</small>
           </div>)}
@@ -1468,6 +1620,8 @@ const App = () => {
   const [photo, setPhoto] = useState(null)
   const [allowAiModel, setAllowAiModel] = useState(false)
   const [removeBg, setRemoveBg] = useState({ state: false, error: false }) // Toggle for background removal
+  const [aiEditingAcknowledged, setAiEditingAcknowledged] = useState(false) // Has the user dismissed the AI-editing compliance warning this session?
+  const [aiEditingMode, setAiEditingMode] = useState('compliance') // 'compliance' (crop/resize only) or 'edit' (background removal unlocked) - only meaningful when aiEditingRestricted
   const [loadingModel, setLoadingModel] = useState(false) // State for loading model 
   const [originalPhoto, setOriginalPhoto] = useState(null)
   const [processedPhoto, setProcessedPhoto] = useState(null)
@@ -1493,7 +1647,8 @@ const App = () => {
     height_valid: true,
     size_valid: true,
   })
-  const [modals, setModals] = useState({ changelog: false, save: false, disclaimer: false, aiModel: false, photoIssues: false })
+  const [modals, setModals] = useState({ changelog: false, save: false, disclaimer: false, aiModel: false, photoIssues: false, aiEditingWarning: false })
+  const aiEditingRestricted = Boolean(aiEditingPolicy[template.title]?.restricted)
   const [editorBudget, setEditorBudget] = useState(() => getEditorBudget())
   const [editorDimensions, setEditorDimensions] = useState(() => {
     const width = parseFloat(defaultTemplate.width) / MM2INCH * parseFloat(defaultTemplate.dpi)
@@ -1591,6 +1746,10 @@ const App = () => {
       label: translateObject(selectedTemplate.title),
     })
     setTemplate(selectedTemplate)
+    setAiEditingMode('compliance')
+    if (aiEditingPolicy[selectedTemplate.title]?.restricted) {
+      setRemoveBg({ state: false, error: false })
+    }
     setExportPhoto({
       width: parseInt(parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi)),
       height: parseInt(parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi)),
@@ -1764,6 +1923,11 @@ const App = () => {
             setModals={setModals}
             allowAiModel={allowAiModel}
             setAllowAiModel={setAllowAiModel}
+            aiEditingRestricted={aiEditingRestricted}
+            aiEditingMode={aiEditingMode}
+            setAiEditingMode={setAiEditingMode}
+            aiEditingAcknowledged={aiEditingAcknowledged}
+            setAiEditingAcknowledged={setAiEditingAcknowledged}
             updatePreview={updatePreview}
             setColor={setColor}
             color={color}

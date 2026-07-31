@@ -111,6 +111,17 @@ table.seo-spec th { color: var(--seo-muted); font-weight: 500; width: 40%; }
   border-top: 1px solid var(--seo-border);
 }
 
+.seo-checklist,
+.seo-steps {
+  padding-left: 1.25rem;
+  line-height: 1.6;
+}
+
+.seo-checklist li,
+.seo-steps li {
+  margin-bottom: 0.5rem;
+}
+
 .seo-source-note {
   font-size: 0.85rem;
   color: var(--seo-muted);

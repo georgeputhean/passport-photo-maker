@@ -1,0 +1,56 @@
+{
+  "title": "Netherlands Passport Photo",
+  "width": "35",
+  "height": "45",
+  "dpi": "400",
+  "format": "jpg",
+  "size": "150",
+  "instruction": "Please check the latest requirement at <a target=\"_blank\" rel=\"noreferrer\" href=\"https://www.rijksoverheid.nl/onderwerpen/paspoort-en-identiteitskaart/eisen-pasfoto-paspoort-id-kaart\">here</a>.",
+  "guide": [
+    {
+      "index": "A",
+      "title": "Center Guide Line",
+      "instruction": "Nose on center line",
+      "start_x": "172.5",
+      "start_y": "0",
+      "width": "5",
+      "height": "450",
+      "color": "yellow",
+      "isVerticalMovable": false,
+      "isHorizontalMovable": false,
+      "overlap": true,
+      "opacity": "0.5",
+      "group": "1"
+    },
+    {
+      "index": "B",
+      "title": "Bar: Top",
+      "instruction": "Hair top in this band",
+      "start_x": "0",
+      "start_y": "68",
+      "width": "350",
+      "height": "25",
+      "color": "green",
+      "isVerticalMovable": false,
+      "isHorizontalMovable": false,
+      "overlap": true,
+      "opacity": "0.5",
+      "group": "2"
+    },
+    {
+      "index": "C",
+      "title": "Bar: Bottom",
+      "instruction": "Chin in this band",
+      "start_x": "0",
+      "start_y": "348",
+      "width": "350",
+      "height": "25",
+      "color": "green",
+      "isVerticalMovable": false,
+      "isHorizontalMovable": false,
+      "overlap": true,
+      "opacity": "0.5",
+      "group": "2"
+    }
+  ]
+}
