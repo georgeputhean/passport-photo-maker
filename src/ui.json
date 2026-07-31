@@ -22,6 +22,8 @@
   "backgroundRemovalError": "Error on calling AI background removal, please refresh then retry.",
   "backgroundRemovalIOS": "AI Background Removal does NOT support iPhone or iPad, please use Android, macOS or Windows device.",
   "backgroundRemovalReminder": "It may take a while for the first time, please be patient...",
+  "aiEditingWarningTitle": "Before you remove the background...",
+  "aiEditingWarningText": "As of 2026, the U.S. State Department's guidance says not to alter your photo using software, filters, or AI - including replacing the background - and that submitted photos are checked for this. Cropping and resizing are fine; changing the background is not. If this photo is for a US passport or visa, we recommend retaking it against a plain white or off-white wall instead.",
   "autoAlignLabel": "✨ Auto Align",
   "autoAlignProcessing": "Aligning...",
   "autoAlignReminder": "It may take a while for the first time, please be patient...",

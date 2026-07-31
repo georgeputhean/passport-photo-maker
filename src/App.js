@@ -10,6 +10,7 @@ import { generateSingle, handleSaveSingle, generate4x6, handleSave4x6 } from './
 import Color from './Color'
 import { autoAlignFace } from './AutoAlign'
 import { checkPhotoCompliance, SEVERITY } from './PhotoCompliance'
+import aiEditingPolicy from './aiEditingPolicy.json'
 import CookieConsent, { getCookieConsentValue } from "react-cookie-consent"
 import PRC_Passport_Photo from './Templates/PRC_Passport_Photo.json'
 import PRC_Travel_Document from './Templates/PRC_Travel_Document_Photo.json'
@@ -363,6 +364,9 @@ const MiddleColumn = ({
   setModals,
   allowAiModel,
   setAllowAiModel,
+  aiEditingRestricted,
+  aiEditingAcknowledged,
+  setAiEditingAcknowledged,
   updatePreview,
   setColor,
   color,
@@ -993,6 +997,37 @@ const MiddleColumn = ({
               </footer>
             </article>
           </dialog>
+          <dialog open={modals.aiEditingWarning} className='modal'>
+            <article>
+              <h4>{translate("aiEditingWarningTitle")}</h4>
+              <small>{translate("aiEditingWarningText")}</small>
+              <footer>
+                <button onClick={() => {
+                  setModals((prevModals) => ({ ...prevModals, aiEditingWarning: false }))
+                  setAiEditingAcknowledged(true)
+                  setRemoveBg({ state: true, error: false })
+                  if (!allowAiModel) setModals((prevModals) => ({ ...prevModals, aiModel: true }))
+                  ReactGA.event({
+                    action: 'ai_editing_warning_continue',
+                    category: 'Compliance Warning',
+                    label: 'Continue Anyway',
+                  })
+                }}>
+                  {translate("continueAnywayButton")}
+                </button>
+                <button onClick={() => {
+                  setModals((prevModals) => ({ ...prevModals, aiEditingWarning: false }))
+                  ReactGA.event({
+                    action: 'ai_editing_warning_cancel',
+                    category: 'Compliance Warning',
+                    label: 'Cancel',
+                  })
+                }}>
+                  {translate("noButton")}
+                </button>
+              </footer>
+            </article>
+          </dialog>
           <dialog open={modals.photoIssues} className='modal'>
             <article>
               <h4>{translate("photoIssuesTitle")}</h4>
@@ -1029,12 +1064,17 @@ const MiddleColumn = ({
                   role="switch"
                   checked={removeBg.state && allowAiModel}
                   onChange={(e) => {
-                    setRemoveBg({ state: e.target.checked, error: false })
+                    const checked = e.target.checked
+                    if (checked && aiEditingRestricted && !aiEditingAcknowledged) {
+                      setModals((prevModals) => ({ ...prevModals, aiEditingWarning: true }))
+                      return
+                    }
+                    setRemoveBg({ state: checked, error: false })
                     if (!allowAiModel) setModals((prevModals) => ({ ...prevModals, aiModel: true }))
                     ReactGA.event({
-                      action: e.target.checked ? 'ai_enabled' : 'ai_disabled',
+                      action: checked ? 'ai_enabled' : 'ai_disabled',
                       category: 'Switch Toggle',
-                      label: e.target.checked ? 'AI Enabled' : 'AI Disabled',
+                      label: checked ? 'AI Enabled' : 'AI Disabled',
                     })
                   }}
                 />{removeBg.state && loadingModel ? translate("backgroundRemovalProcessing") : translate("backgroundRemovalLabel")}
@@ -1468,6 +1508,7 @@ const App = () => {
   const [photo, setPhoto] = useState(null)
   const [allowAiModel, setAllowAiModel] = useState(false)
   const [removeBg, setRemoveBg] = useState({ state: false, error: false }) // Toggle for background removal
+  const [aiEditingAcknowledged, setAiEditingAcknowledged] = useState(false) // Has the user dismissed the AI-editing compliance warning this session?
   const [loadingModel, setLoadingModel] = useState(false) // State for loading model 
   const [originalPhoto, setOriginalPhoto] = useState(null)
   const [processedPhoto, setProcessedPhoto] = useState(null)
@@ -1493,7 +1534,8 @@ const App = () => {
     height_valid: true,
     size_valid: true,
   })
-  const [modals, setModals] = useState({ changelog: false, save: false, disclaimer: false, aiModel: false, photoIssues: false })
+  const [modals, setModals] = useState({ changelog: false, save: false, disclaimer: false, aiModel: false, photoIssues: false, aiEditingWarning: false })
+  const aiEditingRestricted = Boolean(aiEditingPolicy[template.title]?.restricted)
   const [editorBudget, setEditorBudget] = useState(() => getEditorBudget())
   const [editorDimensions, setEditorDimensions] = useState(() => {
     const width = parseFloat(defaultTemplate.width) / MM2INCH * parseFloat(defaultTemplate.dpi)
@@ -1764,6 +1806,9 @@ const App = () => {
             setModals={setModals}
             allowAiModel={allowAiModel}
             setAllowAiModel={setAllowAiModel}
+            aiEditingRestricted={aiEditingRestricted}
+            aiEditingAcknowledged={aiEditingAcknowledged}
+            setAiEditingAcknowledged={setAiEditingAcknowledged}
             updatePreview={updatePreview}
             setColor={setColor}
             color={color}
