@@ -1,5 +1,7 @@
 {
+  "framework": null,
   "buildCommand": "cross-env NODE_ENV=production node scripts/generate-seo.js && cross-env PUBLIC_URL=/ CI=false react-scripts build",
+  "outputDirectory": "build",
   "redirects": [
     { "source": "/index.html", "destination": "/", "permanent": true },
     { "source": "/photos/:slug([^.]+)", "destination": "/photos/:slug.html", "permanent": true }
