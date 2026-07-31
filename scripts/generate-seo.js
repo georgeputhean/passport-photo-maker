@@ -53,6 +53,109 @@ const AFFILIATE_PARTNERS = [
   { name: 'Shutterfly', envVar: 'REACT_APP_AFFILIATE_SHUTTERFLY_URL', fallbackUrl: 'https://www.shutterfly.com/passport-photos' },
 ]
 
+// Short background-color labels for the size-chart page, one line per
+// template title - not new research, just a terser restatement of what each
+// template's own seoContent.json intro paragraph already says.
+const BACKGROUND_LABELS = {
+  'US Passport/Visa Photo': 'White or off-white',
+  'UK Passport Photo': 'Light-colored (cream/grey)',
+  'Canada Passport Photo': 'White',
+  'Canada Visa Photo': 'White or light-colored',
+  'Indian Passport Photo': 'White',
+  'Chinese Passport/Visa Photo': 'Light-colored (white/blue)',
+  'Chinese Travel Document Photo': 'Light-colored',
+  'Japan Passport/Visa Photo': 'White or light-colored',
+  'Malaysia Passport Photo': 'White',
+  'Mexico TN Visa Photo': 'White',
+  'Spain Passport Photo': 'Light-colored',
+  'Australia Passport/Visa Photo': 'White',
+  'Germany Passport/Visa Photo': 'Light-colored (grey)',
+}
+
+// Vanilla JS click-to-sort, no dependency - toggles ascending/descending on
+// the clicked column, comparing the numeric data-sort-value when present
+// (so "35 x 45 mm" sorts as 35, not lexicographically) and falling back to
+// the cell's text otherwise.
+const SORTABLE_TABLE_SCRIPT = `
+<script>
+(function () {
+  var table = document.getElementById('size-chart-table');
+  if (!table) return;
+  var headers = table.querySelectorAll('thead th[data-sort-key]');
+  var tbody = table.querySelector('tbody');
+  headers.forEach(function (th, colIndex) {
+    th.style.cursor = 'pointer';
+    th.addEventListener('click', function () {
+      var ascending = th.getAttribute('data-sort-dir') !== 'asc';
+      headers.forEach(function (h) { h.removeAttribute('data-sort-dir') });
+      th.setAttribute('data-sort-dir', ascending ? 'asc' : 'desc');
+      var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+      rows.sort(function (a, b) {
+        var cellA = a.children[colIndex];
+        var cellB = b.children[colIndex];
+        var valA = cellA.getAttribute('data-sort-value');
+        var valB = cellB.getAttribute('data-sort-value');
+        var cmp = (valA !== null && valB !== null)
+          ? (parseFloat(valA) - parseFloat(valB))
+          : cellA.textContent.localeCompare(cellB.textContent);
+        return ascending ? cmp : -cmp;
+      });
+      rows.forEach(function (row) { tbody.appendChild(row) });
+    });
+  });
+})();
+</script>`
+
+function renderSizeChartPage(entries) {
+  const rows = entries.map(({ template, content }) => {
+    const spec = deriveSpec(template)
+    const background = BACKGROUND_LABELS[template.title] || 'See page'
+    return `    <tr>
+      <td><a href="/photos/${content.slug}.html">${escapeHtml(content.h1.replace(' Size and Requirements', ''))}</a></td>
+      <td data-sort-value="${spec.widthMm}">${spec.widthMm} &times; ${spec.heightMm} mm</td>
+      <td data-sort-value="${spec.widthMm}">${spec.widthIn}" &times; ${spec.heightIn}"</td>
+      <td data-sort-value="${spec.dpi}">${spec.dpi}</td>
+      <td>${escapeHtml(background)}</td>
+      <td data-sort-value="${spec.maxSizeKb}">${spec.maxSizeKb} KB</td>
+    </tr>`
+  }).join('\n')
+
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / Passport photo size chart</nav>
+<h1>Passport Photo Size Chart: Every Country Compared</h1>
+<p>Every size, resolution, and background requirement this tool supports, in one sortable table. Click a column header to sort.</p>
+<div style="overflow-x: auto;">
+<table class="seo-spec" id="size-chart-table">
+  <thead>
+    <tr>
+      <th data-sort-key="doc">Document</th>
+      <th data-sort-key="mm">Size (mm)</th>
+      <th data-sort-key="in">Size (in)</th>
+      <th data-sort-key="dpi">DPI</th>
+      <th data-sort-key="bg">Background</th>
+      <th data-sort-key="kb">Max file size</th>
+    </tr>
+  </thead>
+  <tbody>
+${rows}
+  </tbody>
+</table>
+</div>
+<p class="seo-source-note">Sizes, DPI, and file-size limits are read directly from this tool's own template data - the same values used when you make a photo. Background colors are a short summary; see each document's own page for the full requirement and official source.</p>
+${SORTABLE_TABLE_SCRIPT}
+${renderAdSlot('incontent')}
+<a class="seo-cta" href="/">Make a photo now &rarr;</a>
+${renderAdSlot('footer')}
+`
+  return renderLayout({
+    title: 'Passport Photo Size Chart: Every Country Compared - Passport & Visa Photo Maker',
+    description: 'Sortable table of passport and visa photo size, DPI, background color, and file-size requirements for every country and document this tool supports.',
+    canonicalPath: '/guides/passport-photo-size-chart.html',
+    ldJson: [],
+    bodyHtml,
+  })
+}
+
 // Pricing researched via web search in July 2026, not scraped live at build
 // time - it drifts. Each entry says how it was checked: 'primary' means we
 // fetched the operator's own page directly; 'secondary' means the operator's
@@ -111,6 +214,14 @@ const GUIDE_PAGES = [
   { slug: 'passport-photo-cost', title: 'Passport Photo Cost: Every Option Compared' },
   { slug: 'print-passport-photos-at-home', title: 'How to Print Passport Photos at Home' },
   { slug: 'ai-edited-passport-photos-2026', title: 'Can You Use AI to Edit a Passport Photo? (2026 Rules)' },
+  { slug: 'passport-photo-size-chart', title: 'Passport Photo Size Chart: Every Country Compared' },
+  { slug: 'baby-newborn-passport-photo', title: 'Baby and Newborn Passport Photo Guide' },
+  { slug: 'passport-photo-glasses', title: 'Can You Wear Glasses in a Passport Photo?' },
+  { slug: 'passport-photo-head-covering', title: 'Passport Photos with a Hijab, Turban, or Religious Head Covering' },
+  { slug: 'can-you-smile-in-a-passport-photo', title: 'Can You Smile in a Passport Photo?' },
+  { slug: 'passport-photo-lighting', title: 'Passport Photo Lighting: How to Avoid Shadows' },
+  { slug: 'take-passport-photo-with-phone', title: 'How to Take a Passport Photo with Your Phone' },
+  { slug: 'passport-photo-background-color', title: 'What Background Color Do Passport Photos Need?' },
 ]
 
 function affiliateUrl(affiliate) {
@@ -265,6 +376,197 @@ ${renderAdSlot('footer')}
         { '@type': 'Question', name: 'Does this apply to visa photos too, or just passports?', acceptedAnswer: { '@type': 'Answer', text: 'The State Department guidance covers passport photos; many visa photo requirements reference the same standard. Check the specific application\'s instructions.' } },
       ],
     }],
+    bodyHtml,
+  })
+}
+
+// Shared wrapper for short, direct-answer guide pages (glasses, head
+// coverings, smiling, background color, lighting) - same shape each time:
+// a one-paragraph answer up top, a few sections, an FAQ block.
+function renderInfoGuidePage({ slug, title, metaTitle, metaDescription, answer, sections, faqs }) {
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / ${escapeHtml(title)}</nav>
+<h1>${escapeHtml(title)}</h1>
+<p><strong>${escapeHtml(answer)}</strong></p>
+${sections.map((s) => `<h2>${escapeHtml(s.heading)}</h2>\n${s.bodyHtml}`).join('\n')}
+<a class="seo-cta" href="/">Make a compliant photo now &rarr;</a>
+${renderAdSlot('incontent')}
+<h2>FAQ</h2>
+${faqs.map((f) => `<div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`).join('\n')}
+${renderAdSlot('footer')}
+`
+  return renderLayout({
+    title: metaTitle,
+    description: metaDescription,
+    canonicalPath: `/guides/${slug}.html`,
+    ldJson: [{
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+    }],
+    bodyHtml,
+  })
+}
+
+const INFO_GUIDES = [
+  {
+    slug: 'passport-photo-glasses',
+    title: 'Can You Wear Glasses in a Passport Photo?',
+    metaTitle: 'Can You Wear Glasses in a Passport Photo? - Passport & Visa Photo Maker',
+    metaDescription: 'Most countries now discourage or disallow glasses in passport photos due to glare and reflection. What to do instead, and the medical exceptions some countries allow.',
+    answer: 'Increasingly, no. Most countries this tool supports now discourage or explicitly disallow glasses in passport and visa photos, because glare and lens reflection can interfere with facial-recognition matching. Check your specific country\'s page for the current rule before you shoot.',
+    sections: [
+      { heading: 'Why the rule exists', bodyHtml: '<p>Passport photos are increasingly matched against biometric facial-recognition systems at border control. Reflections, tinting, or frames covering the eyes can interfere with that matching, which is why glasses have gone from "usually fine" to "usually not accepted" across many countries in recent years.</p>' },
+      { heading: 'What to do', bodyHtml: '<p>Take the photo without glasses. If you have a genuine medical reason you can\'t remove them (for example, right after eye surgery), check your specific country\'s official guidance - some allow a documented medical exception, typically requiring a note and glasses with no tint and no glare.</p>' },
+    ],
+    faqs: [
+      { q: 'Will this tool tell me if I\'m wearing glasses?', a: 'The built-in "Check My Photo" compliance check includes a glasses heuristic, but it\'s explicitly labeled a low-confidence check in the results, not a guarantee - it can miss glasses or flag something that isn\'t glasses.' },
+      { q: 'What if my glasses have no glare at all?', a: 'Some countries still don\'t accept glasses regardless of glare, since the frame itself can obscure part of the eye area used for matching - check the specific rule for your document.' },
+      { q: 'Are contact lenses a problem?', a: 'No - the rule is about glasses/frames, not vision correction generally.' },
+    ],
+  },
+  {
+    slug: 'passport-photo-head-covering',
+    title: 'Passport Photos with a Hijab, Turban, or Religious Head Covering',
+    metaTitle: 'Passport Photo with a Head Covering: What\'s Allowed - Passport & Visa Photo Maker',
+    metaDescription: 'Religious head coverings are generally permitted in passport photos as long as the full face is visible with no shadow. What\'s allowed and what to watch for.',
+    answer: 'Yes, generally permitted. Most countries this tool supports allow a head covering worn daily for religious reasons, as long as your full face - from the bottom of your chin to the top of your forehead - is clearly visible, with no shadow cast on your face by the covering.',
+    sections: [
+      { heading: 'What\'s allowed', bodyHtml: '<p>A hijab, turban, or other religious head covering that doesn\'t obscure the face outline is typically fine. The requirement is about the face being fully visible for identification, not about the covering itself.</p>' },
+      { heading: 'What to watch for', bodyHtml: '<p>The most common issue isn\'t the covering itself - it\'s a shadow it casts across the forehead or cheeks. Use even, frontal lighting rather than an overhead or side light source to avoid this.</p>' },
+    ],
+    faqs: [
+      { q: 'Does this apply to all countries this tool supports?', a: 'The general principle - covering allowed, face fully visible - is consistent, but exact wording varies. Check your specific country\'s page and official source.' },
+      { q: 'What about sunglasses or a covering for non-religious reasons?', a: 'Not permitted - the face must be fully visible regardless of the reason for any covering, with the specific exception most countries make for religious head coverings.' },
+    ],
+  },
+  {
+    slug: 'can-you-smile-in-a-passport-photo',
+    title: 'Can You Smile in a Passport Photo?',
+    metaTitle: 'Can You Smile in a Passport Photo? - Passport & Visa Photo Maker',
+    metaDescription: 'Nearly every country requires a neutral expression in a passport photo - no smiling, mouth closed, eyes open. What "neutral" actually means and common mistakes.',
+    answer: 'No, not really. Nearly every country this tool supports requires a neutral expression - mouth closed, eyes open, looking straight at the camera - so your face matches consistently for identity verification.',
+    sections: [
+      { heading: 'What "neutral" means', bodyHtml: '<p>Relaxed facial muscles, closed mouth, both eyes open and clearly visible, looking directly at the camera. Not a frown, not a smile, not a raised eyebrow.</p>' },
+      { heading: 'Common mistakes', bodyHtml: '<p>A slight smirk, a tilted head, eyebrows raised in anticipation of the shutter, or eyes half-closed mid-blink. This tool\'s "Check My Photo" feature can flag some of these automatically.</p>' },
+    ],
+    faqs: [
+      { q: 'What if I can\'t help smiling in every photo?', a: 'Take several shots and pick the most neutral one, or have someone say something neutral (not a joke) right before the shutter.' },
+      { q: 'Do any countries allow a slight smile?', a: 'Guidance shifts over time and a few countries have historically been more lenient about a closed-mouth, natural expression - don\'t assume, check your specific country\'s page.' },
+    ],
+  },
+  {
+    slug: 'passport-photo-lighting',
+    title: 'Passport Photo Lighting: How to Avoid Shadows',
+    metaTitle: 'Passport Photo Lighting: How to Avoid Shadows - Passport & Visa Photo Maker',
+    metaDescription: 'How to light a passport photo at home so the background stays shadow-free and even - face a window, avoid direct flash and overhead lighting.',
+    answer: 'Face a soft, even light source - like a window with diffused daylight - straight on. Avoid direct sun, a single overhead lamp, on-camera flash, and any light source behind you, all of which cast the shadows that are one of the most common rejection reasons.',
+    sections: [
+      { heading: 'What works', bodyHtml: '<p>An overcast day near a window, or two lamps at roughly equal distance on either side of the camera, both pointed at your face rather than the wall behind you.</p>' },
+      { heading: 'What to avoid', bodyHtml: '<ul class="seo-checklist"><li>Direct sunlight - too harsh, creates strong shadows and squinting.</li><li>A single light source to one side - lights half your face, shadows the other and the wall behind you.</li><li>On-camera flash pointed straight at a wall behind you - creates a hard shadow outline.</li><li>Backlighting (a window or light behind you) - silhouettes your face instead of lighting it.</li></ul>' },
+    ],
+    faqs: [
+      { q: 'Can I fix bad lighting afterward with editing?', a: 'Not for a US passport photo - as of 2026, State Department guidance treats that as an unacceptable alteration. See our <a href="/guides/ai-edited-passport-photos-2026.html">AI-editing guide</a>. Get the lighting right when you take the photo instead.' },
+      { q: 'Does the background need its own light?', a: 'It needs to be evenly lit with no shadow falling on it - usually a side effect of lighting your face evenly from the front, rather than a separate light setup.' },
+    ],
+  },
+]
+
+function renderBabyPhotoGuidePage() {
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / Baby &amp; newborn passport photo</nav>
+<h1>Baby and Newborn Passport Photo: How to Get It Right</h1>
+<p><strong>A baby or newborn passport photo follows the same size and background rules as an adult's, with one common allowance: many countries permit the baby's eyes to be closed and don't require the strict "no expression" rule adults face - check your specific country's page for the exact wording.</strong></p>
+<h2>Two ways to take it</h2>
+<ul class="seo-checklist">
+  <li><strong>Lying down, photographed from above:</strong> lay the baby on a plain white sheet or blanket and photograph straight down from directly overhead. This avoids needing anyone to hold the baby upright.</li>
+  <li><strong>Held against a wall:</strong> have a parent hold the baby in front of a plain background, then crop the photo so no part of the parent - hands, arms, clothing - is visible in the final frame.</li>
+</ul>
+<h2>Common problems</h2>
+<ul class="seo-checklist">
+  <li>A shadow from whoever is holding the baby falling across the background.</li>
+  <li>A patterned blanket, toy, or pacifier visible in frame.</li>
+  <li>The baby's hand or hair covering part of the face.</li>
+  <li>Low resolution from cropping in tightly on a photo taken from far away - get physically close instead of digitally zooming.</li>
+</ul>
+<a class="seo-cta" href="/">Make a compliant photo now &rarr;</a>
+${renderAdSlot('incontent')}
+<h2>FAQ</h2>
+<div class="seo-faq-item"><h3>Do baby passport photos need open eyes?</h3><p>Varies by country - many explicitly allow closed eyes for infants since keeping them open on demand is often impractical. Check your specific country's page for the rule.</p></div>
+<div class="seo-faq-item"><h3>Can a parent hold the baby in the photo?</h3><p>Generally yes, but the parent's hands, arms, and any other part of them must not be visible in the final cropped photo - only the baby.</p></div>
+<div class="seo-faq-item"><h3>Can I use a car seat or stroller as a prop?</h3><p>Not directly in frame - drape a plain white sheet over it first so only a plain background shows behind the baby.</p></div>
+${renderAdSlot('footer')}
+`
+  return renderLayout({
+    title: 'Baby and Newborn Passport Photo Guide - Passport & Visa Photo Maker',
+    description: 'How to take a compliant baby or newborn passport photo: two practical methods, common mistakes, and what rules differ from an adult photo.',
+    canonicalPath: '/guides/baby-newborn-passport-photo.html',
+    ldJson: [{
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: [
+        { '@type': 'Question', name: 'Do baby passport photos need open eyes?', acceptedAnswer: { '@type': 'Answer', text: 'Varies by country - many explicitly allow closed eyes for infants since keeping them open on demand is often impractical. Check your specific country\'s page for the rule.' } },
+        { '@type': 'Question', name: 'Can a parent hold the baby in the photo?', acceptedAnswer: { '@type': 'Answer', text: 'Generally yes, but the parent\'s hands, arms, and any other part of them must not be visible in the final cropped photo - only the baby.' } },
+        { '@type': 'Question', name: 'Can I use a car seat or stroller as a prop?', acceptedAnswer: { '@type': 'Answer', text: 'Not directly in frame - drape a plain white sheet over it first so only a plain background shows behind the baby.' } },
+      ],
+    }],
+    bodyHtml,
+  })
+}
+
+function renderPhonePhotoGuidePage() {
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / Take a passport photo with your phone</nav>
+<h1>How to Take a Passport Photo with Your Phone</h1>
+<p><strong>Use the rear camera (not the front-facing one), turn off portrait mode and any beauty filter, and shoot straight-on against a plain wall in even light - this tool handles the cropping and sizing once you upload the result.</strong></p>
+<ol class="seo-steps">
+  <li><strong>Use the rear camera.</strong> It's almost always higher resolution than the front-facing camera, which matters once the photo is cropped down to a small passport-photo frame.</li>
+  <li><strong>Turn off portrait mode and any beauty/smoothing filter.</strong> Portrait mode's background blur and any skin-smoothing or retouching filter count as digital alteration - see our <a href="/guides/ai-edited-passport-photos-2026.html">AI-editing guide</a> for why that matters for a US application specifically.</li>
+  <li><strong>Stand about 3-6 feet from a plain, light-colored wall</strong>, with the phone held at eye level - propped on a stand or held by someone else, since a selfie-length arm is usually too close.</li>
+  <li><strong>Use a timer or a second person to press the shutter</strong> so you can stand naturally with both arms relaxed instead of one arm reaching for the phone.</li>
+  <li><strong>Check the shot before moving on</strong> - zoom in on the preview to confirm it's in focus and no shadow falls on the wall behind you.</li>
+</ol>
+<a class="seo-cta" href="/">Upload your photo and make it compliant &rarr;</a>
+${renderAdSlot('incontent')}
+<h2>FAQ</h2>
+<div class="seo-faq-item"><h3>Does the photo need to be a certain resolution?</h3><p>Higher is better going in - this tool crops and resizes down to the exact pixel dimensions required, but it can't add detail that wasn't captured. A modern phone's default photo mode is more than enough.</p></div>
+<div class="seo-faq-item"><h3>Should I use flash?</h3><p>Generally no - direct flash often creates a hard shadow on the wall behind you. Even room or window light usually looks better. See our <a href="/guides/passport-photo-lighting.html">lighting guide</a>.</p></div>
+${renderAdSlot('footer')}
+`
+  return renderLayout({
+    title: 'How to Take a Passport Photo with Your Phone - Passport & Visa Photo Maker',
+    description: 'Camera settings, distance, and lighting for a phone-taken passport photo that will actually crop and size correctly - no portrait mode, no filters.',
+    canonicalPath: '/guides/take-passport-photo-with-phone.html',
+    ldJson: [],
+    bodyHtml,
+  })
+}
+
+function renderBackgroundColorGuidePage(entries) {
+  const rows = entries.map(({ template, content }) => {
+    const background = BACKGROUND_LABELS[template.title] || 'See page'
+    return `    <tr><th><a href="/photos/${content.slug}.html">${escapeHtml(content.h1.replace(' Size and Requirements', ''))}</a></th><td>${escapeHtml(background)}</td></tr>`
+  }).join('\n')
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / Passport photo background color</nav>
+<h1>What Background Color Do Passport Photos Need?</h1>
+<p><strong>Almost always plain white, off-white, or another light, uniform color like light grey or cream - with no shadows, patterns, or texture. The exact shade varies by country.</strong></p>
+<table class="seo-spec">
+  <tbody>
+${rows}
+  </tbody>
+</table>
+<p class="seo-source-note">These are short summaries; see each document's own page for the full requirement and official source. For every size and DPI requirement in one sortable table, see the <a href="/guides/passport-photo-size-chart.html">full size chart</a>.</p>
+<h2>How to get an even background</h2>
+<p>A real plain wall, evenly lit, works better than trying to fix a patterned or shadowed background afterward - see our <a href="/guides/passport-photo-lighting.html">lighting guide</a>. This tool's background removal can also replace the background entirely, though for some countries (the US specifically, as of 2026) that's not accepted - see the <a href="/guides/ai-edited-passport-photos-2026.html">AI-editing guide</a>.</p>
+<a class="seo-cta" href="/">Make a compliant photo now &rarr;</a>
+${renderAdSlot('footer')}
+`
+  return renderLayout({
+    title: 'Passport Photo Background Color by Country - Passport & Visa Photo Maker',
+    description: 'What background color each country requires for a passport or visa photo - almost always plain white or another light, uniform color.',
+    canonicalPath: '/guides/passport-photo-background-color.html',
+    ldJson: [],
     bodyHtml,
   })
 }
@@ -517,7 +819,7 @@ ${bodyHtml}
 </main>
 <footer class="seo-footer">
   <span>&copy; ${new Date().getFullYear()} Passport &amp; Visa Photo Maker</span>
-  <span><a href="/photos/">All countries</a> &middot; <a href="/guides/passport-photo-cost.html">Guides</a> &middot; <a href="/about.html">About</a> &middot; <a href="/methodology.html">Methodology</a> &middot; <a href="/contact.html">Contact</a> &middot; <a href="/privacy-policy.html">Privacy Policy</a></span>
+  <span><a href="/photos/">All countries</a> &middot; <a href="/guides/">Guides</a> &middot; <a href="/about.html">About</a> &middot; <a href="/methodology.html">Methodology</a> &middot; <a href="/contact.html">Contact</a> &middot; <a href="/privacy-policy.html">Privacy Policy</a></span>
 </footer>${consentBanner()}
 </body>
 </html>
@@ -748,6 +1050,36 @@ ${entries.map((e) => `  <li><a href="/photos/${e.content.slug}.html">${escapeHtm
   })
 }
 
+function renderGuidesIndexPage() {
+  const ldJson = [{
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: GUIDE_PAGES.map((g, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: g.title,
+      url: `${SITE_URL}/guides/${g.slug}.html`,
+    })),
+  }]
+
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / Guides</nav>
+<h1>Passport Photo Guides</h1>
+<p>Costs, how-tos, and rules that go beyond a single country's size and DPI spec.</p>
+<ul class="seo-index-list">
+${GUIDE_PAGES.map((g) => `  <li><a href="/guides/${g.slug}.html">${escapeHtml(g.title)}</a></li>`).join('\n')}
+</ul>
+`
+
+  return renderLayout({
+    title: 'Passport Photo Guides - Passport & Visa Photo Maker',
+    description: 'Passport photo cost comparisons, how-to guides, and rules explainers - retailer pricing, printing at home, AI-editing rules, and more.',
+    canonicalPath: '/guides/',
+    ldJson,
+    bodyHtml,
+  })
+}
+
 function renderAboutPage() {
   const bodyHtml = `
 <nav class="seo-breadcrumb"><a href="/">Home</a> / About</nav>
@@ -873,6 +1205,7 @@ function renderSitemap(entries) {
     `${SITE_URL}/`,
     `${SITE_URL}/photos/`,
     ...entries.map((e) => `${SITE_URL}/photos/${e.content.slug}.html`),
+    `${SITE_URL}/guides/`,
     ...GUIDE_PAGES.map((g) => `${SITE_URL}/guides/${g.slug}.html`),
     `${SITE_URL}/about.html`,
     `${SITE_URL}/contact.html`,
@@ -933,6 +1266,14 @@ async function main() {
   fs.writeFileSync(path.join(GUIDES_DIR, 'passport-photo-cost.html'), renderCostComparisonPage())
   fs.writeFileSync(path.join(GUIDES_DIR, 'print-passport-photos-at-home.html'), renderPrintAtHomeGuidePage())
   fs.writeFileSync(path.join(GUIDES_DIR, 'ai-edited-passport-photos-2026.html'), renderAiEditingGuidePage())
+  fs.writeFileSync(path.join(GUIDES_DIR, 'passport-photo-size-chart.html'), renderSizeChartPage(entries))
+  fs.writeFileSync(path.join(GUIDES_DIR, 'baby-newborn-passport-photo.html'), renderBabyPhotoGuidePage())
+  fs.writeFileSync(path.join(GUIDES_DIR, 'take-passport-photo-with-phone.html'), renderPhonePhotoGuidePage())
+  fs.writeFileSync(path.join(GUIDES_DIR, 'passport-photo-background-color.html'), renderBackgroundColorGuidePage(entries))
+  INFO_GUIDES.forEach((guide) => {
+    fs.writeFileSync(path.join(GUIDES_DIR, `${guide.slug}.html`), renderInfoGuidePage(guide))
+  })
+  fs.writeFileSync(path.join(GUIDES_DIR, 'index.html'), renderGuidesIndexPage())
 
   fs.writeFileSync(path.join(PHOTOS_DIR, 'index.html'), renderIndexPage(entries))
   fs.writeFileSync(path.join(PUBLIC_DIR, 'privacy-policy.html'), renderPrivacyPolicyPage())
