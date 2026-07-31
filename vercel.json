@@ -2,9 +2,10 @@
   "framework": null,
   "buildCommand": "cross-env NODE_ENV=production node scripts/generate-seo.js && cross-env PUBLIC_URL=/ CI=false react-scripts build",
   "outputDirectory": "build",
-  "redirects": [
-    { "source": "/index.html", "destination": "/", "permanent": true },
-    { "source": "/photos/:slug([^.]+)", "destination": "/photos/:slug.html", "permanent": true }
-  ],
-  "rewrites": []
+  "routes": [
+    { "src": "/index.html", "status": 308, "headers": { "Location": "/" } },
+    { "src": "/photos/([^/.]+)$", "status": 308, "headers": { "Location": "/photos/$1.html" } },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "status": 404, "dest": "/404.html" }
+  ]
 }
