@@ -95,6 +95,14 @@ table.seo-spec th, table.seo-spec td {
 table.seo-spec tr:last-child th, table.seo-spec tr:last-child td { border-bottom: none; }
 table.seo-spec th { color: var(--seo-muted); font-weight: 500; width: 40%; }
 
+.seo-diagram {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.5rem auto;
+  border-radius: 8px;
+}
+
 .seo-cta {
   display: inline-block;
   margin: 1rem 0 1.5rem;

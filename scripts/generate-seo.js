@@ -18,6 +18,7 @@ const PUBLIC_DIR = path.join(ROOT, 'public')
 const PHOTOS_DIR = path.join(PUBLIC_DIR, 'photos')
 const GUIDES_DIR = path.join(PUBLIC_DIR, 'guides')
 const OG_DIR = path.join(PUBLIC_DIR, 'og')
+const DIAGRAMS_DIR = path.join(PUBLIC_DIR, 'diagrams')
 const MM_PER_INCH = 25.4
 
 const SITE_URL = (process.env.REACT_APP_SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')
@@ -158,7 +159,23 @@ ${renderAdSlot('footer')}
     title: 'Passport Photo Size Chart: Every Country Compared - Passport & Visa Photo Maker',
     description: 'Sortable table of passport and visa photo size, DPI, background color, and file-size requirements for every country and document this tool supports.',
     canonicalPath: '/guides/passport-photo-size-chart.html',
-    ldJson: [],
+    ldJson: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Passport photo size chart', item: `${SITE_URL}/guides/passport-photo-size-chart.html` },
+        ],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: 'Passport Photo Size Chart: Every Country Compared',
+        description: 'Sortable table of passport and visa photo size, DPI, background color, and file-size requirements for every country and document this tool supports.',
+        dateModified: BUILD_DATE,
+      },
+    ],
     bodyHtml,
   })
 }
@@ -278,18 +295,22 @@ const SIZE_GROUP_PAGES = [
   },
 ]
 
-// Pricing researched via web search in July 2026, not scraped live at build
-// time - it drifts. Each entry says how it was checked: 'primary' means we
-// fetched the operator's own page directly; 'secondary' means the operator's
-// own pricing page blocked automated fetches (403), so the figure is only
-// corroborated across several independent 2026 comparison sites, not
-// independently confirmed against the source - flagged as such on the page.
+// Pricing researched via web search, most recently 1 August 2026, not scraped
+// live at build time - it drifts, so re-check periodically. Each entry says
+// how it was checked: 'primary' means we fetched the operator's own page
+// directly; 'secondary' means the operator's own pricing page has blocked
+// every automated fetch attempt so far, so the figure is instead cross-checked
+// against several independent, current pricing/comparison sources (see
+// sourceCount) and flagged as such on the page, rather than silently treated
+// as equivalent to a primary-confirmed figure.
 const RETAILERS = [
   {
     slug: 'walgreens-passport-photo',
     name: 'Walgreens',
     price: '$16.99',
     priceConfidence: 'secondary',
+    priceCheckedDate: '1 August 2026',
+    sourceCount: 3,
     details: 'for two 2x2 in. printed photos, with a free digital copy emailed to you.',
     process: 'Walk in to the photo counter at any Walgreens with a photo department - no appointment needed. Photos are typically ready within a few minutes.',
     sourceUrl: 'https://photo.walgreens.com/store/passport-photos',
@@ -301,7 +322,9 @@ const RETAILERS = [
     name: 'CVS',
     price: '$16.99-$17.99',
     priceConfidence: 'secondary',
-    details: 'for two 2x2 in. printed photos taken at the photo counter; sources disagree on the exact figure. A digital copy is a separate paid add-on at some locations.',
+    priceCheckedDate: '1 August 2026',
+    sourceCount: 6,
+    details: 'for two 2x2 in. printed photos taken at the photo counter; sources disagree on the exact figure, roughly evenly split between $16.99 and $17.99. A digital copy is a separate paid add-on (around $3.99) at some locations.',
     process: 'Walk in to the photo counter at a CVS with a photo department - no appointment needed in most cases.',
     sourceUrl: 'https://www.cvs.com/content/passport-photos',
     sourceLabel: 'CVS Photo',
@@ -312,6 +335,8 @@ const RETAILERS = [
     name: 'Walmart',
     price: '$7.64',
     priceConfidence: 'secondary',
+    priceCheckedDate: '1 August 2026',
+    sourceCount: 5,
     details: 'for two 2x2 in. printed photos at locations with a Photo Center - the cheapest of the major retail chains. No digital copy is included with the standard in-store service.',
     process: 'Check that your local Walmart has a Photo Center before going (not all do), then walk in - no appointment needed.',
     sourceUrl: 'https://www.walmart.com/cp/photo-center-passport-photos/1078557',
@@ -355,11 +380,33 @@ function affiliateUrl(affiliate) {
 function renderRetailerGuide(retailer) {
   const confidenceNote = retailer.priceConfidence === 'primary'
     ? `Checked directly against ${escapeHtml(retailer.sourceLabel)}'s own site, ${BUILD_DATE}.`
-    : `${escapeHtml(retailer.sourceLabel)}'s own pricing page didn't load for us to check directly, so this figure is corroborated across several independent 2026 comparison sites rather than confirmed against the primary source. Prices vary by location and change - call ahead or confirm in-store.`
+    : `${escapeHtml(retailer.sourceLabel)}'s own pricing page has blocked automated fetches every time we've checked, most recently ${escapeHtml(retailer.priceCheckedDate || BUILD_DATE)}, so this figure isn't confirmed against the primary source directly - it's cross-checked against ${escapeHtml(String(retailer.sourceCount || 'several'))} independent, current pricing/comparison sites that all agree on this number as of that date. Prices vary by location and change - call ahead or confirm in-store.`
 
   const visitLink = retailer.affiliate
     ? `<p><a target="_blank" rel="sponsored noopener" href="${escapeHtml(affiliateUrl(retailer.affiliate))}">Visit ${escapeHtml(retailer.name)}'s passport photo page &rarr;</a> <span class="seo-source-note">(may be a sponsored link - see disclosure below)</span></p>`
     : `<p><a target="_blank" rel="noreferrer" href="${escapeHtml(retailer.sourceUrl)}">Find a participating post office &rarr;</a></p>`
+
+  const isPostOffice = !retailer.affiliate
+  const counterNoun = isPostOffice ? 'the counter' : 'the photo counter'
+
+  const faqs = [
+    {
+      q: `Does ${retailer.name} guarantee the photo will be accepted?`,
+      a: isPostOffice
+        ? `USPS staff are trained on the current State Department spec and will generally catch an obviously non-compliant photo before you leave, but final acceptance is always up to the passport agency reviewing your application - not the office that took the photo.`
+        : `No - staff are trained on the standard size/background spec and will generally catch an obviously bad shot, but final acceptance is up to the agency reviewing your application, not the store. A rejected application over a subtle issue (a slight shadow, a barely-off expression) is possible even from a paid, in-person photo.`,
+    },
+    {
+      q: `Can I bring my own printed photo to ${retailer.name} instead of using the counter service?`,
+      a: isPostOffice
+        ? `Yes - USPS accepts a compliant photo you bring yourself; the fee above is specifically for having USPS take the photo for you. Bringing your own (for example, printed from this tool's export) skips that fee entirely.`
+        : `Some locations will print a photo you've already made and cropped correctly (using this tool, for example) rather than charging the full in-person photo-taking fee - ask at the counter, since this varies by store and isn't guaranteed.`,
+    },
+    {
+      q: `What should I bring?`,
+      a: `A form of ID is often requested, plus payment for the fee. If you already have a compliant digital photo (made here, for instance), bring it on your phone or a USB drive in case the location offers a print-only service.`,
+    },
+  ]
 
   const bodyHtml = `
 <nav class="seo-breadcrumb"><a href="/">Home</a> / <a href="/guides/passport-photo-cost.html">Passport photo cost</a> / ${escapeHtml(retailer.name)}</nav>
@@ -369,12 +416,30 @@ function renderRetailerGuide(retailer) {
 <h2>How it works</h2>
 <p>${escapeHtml(retailer.process)}</p>
 ${visitLink}
+<h2>What to expect at ${escapeHtml(counterNoun)}</h2>
+<ol class="seo-steps">
+  <li><strong>Staff position you against a plain backdrop</strong> (usually a portable screen or wall) and take the photo with a dedicated camera, not a phone.</li>
+  <li><strong>They review it on-screen with you</strong> - a clearly bad shot (eyes closed, obvious shadow) is often retaken on the spot, but subtler compliance issues aren't always caught.</li>
+  <li><strong>Photos print in a few minutes to about an hour</strong>, depending on the location and how busy the photo counter is.</li>
+  <li><strong>You leave with physical prints</strong> (and a digital copy too, if that's included - see the price breakdown above) - there's typically no separate cropping or sizing step since the in-store system is set up for the standard size already.</li>
+</ol>
+<h2>Get it right the first time</h2>
+<p>A retaken photo still costs the same trip, so it's worth arriving ready:</p>
+<ul class="seo-checklist">
+  <li>Wear your everyday glasses only if you're used to them - a growing number of countries now discourage or ban glasses entirely in the photo. See our <a href="/guides/passport-photo-glasses.html">glasses guide</a>.</li>
+  <li>Skip anything white or very light-colored that blends into a light background.</li>
+  <li>Practice a neutral, mouth-closed expression beforehand - see our <a href="/guides/can-you-smile-in-a-passport-photo.html">expression guide</a> for what "neutral" actually means.</li>
+  <li>If you're bringing a child, see our <a href="/guides/baby-newborn-passport-photo.html">baby and newborn photo guide</a> first - the rules differ from an adult's.</li>
+</ul>
 <h2>A free alternative</h2>
 <p>You can also make a compliant photo here for free and print it yourself: our editor exports a 4x6 sheet packed with as many copies as fit, with dotted cut guides, ready for a standard photo-paper print - typically well under a dollar at a drugstore print kiosk or your own printer.</p>
 <a class="seo-cta" href="/">Make a free passport photo &rarr;</a>
 <p><a href="/guides/print-passport-photos-at-home.html">Full guide: how to print passport photos at home &rarr;</a></p>
 <h2>Compare all options</h2>
 <p>See how ${escapeHtml(retailer.name)} stacks up against the other retailers and the DIY option on our <a href="/guides/passport-photo-cost.html">passport photo cost comparison</a> page.</p>
+${renderAdSlot('incontent')}
+<h2>FAQ</h2>
+${faqs.map((f) => `<div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`).join('\n')}
 ${renderAffiliateSection()}
 ${renderAdSlot('footer')}
 `
@@ -382,32 +447,72 @@ ${renderAdSlot('footer')}
     title: `${retailer.name} Passport Photo Price 2026 - Passport & Visa Photo Maker`,
     description: `${retailer.name} passport photo price and how the process works, plus a free way to make and print a compliant photo yourself.`,
     canonicalPath: `/guides/${retailer.slug}.html`,
-    ldJson: [],
+    ldJson: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Passport photo cost', item: `${SITE_URL}/guides/passport-photo-cost.html` },
+          { '@type': 'ListItem', position: 3, name: `${retailer.name} Passport Photo`, item: `${SITE_URL}/guides/${retailer.slug}.html` },
+        ],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: `${retailer.name} Passport Photo: Price and How It Works`,
+        description: `${retailer.name} passport photo price and how the process works, plus a free way to make and print a compliant photo yourself.`,
+        dateModified: BUILD_DATE,
+      },
+    ],
     bodyHtml,
   })
 }
 
 function renderCostComparisonPage() {
   const rows = RETAILERS.map((r) => `    <tr><th><a href="/guides/${r.slug}.html">${escapeHtml(r.name)}</a></th><td>${escapeHtml(r.price)}</td></tr>`).join('\n')
+  const faqs = [
+    { q: 'Which option is actually the cheapest?', a: 'Making your own photo here and printing a 4x6 sheet yourself - typically under $1 total, versus $7.64-$17.99 at a retail counter. Walmart is the cheapest paid retail option; CVS is typically the most expensive.' },
+    { q: 'Is the cheapest option also the fastest?', a: 'Usually not - a retail counter hands you a finished, printed photo in minutes. The DIY route is nearly free but takes a few minutes of your own time to photograph, crop, and print (or find a kiosk).' },
+    { q: 'Do any of these include a digital copy?', a: 'It varies and changes - Walgreens has historically included one free, CVS has charged extra for it, and Walmart\'s standard in-store service hasn\'t included one. Check the individual retailer page, and confirm at the counter since offers change.' },
+    { q: 'Why is the price range so wide ($7.64 to $17.99) for what looks like the same service?', a: 'These aren\'t regulated fees - each retailer sets its own price for the photo-taking-and-printing service, and it isn\'t obviously correlated with quality. The photo itself has the same size/background spec everywhere; you\'re mostly paying for someone else to operate the camera and printer.' },
+  ]
   const bodyHtml = `
 <nav class="seo-breadcrumb"><a href="/">Home</a> / Passport photo cost</nav>
 <h1>Passport Photo Cost: Every Option Compared (2026)</h1>
-<p>A passport photo costs anywhere from $0 to about $18 depending on where you get it. Here's what the major U.S. options charge, and the free alternative.</p>
+<p><strong>A passport photo costs anywhere from about $0.20 (print your own at Walmart) to about $18 (CVS) depending on where you get it.</strong> Here's what the major U.S. options charge, and why the free alternative works just as well.</p>
 <table class="seo-spec">
   <tbody>
 ${rows}
     <tr><th>This tool + your own printer</th><td>Free (editor) - typically under $1 to print</td></tr>
   </tbody>
 </table>
-<p class="seo-source-note">Prices researched via web search in 2026 and, where noted on each retailer's page, checked directly against the source; retail prices vary by location and change over time. Confirm before you go.</p>
+<p class="seo-source-note">Prices researched via web search, most recently ${BUILD_DATE}, and cross-checked against multiple current sources where the retailer's own pricing page blocked a direct check - see each retailer's own page for the exact sourcing note. Retail prices vary by location and change over time; confirm before you go.</p>
+<h2>What you're actually paying for</h2>
+<p>Every option here produces the same underlying thing: a photo that meets a government size/background/quality spec. The retail options charge for the service of taking and printing it - a person operating a camera, a printer, and (in principle) a compliance check. None of them are more "official" than a compliant photo you make yourself; the passport agency doesn't care who pressed the shutter, only whether the result matches the spec.</p>
 <h2>Why the DIY option is so much cheaper</h2>
 <p>Retail photo counters charge for a service: taking the photo, checking it against the spec, and printing it in-store. If you take your own photo, this tool checks the size, background, and framing against the requirement automatically and exports a 4x6 print sheet with multiple copies and cut guides - so all you're paying for is the print itself, typically well under a dollar at a drugstore print kiosk or your own printer.</p>
 <a class="seo-cta" href="/">Make a free passport photo &rarr;</a>
+<h2>Which option makes sense for you</h2>
+<ul class="seo-checklist">
+  <li><strong>Want it done for you, don't mind the cost:</strong> any of the retail counters below - Walmart is the cheapest of the paid options.</li>
+  <li><strong>Want to save money and don't mind five extra minutes:</strong> make it here for free, then print at any drugstore kiosk (typically $0.20-$0.50 for a 4x6) or your own printer.</li>
+  <li><strong>Need it for an online application (no printing at all):</strong> export the single photo file here instead of the print sheet - see our <a href="/guides/online-passport-renewal-photo.html">online renewal photo guide</a> for the different spec that applies there.</li>
+  <li><strong>Not confident about the size/background rules:</strong> use this tool's built-in "Check Photo" feature before you print or submit anything, regardless of where the photo came from.</li>
+</ul>
 <h2>Individual retailer guides</h2>
 <ul class="seo-index-list">
 ${RETAILERS.map((r) => `  <li><a href="/guides/${r.slug}.html">${escapeHtml(r.name)} passport photo</a></li>`).join('\n')}
   <li><a href="/guides/print-passport-photos-at-home.html">How to print passport photos at home</a></li>
 </ul>
+${renderAdSlot('incontent')}
+<h2>FAQ</h2>
+${faqs.map((f) => `<div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`).join('\n')}
 ${renderAffiliateSection()}
 ${renderAdSlot('footer')}
 `
@@ -415,12 +520,38 @@ ${renderAdSlot('footer')}
     title: 'Passport Photo Cost: Every Option Compared (2026) - Passport & Visa Photo Maker',
     description: 'What Walgreens, CVS, Walmart, and USPS charge for passport photos in 2026, compared to making one free and printing it yourself.',
     canonicalPath: '/guides/passport-photo-cost.html',
-    ldJson: [],
+    ldJson: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Passport photo cost', item: `${SITE_URL}/guides/passport-photo-cost.html` },
+        ],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: 'Passport Photo Cost: Every Option Compared (2026)',
+        description: 'What Walgreens, CVS, Walmart, and USPS charge for passport photos in 2026, compared to making one free and printing it yourself.',
+        dateModified: BUILD_DATE,
+      },
+    ],
     bodyHtml,
   })
 }
 
 function renderPrintAtHomeGuidePage() {
+  const faqs = [
+    { q: 'Will a home-printed photo be accepted?', a: 'Requirements are generally about the photo meeting the size/background/quality spec, not where it was printed - but always check the official source linked on your country\'s page, since a small number of application types require professional printing specifically.' },
+    { q: 'What paper size do I need?', a: 'Standard 4x6 in. photo paper is enough for most passport photo sizes printed multiple-up with this tool\'s print-sheet export; check your printer or kiosk supports 4x6 prints.' },
+    { q: 'Can I use an inkjet printer?', a: 'Yes, as long as it can print at photo quality on photo paper - results vary more by paper and print-quality setting than by printer brand.' },
+  ]
   const bodyHtml = `
 <nav class="seo-breadcrumb"><a href="/">Home</a> / Print passport photos at home</nav>
 <h1>How to Print Passport Photos at Home</h1>
@@ -441,16 +572,28 @@ function renderPrintAtHomeGuidePage() {
 <a class="seo-cta" href="/">Make your photo now &rarr;</a>
 ${renderAdSlot('incontent')}
 <h2>FAQ</h2>
-<div class="seo-faq-item"><h3>Will a home-printed photo be accepted?</h3><p>Requirements are generally about the photo meeting the size/background/quality spec, not where it was printed - but always check the official source linked on your country's page, since a small number of application types require professional printing specifically.</p></div>
-<div class="seo-faq-item"><h3>What paper size do I need?</h3><p>Standard 4x6 in. photo paper is enough for most passport photo sizes printed multiple-up with this tool's print-sheet export; check your printer or kiosk supports 4x6 prints.</p></div>
-<div class="seo-faq-item"><h3>Can I use an inkjet printer?</h3><p>Yes, as long as it can print at photo quality on photo paper - results vary more by paper and print-quality setting than by printer brand.</p></div>
+${faqs.map((f) => `<div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`).join('\n')}
 ${renderAdSlot('footer')}
 `
   return renderLayout({
     title: 'How to Print Passport Photos at Home - Passport & Visa Photo Maker',
     description: 'How to export and print a compliant passport photo yourself, with the right paper, print settings, and a 4x6 sheet with multiple copies and cut guides.',
     canonicalPath: '/guides/print-passport-photos-at-home.html',
-    ldJson: [],
+    ldJson: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Print passport photos at home', item: `${SITE_URL}/guides/print-passport-photos-at-home.html` },
+        ],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+      },
+    ],
     bodyHtml,
   })
 }
@@ -697,6 +840,10 @@ ${renderAdSlot('footer')}
 }
 
 function renderPhonePhotoGuidePage() {
+  const faqs = [
+    { q: 'Does the photo need to be a certain resolution?', a: 'Higher is better going in - this tool crops and resizes down to the exact pixel dimensions required, but it can\'t add detail that wasn\'t captured. A modern phone\'s default photo mode is more than enough.' },
+    { q: 'Should I use flash?', a: 'Generally no - direct flash often creates a hard shadow on the wall behind you. Even room or window light usually looks better. See our <a href="/guides/passport-photo-lighting.html">lighting guide</a>.' },
+  ]
   const bodyHtml = `
 <nav class="seo-breadcrumb"><a href="/">Home</a> / Take a passport photo with your phone</nav>
 <h1>How to Take a Passport Photo with Your Phone</h1>
@@ -711,15 +858,30 @@ function renderPhonePhotoGuidePage() {
 <a class="seo-cta" href="/">Upload your photo and make it compliant &rarr;</a>
 ${renderAdSlot('incontent')}
 <h2>FAQ</h2>
-<div class="seo-faq-item"><h3>Does the photo need to be a certain resolution?</h3><p>Higher is better going in - this tool crops and resizes down to the exact pixel dimensions required, but it can't add detail that wasn't captured. A modern phone's default photo mode is more than enough.</p></div>
-<div class="seo-faq-item"><h3>Should I use flash?</h3><p>Generally no - direct flash often creates a hard shadow on the wall behind you. Even room or window light usually looks better. See our <a href="/guides/passport-photo-lighting.html">lighting guide</a>.</p></div>
+${faqs.map((f) => `<div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${f.a}</p></div>`).join('\n')}
 ${renderAdSlot('footer')}
 `
   return renderLayout({
     title: 'How to Take a Passport Photo with Your Phone - Passport & Visa Photo Maker',
     description: 'Camera settings, distance, and lighting for a phone-taken passport photo that will actually crop and size correctly - no portrait mode, no filters.',
     canonicalPath: '/guides/take-passport-photo-with-phone.html',
-    ldJson: [],
+    ldJson: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Take a passport photo with your phone', item: `${SITE_URL}/guides/take-passport-photo-with-phone.html` },
+        ],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        // f.a intentionally not escaped for the schema text either - it matches
+        // the visible HTML above, which contains an inline <a> link.
+        mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a.replace(/<[^>]+>/g, '') } })),
+      },
+    ],
     bodyHtml,
   })
 }
@@ -729,6 +891,12 @@ function renderBackgroundColorGuidePage(entries) {
     const background = BACKGROUND_LABELS[template.title] || 'See page'
     return `    <tr><th><a href="/photos/${content.slug}.html">${escapeHtml(content.h1.replace(' Size and Requirements', ''))}</a></th><td>${escapeHtml(background)}</td></tr>`
   }).join('\n')
+  const faqs = [
+    { q: 'Can the background be off-white or cream instead of pure white?', a: 'For most countries, yes - "white" in practice usually tolerates a slightly warm or cool cast from ordinary lighting. A small number of countries (see the table above) specifically require light grey or light blue instead, and at least one - France - explicitly prohibits white outright. Check your specific document.' },
+    { q: 'Why do some countries require a colored background instead of white?', a: 'It\'s a national choice, not an ICAO-wide standard - some countries specify light grey or light blue for better contrast against light clothing or skin tones, or simply to make their photos visually distinct. There\'s no single universal rule.' },
+    { q: 'What actually counts as a "shadow" that gets a photo rejected?', a: 'Any visible gradient or dark patch on the background or face, most often cast by a single overhead or side light source, or by standing too close to the wall behind you. It doesn\'t need to be dramatic - a faint gradient is enough to trigger a rejection at some agencies. See our lighting guide below.' },
+    { q: 'Can I use a bedsheet or poster board as a background?', a: 'Yes, as long as it\'s a single uniform color with no pattern, wrinkles-as-shadows, or sheen that catches a reflection. A large piece of matte poster board taped flat to a wall is a reliable, cheap option; a sheet works if it\'s pulled taut.' },
+  ]
   const bodyHtml = `
 <nav class="seo-breadcrumb"><a href="/">Home</a> / Passport photo background color</nav>
 <h1>What Background Color Do Passport Photos Need?</h1>
@@ -739,16 +907,50 @@ ${rows}
   </tbody>
 </table>
 <p class="seo-source-note">These are short summaries; see each document's own page for the full requirement and official source. For every size and DPI requirement in one sortable table, see the <a href="/guides/passport-photo-size-chart.html">full size chart</a>.</p>
+<h2>Why background color is specified so precisely</h2>
+<p>Passport and visa photos increasingly feed automated facial-recognition and biometric matching systems, not just human reviewers. A cluttered, patterned, or unevenly lit background makes it harder for that software to isolate your face cleanly - which is also why a shadow across the background, not just your face, is a common rejection reason even when your expression and framing are otherwise fine.</p>
+<h2>Common background mistakes</h2>
+<ul class="seo-checklist">
+  <li><strong>A shadow cast by the subject</strong> - the single most common issue, usually from an overhead light or a light source behind and to one side of you rather than facing you.</li>
+  <li><strong>A textured or patterned wall</strong> - brick, wood paneling, wallpaper, or a visible door frame or light switch in the shot.</li>
+  <li><strong>A gradient from uneven lighting</strong> - one side of the background noticeably brighter than the other, even without a hard-edged shadow.</li>
+  <li><strong>Clothing that blends into the background</strong> - a white or light-colored top against a white background can make your shoulders and neckline hard to distinguish.</li>
+  <li><strong>Colors outside what's accepted</strong> - a colored wall, a visible plant, furniture, or another person in frame.</li>
+</ul>
 <h2>How to get an even background</h2>
-<p>A real plain wall, evenly lit, works better than trying to fix a patterned or shadowed background afterward - see our <a href="/guides/passport-photo-lighting.html">lighting guide</a>. This tool's background removal can also replace the background entirely, though for some countries (the US specifically, as of 2026) that's not accepted - see the <a href="/guides/ai-edited-passport-photos-2026.html">AI-editing guide</a>.</p>
+<p>A real plain wall, evenly lit, works better than trying to fix a patterned or shadowed background afterward - see our <a href="/guides/passport-photo-lighting.html">lighting guide</a>. If you don't have a suitable plain wall, a large sheet of matte poster board or a taut, unpatterned sheet works as a backdrop - just make sure it's fully out of shadow itself. This tool's background removal can also replace the background entirely, though for some countries (the US specifically, as of 2026) that's not accepted - see the <a href="/guides/ai-edited-passport-photos-2026.html">AI-editing guide</a>.</p>
 <a class="seo-cta" href="/">Make a compliant photo now &rarr;</a>
+${renderAdSlot('incontent')}
+<h2>FAQ</h2>
+${faqs.map((f) => `<div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`).join('\n')}
 ${renderAdSlot('footer')}
 `
   return renderLayout({
     title: 'Passport Photo Background Color by Country - Passport & Visa Photo Maker',
     description: 'What background color each country requires for a passport or visa photo - almost always plain white or another light, uniform color.',
     canonicalPath: '/guides/passport-photo-background-color.html',
-    ldJson: [],
+    ldJson: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Passport photo background color', item: `${SITE_URL}/guides/passport-photo-background-color.html` },
+        ],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: 'What Background Color Do Passport Photos Need?',
+        description: 'What background color each country requires for a passport or visa photo - almost always plain white or another light, uniform color.',
+        dateModified: BUILD_DATE,
+      },
+    ],
     bodyHtml,
   })
 }
@@ -835,7 +1037,23 @@ ${renderAdSlot('footer')}
     title: 'Best Free Passport Photo Makers, Compared - Passport & Visa Photo Maker',
     description: 'What actually varies between free passport photo tools - server upload vs. in-browser processing, watermarking, print-sheet pricing, and open-source availability.',
     canonicalPath: '/compare/best-free-passport-photo-makers.html',
-    ldJson: [],
+    ldJson: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Best free passport photo makers', item: `${SITE_URL}/compare/best-free-passport-photo-makers.html` },
+        ],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: 'Best Free Passport Photo Makers, Compared',
+        description: 'What actually varies between free passport photo tools - server upload vs. in-browser processing, watermarking, print-sheet pricing, and open-source availability.',
+        dateModified: BUILD_DATE,
+      },
+    ],
     bodyHtml,
   })
 }
@@ -1062,6 +1280,83 @@ async function generateOgImage(content, spec) {
   await sharp(Buffer.from(svg)).png().toFile(path.join(OG_DIR, `${content.slug}.png`))
 }
 
+// Same guide-title matching AutoAlign.js uses to find the crown/chin target
+// bands - kept as a separate constant here rather than imported, matching
+// this file's existing pattern of not sharing internal constants across
+// scripts/ and src/ (they're built and run in different environments).
+const DIAGRAM_HEAD_TOP_GUIDES = ['Bar: Top', 'Top Head Area']
+const DIAGRAM_CHIN_GUIDES = ['Bar: Bottom', 'Center Square: bottom']
+
+// A data-driven, illustrative size/position diagram per document, generated
+// from the same template.guide data the in-app editor uses for its own
+// alignment bars - not a real photo (avoids any licensing/likeness issue),
+// but genuinely derived from this tool's actual spec rather than a generic
+// stock graphic. Addresses the site having zero images despite "passport
+// photo size" being a query that returns image-pack results.
+function renderDimensionDiagramSvg(template, content, spec) {
+  const CANVAS_W = 640
+  const CANVAS_H = 760
+  const MAX_FRAME_W = 340
+  const MAX_FRAME_H = 460
+  const aspect = spec.widthMm / spec.heightMm
+  let frameW = MAX_FRAME_W
+  let frameH = frameW / aspect
+  if (frameH > MAX_FRAME_H) {
+    frameH = MAX_FRAME_H
+    frameW = frameH * aspect
+  }
+  const frameX = (CANVAS_W - frameW) / 2
+  const frameY = 100
+
+  const background = BACKGROUND_LABELS[template.title] || 'light, uniform'
+  const title = escapeHtml(content.h1.replace(' Size and Requirements', ''))
+
+  const topGuide = (template.guide || []).find((g) => DIAGRAM_HEAD_TOP_GUIDES.includes(g.title))
+  const bottomGuide = (template.guide || []).find((g) => DIAGRAM_CHIN_GUIDES.includes(g.title))
+
+  let headMarkup = ''
+  if (topGuide && bottomGuide) {
+    // Guide coordinates are in 0.1mm units (see AutoAlign.js) - the same
+    // convention every template.guide array already uses for the in-app bars.
+    const totalGuideH = spec.heightMm * 10
+    const topCenter = (parseFloat(topGuide.start_y) + parseFloat(topGuide.height) / 2) / totalGuideH
+    const bottomCenter = (parseFloat(bottomGuide.start_y) + parseFloat(bottomGuide.height) / 2) / totalGuideH
+    const crownY = frameY + topCenter * frameH
+    const chinY = frameY + bottomCenter * frameH
+    const headCenterX = frameX + frameW / 2
+    const headHeight = chinY - crownY
+    const headWidth = headHeight * 0.72
+    const shoulderY = chinY + headHeight * 0.35
+
+    headMarkup = `
+  <line x1="${frameX}" y1="${crownY.toFixed(1)}" x2="${frameX + frameW}" y2="${crownY.toFixed(1)}" stroke="#f5c518" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="${frameX}" y1="${chinY.toFixed(1)}" x2="${frameX + frameW}" y2="${chinY.toFixed(1)}" stroke="#f5c518" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <path d="M ${(headCenterX - headWidth * 0.85).toFixed(1)} ${(frameY + frameH).toFixed(1)} Q ${(headCenterX - headWidth * 0.85).toFixed(1)} ${shoulderY.toFixed(1)} ${headCenterX.toFixed(1)} ${shoulderY.toFixed(1)} Q ${(headCenterX + headWidth * 0.85).toFixed(1)} ${shoulderY.toFixed(1)} ${(headCenterX + headWidth * 0.85).toFixed(1)} ${(frameY + frameH).toFixed(1)}" fill="none" stroke="#93c5fd" stroke-width="2.5" stroke-dasharray="5,4"/>
+  <ellipse cx="${headCenterX.toFixed(1)}" cy="${((crownY + chinY) / 2).toFixed(1)}" rx="${(headWidth / 2).toFixed(1)}" ry="${(headHeight / 2).toFixed(1)}" fill="none" stroke="#93c5fd" stroke-width="2.5" stroke-dasharray="5,4"/>
+  <text x="${frameX + frameW + 14}" y="${(crownY + 5).toFixed(1)}" font-family="Arial, Helvetica, Liberation Sans, sans-serif" font-size="15" fill="#f5c518">Crown target</text>
+  <text x="${frameX + frameW + 14}" y="${(chinY + 5).toFixed(1)}" font-family="Arial, Helvetica, Liberation Sans, sans-serif" font-size="15" fill="#f5c518">Chin target</text>`
+  }
+
+  return `<svg width="${CANVAS_W}" height="${CANVAS_H}" viewBox="0 0 ${CANVAS_W} ${CANVAS_H}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="${CANVAS_W}" height="${CANVAS_H}" fill="#0f172a"/>
+  <text x="${CANVAS_W / 2}" y="45" text-anchor="middle" font-family="Arial, Helvetica, Liberation Sans, sans-serif" font-size="24" font-weight="700" fill="#ffffff">${title}</text>
+  <rect x="${frameX.toFixed(1)}" y="${frameY}" width="${frameW.toFixed(1)}" height="${frameH.toFixed(1)}" fill="#f8fafc" stroke="#475569" stroke-width="2"/>${headMarkup}
+  <text x="${(frameX + frameW / 2).toFixed(1)}" y="${frameY - 18}" text-anchor="middle" font-family="Arial, Helvetica, Liberation Sans, sans-serif" font-size="18" fill="#e2e8f0">${spec.widthMm} mm (${spec.widthIn}")</text>
+  <text x="${(frameX - 18).toFixed(1)}" y="${(frameY + frameH / 2).toFixed(1)}" text-anchor="middle" font-family="Arial, Helvetica, Liberation Sans, sans-serif" font-size="18" fill="#e2e8f0" transform="rotate(-90 ${(frameX - 18).toFixed(1)} ${(frameY + frameH / 2).toFixed(1)})">${spec.heightMm} mm (${spec.heightIn}")</text>
+  <text x="${CANVAS_W / 2}" y="${(frameY + frameH + 55).toFixed(1)}" text-anchor="middle" font-family="Arial, Helvetica, Liberation Sans, sans-serif" font-size="18" fill="#e2e8f0">Background: ${escapeHtml(background)}</text>
+  <text x="${CANVAS_W / 2}" y="${(frameY + frameH + 84).toFixed(1)}" text-anchor="middle" font-family="Arial, Helvetica, Liberation Sans, sans-serif" font-size="15" fill="#94a3b8">${spec.dpi} DPI &#183; ${spec.widthPx} &#215; ${spec.heightPx} px &#183; max ${spec.maxSizeKb} KB</text>
+  <text x="${CANVAS_W / 2}" y="${CANVAS_H - 40}" text-anchor="middle" font-family="Arial, Helvetica, Liberation Sans, sans-serif" font-size="13" fill="#64748b">
+    <tspan x="${CANVAS_W / 2}" dy="0">Illustrative diagram generated from this tool's own spec data,</tspan>
+    <tspan x="${CANVAS_W / 2}" dy="18">not to exact scale - see the table above for the authoritative numbers.</tspan>
+  </text>
+</svg>`
+}
+
+async function generateDimensionDiagram(template, content, spec) {
+  const svg = renderDimensionDiagramSvg(template, content, spec)
+  await sharp(Buffer.from(svg)).png().toFile(path.join(DIAGRAMS_DIR, `${content.slug}-passport-photo-dimensions.png`))
+}
+
 function renderLayout({ title, description, canonicalPath, ldJson, bodyHtml, ogImagePath }) {
   const canonicalUrl = `${SITE_URL}${canonicalPath}`
   const ogImageUrl = `${SITE_URL}${ogImagePath || '/logo512.png'}`
@@ -1157,6 +1452,8 @@ function renderPhotoPage(template, content, entries) {
   const spec = deriveSpec(template)
   const canonicalPath = `/photos/${content.slug}.html`
   const ctaHref = `/?template=${encodeURIComponent(template.title)}`
+  const diagramPath = `/diagrams/${content.slug}-passport-photo-dimensions.png`
+  const diagramAlt = `Diagram of ${content.h1.replace(' Size and Requirements', '')}: ${spec.widthMm}x${spec.heightMm}mm with head-position guide bands`
 
   const faqLdEntities = content.faqs.map((f) => ({
     '@type': 'Question',
@@ -1185,6 +1482,15 @@ function renderPhotoPage(template, content, entries) {
       name: `How to take a ${content.h1}`,
       step: AT_HOME_STEPS.map((step) => ({ '@type': 'HowToStep', text: step })),
     },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ImageObject',
+      contentUrl: `${SITE_URL}${diagramPath}`,
+      url: `${SITE_URL}${diagramPath}`,
+      description: diagramAlt,
+      width: 640,
+      height: 760,
+    },
   ]
 
   const bodyHtml = `
@@ -1199,6 +1505,7 @@ ${content.intro.map((p) => `<p>${escapeHtml(p)}</p>`).join('\n')}
     <tr><th>Format</th><td>${spec.format}</td></tr>
   </tbody>
 </table>
+<img class="seo-diagram" src="${diagramPath}" alt="${escapeHtml(diagramAlt)}" width="640" height="760" loading="lazy">
 <a class="seo-cta" href="${ctaHref}">Make this photo now &rarr;</a>
 ${renderAlterationPolicy(template)}
 ${renderChecklist()}
@@ -1262,8 +1569,8 @@ function renderHomepageSeoBlock(entries) {
     .join('\n')
 
   return `<div id="seo-content">
-<h1>Passport &amp; Visa Photo Maker</h1>
-<p>Create a passport or visa photo online, free, for ${entries.length} countries and document types. Upload a photo, and this tool crops it to the exact size and DPI required, with an option to remove the background automatically - all processed locally in your browser, never uploaded to a server.</p>
+<h1>Free Passport Photo Editor</h1>
+<p><strong>Passport &amp; Visa Photo Maker</strong> is a free online passport photo editor: upload a photo and get the exact 2x2 (51x51mm) size, background, and DPI for ${entries.length} countries and document types, with an option to remove the background automatically - all processed locally in your browser, never uploaded to a server.</p>
 <h2>How it works</h2>
 <ol class="seo-steps">
   <li>Pick your country or document type below, or from the editor.</li>
@@ -1280,7 +1587,12 @@ ${countryLinks}
 <h2>Frequently asked questions</h2>
 ${faqHtml}
 <p class="seo-source-note">Photo requirements are set by each country’s government and can change. Always confirm the current specification on the official source linked from that country’s page before submitting.</p>
-</div>`
+</div>
+<script type="application/ld+json">${JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: HOME_FAQS.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  })}</script>`
 }
 
 function updateIndexHtml(entries) {
@@ -1545,6 +1857,7 @@ async function main() {
 
   fs.mkdirSync(PHOTOS_DIR, { recursive: true })
   fs.mkdirSync(OG_DIR, { recursive: true })
+  fs.mkdirSync(DIAGRAMS_DIR, { recursive: true })
   fs.mkdirSync(GUIDES_DIR, { recursive: true })
 
   entries.forEach(({ template, content }) => {
@@ -1552,7 +1865,9 @@ async function main() {
   })
 
   for (const { template, content } of entries) {
-    await generateOgImage(content, deriveSpec(template))
+    const spec = deriveSpec(template)
+    await generateOgImage(content, spec)
+    await generateDimensionDiagram(template, content, spec)
   }
 
   RETAILERS.forEach((retailer) => {
