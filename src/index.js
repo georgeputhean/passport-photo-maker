@@ -5,10 +5,11 @@ import App from './App'
 import reportWebVitals from './reportWebVitals'
 
 // public/index.html ships a static, crawler-visible content block (h1, country
-// links, FAQs) for search/AI engines and no-JS clients - see the SEO_CONTENT
-// markers there. Real visitors get the app instead, so remove it as soon as
-// JS actually runs, before the app paints.
-document.getElementById('seo-content')?.remove()
+// links, FAQs) for search/AI engines - see the SEO_CONTENT markers there. It
+// used to be removed once the app mounted, on the assumption that crawlers
+// only ever see the pre-JS HTML - but Google (and Bing/GPTBot/etc.) indexes
+// the rendered DOM, so deleting it here deleted it from the index too. It
+// stays in the page permanently now, below the editor in document order.
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
 
