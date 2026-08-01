@@ -450,6 +450,7 @@ const MiddleColumn = ({
   removeBg,
   setRemoveBg,
   loadingModel,
+  aiModelProgress,
   processedPhoto,
   modals,
   setModals,
@@ -753,16 +754,19 @@ const MiddleColumn = ({
   const [checking, setChecking] = useState({ loading: false, error: null })
   const [pendingCheck, setPendingCheck] = useState(false)
   const [complianceResult, setComplianceResult] = useState(null)
+  const [alignProgress, setAlignProgress] = useState(0)
 
   const runAutoAlign = useCallback(async () => {
     if (!photo) return
     setAligning({ loading: true, error: null })
+    setAlignProgress(0)
     try {
       const aligned = await autoAlignFace({
         photoSrc: photo,
         guides: guide,
         editorDimensions,
         maskedPhotoSrc: removeBg.state && processedPhoto ? processedPhoto : undefined,
+        onProgress: setAlignProgress,
       })
       setRotation(INITIAL_ROTATION)
       setZoom(aligned.zoom)
@@ -958,7 +962,6 @@ const MiddleColumn = ({
                     <button
                       className="auto-align-button"
                       disabled={aligning.loading}
-                      aria-busy={aligning.loading}
                       onClick={handleAutoAlignClick}
                     >
                       {aligning.loading ? translate("autoAlignProcessing") : translate("autoAlignLabel")}
@@ -966,19 +969,20 @@ const MiddleColumn = ({
                     <button
                       className="check-photo-button"
                       disabled={checking.loading}
-                      aria-busy={checking.loading}
                       onClick={handleCheckPhotoClick}
                     >
                       {checking.loading ? translate("checkPhotoProcessing") : translate("checkPhotoLabel")}
                     </button>
                   </div>
                   {aligning.loading && (<div className="control-row3">
+                    <progress value={alignProgress > 0 ? alignProgress : undefined} max={alignProgress > 0 ? 100 : undefined} />
                     <small>{translate("autoAlignReminder")}</small>
                   </div>)}
                   {aligning.error && (<div className="control-row3" style={{ color: "red" }}>
                     <small>{translate(aligning.error === 'NO_FACE' ? "autoAlignNoFace" : "autoAlignError")}</small>
                   </div>)}
                   {checking.loading && (<div className="control-row3">
+                    <progress />
                     <small>{translate("autoAlignReminder")}</small>
                   </div>)}
                   {checking.error && (<div className="control-row3" style={{ color: "red" }}>
@@ -1208,7 +1212,6 @@ const MiddleColumn = ({
                   />{removeBg.state && loadingModel ? translate("backgroundRemovalProcessing") : translate("backgroundRemovalLabel")}
                 </label>
               </small>
-              <div aria-busy={removeBg.state && loadingModel}></div>
             </div>
           )}
           {aiEditingRestricted && aiEditingMode === 'edit' && (<div className="control-row3">
@@ -1230,6 +1233,7 @@ const MiddleColumn = ({
             </button>
           </div>)}
           {removeBg.state && loadingModel && (<div className="control-row3">
+            <progress value={aiModelProgress > 0 ? aiModelProgress : undefined} max={aiModelProgress > 0 ? 100 : undefined} />
             <small>{translate("backgroundRemovalReminder")}</small>
           </div>)}
           {removeBg.error && !processedPhoto && (<div className="control-row3" style={{ color: "red" }}>
@@ -1677,7 +1681,8 @@ const App = () => {
   const [removeBg, setRemoveBg] = useState({ state: false, error: false }) // Toggle for background removal
   const [aiEditingAcknowledged, setAiEditingAcknowledged] = useState(false) // Has the user dismissed the AI-editing compliance warning this session?
   const [aiEditingMode, setAiEditingMode] = useState('compliance') // 'compliance' (crop/resize only) or 'edit' (background removal unlocked) - only meaningful when aiEditingRestricted
-  const [loadingModel, setLoadingModel] = useState(false) // State for loading model 
+  const [loadingModel, setLoadingModel] = useState(false) // State for loading model
+  const [aiModelProgress, setAiModelProgress] = useState(0) // 0-100 download/inference progress for the background-removal model, for the AI Background Removal toggle
   const [originalPhoto, setOriginalPhoto] = useState(null)
   const [processedPhoto, setProcessedPhoto] = useState(null)
   const [adjustedPhoto, setAdjustedPhoto] = useState(null)
@@ -1844,8 +1849,9 @@ const App = () => {
 
   const processPhotoForBgRemoval = useCallback(async (photoData) => {
     setLoadingModel(true)
+    setAiModelProgress(0)
     try {
-      const resultBlob = await removeBackground(photoData)
+      const resultBlob = await removeBackground(photoData, setAiModelProgress)
       setProcessedPhoto(URL.createObjectURL(resultBlob))
       setLoadingModel(false)
     } catch (error) {
@@ -1975,6 +1981,7 @@ const App = () => {
             removeBg={removeBg}
             setRemoveBg={setRemoveBg}
             loadingModel={loadingModel}
+            aiModelProgress={aiModelProgress}
             processedPhoto={processedPhoto}
             modals={modals}
             setModals={setModals}
