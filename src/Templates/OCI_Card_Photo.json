@@ -1,0 +1,57 @@
+{
+  "title": "OCI Card Photo",
+  "width": "51",
+  "height": "51",
+  "dpi": "300",
+  "format": "jpg",
+  "size": "200",
+  "digitalOnly": true,
+  "instruction": "Please check the latest requirement at <a target=\"_blank\" rel=\"noreferrer\" href=\"https://ociservices.gov.in/onlineOCI/faq\">here</a>.",
+  "guide": [
+    {
+      "index": "A",
+      "title": "Center Guide Line",
+      "instruction": "Nose on center line",
+      "start_x": "252.5",
+      "start_y": "0",
+      "width": "5",
+      "height": "510",
+      "color": "yellow",
+      "isVerticalMovable": false,
+      "isHorizontalMovable": false,
+      "overlap": true,
+      "opacity": "0.5",
+      "group": "1"
+    },
+    {
+      "index": "B",
+      "title": "Bar: Top",
+      "instruction": "Hair top in this band",
+      "start_x": "0",
+      "start_y": "30",
+      "width": "510",
+      "height": "65",
+      "color": "green",
+      "isVerticalMovable": false,
+      "isHorizontalMovable": false,
+      "overlap": true,
+      "opacity": "0.5",
+      "group": "2"
+    },
+    {
+      "index": "C",
+      "title": "Bar: Bottom",
+      "instruction": "Chin in this band",
+      "start_x": "0",
+      "start_y": "325",
+      "width": "510",
+      "height": "65",
+      "color": "green",
+      "isVerticalMovable": false,
+      "isHorizontalMovable": false,
+      "overlap": true,
+      "opacity": "0.5",
+      "group": "2"
+    }
+  ]
+}

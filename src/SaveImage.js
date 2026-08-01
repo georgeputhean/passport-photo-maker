@@ -1,5 +1,10 @@
 import pica from 'pica'
-const resizeAndCompressImage = (imageData, targetWidth, targetHeight, maxSizeKB) => {
+
+// A JPEG quality knob can only shrink a file, never grow it - so a minimum
+// size can only be enforced by reporting a shortfall, not by padding or
+// upscaling past the requested pixel dimensions. Returns { blob, belowMinSize }
+// rather than a bare blob so callers can't silently miss that shortfall.
+const resizeAndCompressImage = (imageData, targetWidth, targetHeight, maxSizeKB, minSizeKB) => {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.src = imageData
@@ -10,7 +15,6 @@ const resizeAndCompressImage = (imageData, targetWidth, targetHeight, maxSizeKB)
       offScreenCanvas.width = targetWidth
       offScreenCanvas.height = targetHeight
 
-      // Use Pica to resize the image
       try {
         await pica().resize(img, offScreenCanvas)
 
@@ -27,28 +31,21 @@ const resizeAndCompressImage = (imageData, targetWidth, targetHeight, maxSizeKB)
         // Draw the resized image on top of the white background
         ctx.drawImage(offScreenCanvas, 0, 0, targetWidth, targetHeight)
 
-        // Initialize quality
-        let quality = 1.0
+        const blobAtQuality = (quality) => new Promise((res) => {
+          compressCanvas.toBlob(res, 'image/jpeg', quality)
+        })
 
-        // Function to compress the image
-        const compressImage = () => {
-          compressCanvas.toBlob(
-            (blob) => {
-              if (blob.size / 1024 <= maxSizeKB - 2 || quality <= 0) {
-                resolve(blob)
-              } else {
-                // Reduce quality and try again
-                quality -= 0.01 // Adjust the step size as needed
-                compressCanvas.toBlob(compressImage, 'image/jpeg', quality)
-              }
-            },
-            'image/jpeg',
-            quality
-          )
+        // Step quality down from 1.0 until the file fits under maxSizeKB, or
+        // quality bottoms out at 0.
+        let quality = 1.0
+        let blob = await blobAtQuality(quality)
+        while (blob.size / 1024 > maxSizeKB - 2 && quality > 0) {
+          quality -= 0.01
+          blob = await blobAtQuality(quality)
         }
 
-        // Start compression with the initial quality
-        compressImage()
+        const belowMinSize = minSizeKB != null && blob.size / 1024 < minSizeKB
+        resolve({ blob, belowMinSize })
       } catch (error) {
         console.error('Error processing image:', error)
         reject(error)
@@ -69,10 +66,10 @@ export const generateSingle = (croppedImage, editorRef, exportPhoto) => {
       const imageDataUrl = canvas.toDataURL('image/png')
 
       // Now use resizeAndCompressImage
-      resizeAndCompressImage(imageDataUrl, exportPhoto.width, exportPhoto.height, exportPhoto.size)
-        .then((resizedBlob) => {
-          const url = URL.createObjectURL(resizedBlob)
-          resolve(url)
+      resizeAndCompressImage(imageDataUrl, exportPhoto.width, exportPhoto.height, exportPhoto.size, exportPhoto.size_min)
+        .then(({ blob, belowMinSize }) => {
+          const url = URL.createObjectURL(blob)
+          resolve({ url, belowMinSize })
         })
         .catch((error) => {
           console.error('Error resizing and compressing image:', error)
@@ -97,8 +94,21 @@ export const handleSaveSingle = (imageSrc) => {
   document.body.removeChild(a)
 }
 
+// Sheet sizes offered alongside the single-photo export. 4x6in is the US
+// drugstore-kiosk default; A4, 10x15cm, and Letter cover the paper sizes
+// common outside the US (see the print-at-home guide's cost comparison).
+export const SHEET_SIZES = [
+  { key: '4x6', label: '4×6 in', widthIn: 4, heightIn: 6 },
+  { key: 'a4', label: 'A4', widthIn: 210 / 25.4, heightIn: 297 / 25.4 },
+  { key: '10x15', label: '10×15 cm', widthIn: 100 / 25.4, heightIn: 150 / 25.4 },
+  { key: 'letter', label: 'Letter', widthIn: 8.5, heightIn: 11 },
+]
 
-export const generate4x6 = (MM2INCH, croppedImage, exportPhoto) => {
+// Generalized print-sheet generator - a fixed-size canvas (sheet.widthIn x
+// sheet.heightIn) packed with as many copies of the cropped photo as fit,
+// with dotted cut guides between them, auto-picking portrait or landscape
+// orientation for whichever fits more copies.
+export const generateSheet = (MM2INCH, croppedImage, exportPhoto, sheet) => {
   return new Promise((resolve, reject) => {
     if (croppedImage && exportPhoto) {
       // Define margins and spacing
@@ -117,15 +127,15 @@ export const generate4x6 = (MM2INCH, croppedImage, exportPhoto) => {
       const photoHeightWithMargin = photoHeight + 2 * margin
 
       // Calculate potential layouts for portrait and landscape
-      const portrait = calculateLayout(4 * exportPhoto.dpi - 2 * outerMargin, 6 * exportPhoto.dpi - 2 * outerMargin, photoWidthWithMargin, photoHeightWithMargin, spacing)
-      const landscape = calculateLayout(6 * exportPhoto.dpi - 2 * outerMargin, 4 * exportPhoto.dpi - 2 * outerMargin, photoWidthWithMargin, photoHeightWithMargin, spacing)
+      const portrait = calculateLayout(sheet.widthIn * exportPhoto.dpi - 2 * outerMargin, sheet.heightIn * exportPhoto.dpi - 2 * outerMargin, photoWidthWithMargin, photoHeightWithMargin, spacing)
+      const landscape = calculateLayout(sheet.heightIn * exportPhoto.dpi - 2 * outerMargin, sheet.widthIn * exportPhoto.dpi - 2 * outerMargin, photoWidthWithMargin, photoHeightWithMargin, spacing)
 
       // Determine best orientation
       const usePortrait = (portrait.count >= landscape.count)
 
       // Set canvas dimensions based on best orientation
-      const canvasWidth = usePortrait ? 4 * exportPhoto.dpi : 6 * exportPhoto.dpi
-      const canvasHeight = usePortrait ? 6 * exportPhoto.dpi : 4 * exportPhoto.dpi
+      const canvasWidth = usePortrait ? sheet.widthIn * exportPhoto.dpi : sheet.heightIn * exportPhoto.dpi
+      const canvasHeight = usePortrait ? sheet.heightIn * exportPhoto.dpi : sheet.widthIn * exportPhoto.dpi
 
       // Create a canvas element to draw the photos
       const canvas = document.createElement('canvas')
@@ -169,9 +179,6 @@ export const generate4x6 = (MM2INCH, croppedImage, exportPhoto) => {
   })
 }
 
-// Rest of the helper functions remain the same
-
-
 // Helper function to calculate the layout
 const calculateLayout = (canvasWidth, canvasHeight, photoWidth, photoHeight, spacing) => {
   const columns = Math.floor((canvasWidth + spacing) / (photoWidth + spacing))
@@ -196,10 +203,10 @@ const drawDottedLine = (ctx, x, y, width, height) => {
 }
 
 
-export const handleSave4x6 = (fourBySixImage) => {
+export const handleSaveSheet = (sheetImage, filename = '4x6-image.jpeg') => {
   const a = document.createElement('a')
-  a.href = fourBySixImage
-  a.download = '4x6-image.jpeg'
+  a.href = sheetImage
+  a.download = filename
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)

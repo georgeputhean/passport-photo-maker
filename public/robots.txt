@@ -2,4 +2,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://passportphotoedit.com/sitemap.xml
+Sitemap: http://localhost:3000/sitemap.xml
