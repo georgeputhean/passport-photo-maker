@@ -110,7 +110,7 @@ const findMaskTop = (image, centerX, halfWidthNormalized) => {
 // forehead landmark only if segmentation itself fails - that estimate is
 // noticeably wrong on tightly-framed templates (e.g. India), so it's a last
 // resort, not a normal code path.
-const measureCrownY = async ({ photoSrc, maskedPhotoSrc, nose, forehead, chin, faceWidth }) => {
+export const measureCrownY = async ({ photoSrc, maskedPhotoSrc, nose, forehead, chin, faceWidth }) => {
   const fallback = Math.max(0, forehead.y - (chin.y - forehead.y) * HAIR_ALLOWANCE)
   let objectUrl
   try {

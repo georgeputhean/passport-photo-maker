@@ -6,7 +6,7 @@ import ReactGA from 'react-ga4'
 //import AnimatedText from './AnimatedText'
 import GuideDrawer from './GuideDrawer'
 import { useLanguage } from './translate'
-import { generateSingle, handleSaveSingle, generate4x6, handleSave4x6 } from './SaveImage'
+import { generateSingle, handleSaveSingle, generateSheet, handleSaveSheet, SHEET_SIZES } from './SaveImage'
 import Color from './Color'
 import { autoAlignFace } from './AutoAlign'
 import { checkPhotoCompliance, SEVERITY } from './PhotoCompliance'
@@ -26,6 +26,12 @@ import Mexico_TN_Visa_Photo from './Templates/Mexico_TN_Visa_Photo.json'
 import Spain_Passport_Photo from './Templates/Spain_Passport_Photo.json'
 import India_Passport_Photo from './Templates/India_Passport_Photo.json'
 import Netherlands_Passport_Photo from './Templates/Netherlands_Passport_Photo.json'
+import South_Korea_Passport_Photo from './Templates/South_Korea_Passport_Photo.json'
+import Singapore_Passport_Photo from './Templates/Singapore_Passport_Photo.json'
+import Switzerland_Passport_Photo from './Templates/Switzerland_Passport_Photo.json'
+import Vietnam_Passport_Photo from './Templates/Vietnam_Passport_Photo.json'
+import France_Passport_Photo from './Templates/France_Passport_Photo.json'
+import OCI_Card_Photo from './Templates/OCI_Card_Photo.json'
 import './App.css'
 import ChangeLog from './changelog.json'
 
@@ -72,6 +78,12 @@ const TEMPLATES = [
   Mexico_TN_Visa_Photo,
   Spain_Passport_Photo,
   Netherlands_Passport_Photo,
+  South_Korea_Passport_Photo,
+  Singapore_Passport_Photo,
+  Switzerland_Passport_Photo,
+  Vietnam_Passport_Photo,
+  France_Passport_Photo,
+  OCI_Card_Photo,
   CUSTOM_SIZE_TEMPLATE,
 ]
 const MAX_EDITOR_WIDTH = 380
@@ -125,6 +137,12 @@ const getTemplateFlag = (title) => {
   if (title.startsWith('Spain')) return '🇪🇸'
   if (title.startsWith('UK')) return '🇬🇧'
   if (title.startsWith('US')) return '🇺🇸'
+  if (title.startsWith('South Korea')) return '🇰🇷'
+  if (title.startsWith('Singapore')) return '🇸🇬'
+  if (title.startsWith('Switzerland')) return '🇨🇭'
+  if (title.startsWith('Vietnam')) return '🇻🇳'
+  if (title.startsWith('France')) return '🇫🇷'
+  if (title.startsWith('OCI')) return '🇮🇳'
   if (title === CUSTOM_SIZE_TITLE) return '📐'
   return '🌐'
 }
@@ -448,6 +466,7 @@ const MiddleColumn = ({
   position,
   setPosition,
   controlsRef,
+  exportPhoto,
 }) => {
   const { guide } = photoGuides
   const touchStartRef = useRef({ x: null, y: null })
@@ -785,18 +804,25 @@ const MiddleColumn = ({
       const result = await checkPhotoCompliance({
         photoSrc: photo,
         maskedPhotoSrc: removeBg.state && processedPhoto ? processedPhoto : undefined,
+        template: photoGuides,
+        exportPhoto,
+        zoom,
+        position,
+        editorDimensions,
       })
       setComplianceResult(result)
       setChecking({ loading: false, error: null })
       if (result.issues.length > 0) {
         setModals((prevModals) => ({ ...prevModals, photoIssues: true }))
+      } else {
+        setModals((prevModals) => ({ ...prevModals, photoLooksGood: true }))
       }
     } catch (error) {
       console.error('Photo compliance check error:', error)
       setComplianceResult(null)
       setChecking({ loading: false, error: 'GENERIC' })
     }
-  }, [photo, removeBg, processedPhoto, setModals])
+  }, [photo, removeBg, processedPhoto, photoGuides, exportPhoto, zoom, position, editorDimensions, setModals])
 
   // Run a pending compliance check once the user has consented to the AI model
   useEffect(() => {
@@ -1129,6 +1155,15 @@ const MiddleColumn = ({
               </footer>
             </article>
           </dialog>
+          <dialog open={modals.photoLooksGood} className='modal'>
+            <article>
+              <h4>{translate("photoLooksGoodTitle")}</h4>
+              <small>{translate("photoLooksGoodText")}</small>
+              <footer>
+                <button onClick={() => setModals((prevModals) => ({ ...prevModals, photoLooksGood: false }))}>OK</button>
+              </footer>
+            </article>
+          </dialog>
           {aiEditingRestricted && aiEditingMode !== 'edit' ? (
             <div className="control-row1">
               <small>{translate("complianceModeNotice")}</small>
@@ -1397,10 +1432,13 @@ const SaveModal = ({
   croppedImage,
   editorDimensions,
   exportPhoto,
-  editorRef
+  editorRef,
+  digitalOnly
 }) => {
   const [image4x6Src, setImage4x6Src] = useState(null)
   const [imageSingleSrc, setImageSingleSrc] = useState(null)
+  const [singleBelowMinSize, setSingleBelowMinSize] = useState(false)
+  const [sheetSize, setSheetSize] = useState(SHEET_SIZES[0])
   const [isSaveLoading, setIsSaveLoading] = useState(false)
   // eslint-disable-next-line no-unused-vars
   const [loadCounter, setLoadCounter] = useState(0)
@@ -1425,10 +1463,12 @@ const SaveModal = ({
   //   }
   // }, [modals.save])
 
-  const initiateLoading = () => {
+  const initiateLoading = useCallback(() => {
     setIsSaveLoading(true)
-    setLoadCounter(2) // Expecting two async operations
-  }
+    // Digital-only documents (see template.digitalOnly) skip the print-sheet
+    // generation effect below, so only one async operation is expected.
+    setLoadCounter(digitalOnly ? 1 : 2)
+  }, [digitalOnly])
 
   const decrementLoadCounter = () => {
     setLoadCounter(prevCount => {
@@ -1444,20 +1484,24 @@ const SaveModal = ({
     if (croppedImage && editorRef.current && modals.save) {
       initiateLoading()
       generateSingle(croppedImage, editorRef, exportPhoto)
-        .then(image => setImageSingleSrc(image))
+        .then(({ url, belowMinSize }) => {
+          setImageSingleSrc(url)
+          setSingleBelowMinSize(belowMinSize)
+        })
         .catch(error => console.error("Error generating single image:", error))
         .finally(decrementLoadCounter)
     }
-  }, [croppedImage, editorRef, exportPhoto, modals.save])
+  }, [croppedImage, editorRef, exportPhoto, modals.save, initiateLoading])
 
   useEffect(() => {
-    if (imageSingleSrc && modals.save) {
-      generate4x6(MM2INCH, imageSingleSrc, exportPhoto)
+    if (imageSingleSrc && modals.save && !digitalOnly) {
+      generateSheet(MM2INCH, imageSingleSrc, exportPhoto, sheetSize)
         .then(image => setImage4x6Src(image))
-        .catch(error => console.error("Error generating 4x6 image:", error))
+        .catch(error => console.error("Error generating print sheet image:", error))
         .finally(decrementLoadCounter)
     }
-  }, [imageSingleSrc, croppedImage, exportPhoto, modals.save])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageSingleSrc, croppedImage, exportPhoto, modals.save, sheetSize, digitalOnly])
 
   return (
     <>
@@ -1473,6 +1517,7 @@ const SaveModal = ({
               <div className="save-option">
                 <img src={imageSingleSrc || croppedImage} alt="Save preview" className="save-preview" height={editorDimensions.height * editorDimensions.zoom / 2} width={editorDimensions.width * editorDimensions.zoom / 2} />
                 <p className="save-text" >{translate("saveSingleText")}</p>
+                {singleBelowMinSize && <p className="save-text save-warning">{translate("belowMinSizeWarning")}</p>}
                 <div
                   role="button"
                   className="save-option-button"
@@ -1487,26 +1532,36 @@ const SaveModal = ({
                   }}
                 >{translate("saveSingle")}</div>
               </div>
-              <div className="save-option">
+              {!digitalOnly && <div className="save-option">
                 {
                   image4x6Src &&
-                  <img src={image4x6Src} alt="Save 4x6 preview" className="save-preview" height={editorDimensions.height * editorDimensions.zoom / 2} width={editorDimensions.width * editorDimensions.zoom / 2} />
+                  <img src={image4x6Src} alt="Save print sheet preview" className="save-preview" height={editorDimensions.height * editorDimensions.zoom / 2} width={editorDimensions.width * editorDimensions.zoom / 2} />
                 }
                 <p className="save-text" >{translate("save4x6Text")}</p>
+                <select
+                  aria-label={translate("sheetSizeLabel")}
+                  className="sheet-size-select"
+                  value={sheetSize.key}
+                  onChange={(e) => setSheetSize(SHEET_SIZES.find((s) => s.key === e.target.value) || SHEET_SIZES[0])}
+                >
+                  {SHEET_SIZES.map((s) => (
+                    <option key={s.key} value={s.key}>{s.label}</option>
+                  ))}
+                </select>
                 <div
                   role="button"
                   disabled={!image4x6Src}
                   className="save-option-button"
                   onClick={() => {
-                    image4x6Src && handleSave4x6(image4x6Src)
+                    image4x6Src && handleSaveSheet(image4x6Src, `${sheetSize.key}-image.jpeg`)
                     ReactGA.event({
-                      action: 'save_4x6_photo',
+                      action: 'save_sheet_photo',
                       category: 'Button Click',
-                      label: 'Save 4x6 Photo',
+                      label: `Save ${sheetSize.key} Photo`,
                     })
                   }}
                 >{translate("save4x6")}</div>
-              </div>
+              </div>}
             </div>)}
           </div>
           <footer>
@@ -1639,6 +1694,7 @@ const App = () => {
     width: parseInt(parseFloat(defaultTemplate.width) / MM2INCH * parseFloat(defaultTemplate.dpi)),
     height: parseInt(parseFloat(defaultTemplate.height) / MM2INCH * parseFloat(defaultTemplate.dpi)),
     size: parseInt(defaultTemplate.size),
+    size_min: defaultTemplate.sizeMin ? parseInt(defaultTemplate.sizeMin) : undefined,
     ratio: parseFloat(defaultTemplate.width) / parseFloat(defaultTemplate.height),
     width_mm: parseFloat(defaultTemplate.width),
     height_mm: parseFloat(defaultTemplate.height),
@@ -1647,7 +1703,7 @@ const App = () => {
     height_valid: true,
     size_valid: true,
   })
-  const [modals, setModals] = useState({ changelog: false, save: false, disclaimer: false, aiModel: false, photoIssues: false, aiEditingWarning: false })
+  const [modals, setModals] = useState({ changelog: false, save: false, disclaimer: false, aiModel: false, photoIssues: false, photoLooksGood: false, aiEditingWarning: false })
   const aiEditingRestricted = Boolean(aiEditingPolicy[template.title]?.restricted)
   const [editorBudget, setEditorBudget] = useState(() => getEditorBudget())
   const [editorDimensions, setEditorDimensions] = useState(() => {
@@ -1754,6 +1810,7 @@ const App = () => {
       width: parseInt(parseFloat(selectedTemplate.width) / MM2INCH * parseFloat(selectedTemplate.dpi)),
       height: parseInt(parseFloat(selectedTemplate.height) / MM2INCH * parseFloat(selectedTemplate.dpi)),
       size: parseInt(selectedTemplate.size),
+      size_min: selectedTemplate.sizeMin ? parseInt(selectedTemplate.sizeMin) : undefined,
       ratio: parseFloat(selectedTemplate.width) / parseFloat(selectedTemplate.height),
       width_mm: parseFloat(selectedTemplate.width),
       height_mm: parseFloat(selectedTemplate.height),
@@ -1934,6 +1991,7 @@ const App = () => {
             position={position}
             setPosition={setPosition}
             controlsRef={controlsRef}
+            exportPhoto={exportPhoto}
           />
           <RightColumn
             editorRef={editorRef}
@@ -1960,6 +2018,7 @@ const App = () => {
             editorDimensions={editorDimensions}
             exportPhoto={exportPhoto}
             editorRef={editorRef}
+            digitalOnly={Boolean(template.digitalOnly)}
           />
           <Disclaimer
             translate={translate}

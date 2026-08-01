@@ -1,0 +1,56 @@
+{
+  "title": "Vietnam Passport Photo",
+  "width": "40",
+  "height": "60",
+  "dpi": "300",
+  "format": "jpg",
+  "size": "300",
+  "instruction": "Please check the latest requirement at <a target=\"_blank\" rel=\"noreferrer\" href=\"https://hochieu.xuatnhapcanh.gov.vn/faces/faq.jspx\">here</a>.",
+  "guide": [
+    {
+      "index": "A",
+      "title": "Center Guide Line",
+      "instruction": "Nose on center line",
+      "start_x": "197.5",
+      "start_y": "0",
+      "width": "5",
+      "height": "600",
+      "color": "yellow",
+      "isVerticalMovable": false,
+      "isHorizontalMovable": false,
+      "overlap": true,
+      "opacity": "0.5",
+      "group": "1"
+    },
+    {
+      "index": "B",
+      "title": "Bar: Top",
+      "instruction": "Hair top in this band",
+      "start_x": "0",
+      "start_y": "33",
+      "width": "400",
+      "height": "25",
+      "color": "green",
+      "isVerticalMovable": false,
+      "isHorizontalMovable": false,
+      "overlap": true,
+      "opacity": "0.5",
+      "group": "2"
+    },
+    {
+      "index": "C",
+      "title": "Bar: Bottom",
+      "instruction": "Chin in this band",
+      "start_x": "0",
+      "start_y": "354",
+      "width": "400",
+      "height": "25",
+      "color": "green",
+      "isVerticalMovable": false,
+      "isHorizontalMovable": false,
+      "overlap": true,
+      "opacity": "0.5",
+      "group": "2"
+    }
+  ]
+}

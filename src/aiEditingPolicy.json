@@ -2,5 +2,13 @@
   "US Passport/Visa Photo": {
     "restricted": true,
     "note": "As of 2026, U.S. State Department guidance says not to alter your photo using computer software, phone apps, filters, or artificial intelligence - including replacing the background - and that submitted photos are checked for signs of this. Cropping, resizing, and correcting DPI are format changes and are fine; changing the background or retouching your appearance is not. This tool defaults to Compliance Mode for this document - crop and resize only, no background changes. If you're applying for a US passport or visa, we recommend staying in Compliance Mode and retaking your photo against a plain white or off-white wall instead of switching to Edit Mode."
+  },
+  "South Korea Passport Photo": {
+    "restricted": true,
+    "note": "South Korea's Ministry of Foreign Affairs passport guidance excludes photos edited with software, filters, or AI-generated/composited images - the photo must be an original, unedited capture. Cropping and resizing to the exact size are format changes and are fine; changing the background or retouching your appearance is not. This tool defaults to Compliance Mode for this document - crop and resize only, no background changes. We recommend staying in Compliance Mode and retaking your photo against a plain white wall instead of switching to Edit Mode."
+  },
+  "Singapore Passport Photo": {
+    "restricted": true,
+    "note": "Singapore's Immigration & Checkpoints Authority (ICA) states your photograph \"must not be altered or enhanced in any way,\" explicitly including modification of facial features and the use of photo-editing software. Cropping and resizing to the exact size are format changes and are fine; changing the background or retouching your appearance is not. This tool defaults to Compliance Mode for this document - crop and resize only, no background changes. We recommend staying in Compliance Mode and retaking your photo against a plain white wall instead of switching to Edit Mode."
   }
 }

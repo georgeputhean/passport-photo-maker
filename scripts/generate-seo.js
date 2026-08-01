@@ -70,6 +70,13 @@ const BACKGROUND_LABELS = {
   'Spain Passport Photo': 'Light-colored',
   'Australia Passport/Visa Photo': 'White',
   'Germany Passport/Visa Photo': 'Light-colored (grey)',
+  'Netherlands Passport Photo': 'White, light grey, or light blue',
+  'South Korea Passport Photo': 'White',
+  'Singapore Passport Photo': 'White',
+  'Switzerland Passport Photo': 'Light, neutral, uniform (no white specified)',
+  'Vietnam Passport Photo': 'White',
+  'France Passport Photo': 'Light grey or light blue (white prohibited)',
+  'OCI Card Photo': 'Plain light color (not white)',
 }
 
 // Vanilla JS click-to-sort, no dependency - toggles ascending/descending on
@@ -156,6 +163,121 @@ ${renderAdSlot('footer')}
   })
 }
 
+// A single-size page (e.g. "2x2 passport photo") is a narrower cut of the same
+// data as the size chart, filtered to one exact mm size - genuinely useful for
+// a size-specific search rather than a duplicate of the chart, since it also
+// adds pixel-equivalent figures and an FAQ block the chart doesn't have.
+function renderSizeGroupPage(entries, { slug, dir, widthMm, heightMm, title, metaTitle, metaDescription, intro, faqs }) {
+  const matches = entries.filter(({ template }) => {
+    const spec = deriveSpec(template)
+    return Math.round(spec.widthMm) === widthMm && Math.round(spec.heightMm) === heightMm
+  })
+
+  const rows = matches.map(({ template, content }) => {
+    const spec = deriveSpec(template)
+    const background = BACKGROUND_LABELS[template.title] || 'See page'
+    return `    <tr>
+      <td><a href="/photos/${content.slug}.html">${escapeHtml(content.h1.replace(' Size and Requirements', ''))}</a></td>
+      <td data-sort-value="${spec.dpi}">${spec.dpi}</td>
+      <td>${escapeHtml(background)}</td>
+      <td data-sort-value="${spec.maxSizeKb}">${spec.maxSizeKb} KB</td>
+    </tr>`
+  }).join('\n')
+
+  const pixelRows = [300, 400, 600].map((dpi) => {
+    const w = Math.trunc((widthMm / MM_PER_INCH) * dpi)
+    const h = Math.trunc((heightMm / MM_PER_INCH) * dpi)
+    return `    <tr><td data-sort-value="${dpi}">${dpi} DPI</td><td>${w} &times; ${h} px</td></tr>`
+  }).join('\n')
+
+  const countryLinks = matches.length
+    ? `<ul class="seo-checklist">${matches.map(({ content }) => `<li><a href="/photos/${content.slug}.html">${escapeHtml(content.h1.replace(' Size and Requirements', ''))}</a></li>`).join('')}</ul>`
+    : `<p>None of the documents this tool currently supports use exactly this size - see the <a href="/guides/passport-photo-size-chart.html">full size chart</a> for what's available.</p>`
+
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / ${escapeHtml(title)}</nav>
+<h1>${escapeHtml(title)}</h1>
+<p><strong>${intro}</strong></p>
+<h2>Which documents use this size</h2>
+${countryLinks}
+${matches.length ? `<div style="overflow-x: auto;">
+<table class="seo-spec" id="${slug}-table">
+  <thead>
+    <tr>
+      <th data-sort-key="doc">Document</th>
+      <th data-sort-key="dpi">DPI</th>
+      <th data-sort-key="bg">Background</th>
+      <th data-sort-key="kb">Max file size</th>
+    </tr>
+  </thead>
+  <tbody>
+${rows}
+  </tbody>
+</table>
+</div>
+${SORTABLE_TABLE_SCRIPT}` : ''}
+<h2>${widthMm}&times;${heightMm}mm in pixels</h2>
+<p>The pixel size depends on the DPI (resolution) a specific document requires - here's ${widthMm}&times;${heightMm}mm at a few common resolutions:</p>
+<table class="seo-spec">
+  <thead><tr><th>Resolution</th><th>Pixel size</th></tr></thead>
+  <tbody>
+${pixelRows}
+  </tbody>
+</table>
+<p class="seo-source-note">DPI and file-size limits are read directly from this tool's own template data - the same values used when you make a photo.</p>
+${renderAdSlot('incontent')}
+<a class="seo-cta" href="/">Make a ${widthMm}&times;${heightMm}mm photo now &rarr;</a>
+<p>See the <a href="/guides/passport-photo-size-chart.html">full size chart</a> for every country and document this tool supports.</p>
+<h2>FAQ</h2>
+${faqs.map((f) => `<div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`).join('\n')}
+${renderAdSlot('footer')}
+`
+  return renderLayout({
+    title: metaTitle,
+    description: metaDescription,
+    canonicalPath: `/${dir}/${slug}.html`,
+    ldJson: [{
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+    }],
+    bodyHtml,
+  })
+}
+
+const SIZE_GROUP_PAGES = [
+  {
+    slug: '2x2-passport-photo',
+    dir: 'sizes',
+    widthMm: 51,
+    heightMm: 51,
+    title: '2x2 Passport Photo Size',
+    metaTitle: '2x2 Passport Photo Size in mm, Inches, and Pixels - Passport & Visa Photo Maker',
+    metaDescription: 'A 2x2 in. passport photo is 51x51mm, or 600x600px at 300 DPI. Which documents use this size, and how to make one free.',
+    intro: 'A "2x2 passport photo" is 2 by 2 inches - 51 by 51mm - the standard size for a U.S. passport or visa photo. At 300 DPI, that\'s 600&times;600 pixels.',
+    faqs: [
+      { q: 'Is 2x2 inches the same as 51x51mm?', a: '2 inches is 50.8mm, rounded to 51mm - the two figures describe the same size, just in different units.' },
+      { q: 'What DPI should a 2x2 passport photo be?', a: '300 DPI is the standard requirement for a U.S. passport photo, giving a 600x600 pixel image at this size.' },
+      { q: 'Is a 2x2 photo the same as a square online-upload photo?', a: 'Not necessarily - the printed 2x2in photo and the digital upload for online renewal are specified differently. See our <a href="/guides/online-passport-renewal-photo.html">online renewal photo guide</a> for the digital-upload spec.' },
+    ],
+  },
+  {
+    slug: '35x45-passport-photo',
+    dir: 'sizes',
+    widthMm: 35,
+    heightMm: 45,
+    title: '35x45mm Passport Photo Size',
+    metaTitle: '35x45mm Passport Photo Size: Countries & Pixel Equivalents - Passport & Visa Photo Maker',
+    metaDescription: '35x45mm is the passport and visa photo size used across the UK, Schengen area, India, and more. Pixel sizes at common DPIs and which documents use it.',
+    intro: '35 by 45mm is one of the most widely used passport and visa photo sizes worldwide, shared by the UK, several Schengen-area countries, India, and others - each still sets its own DPI and background requirement, so check the specific document\'s page.',
+    faqs: [
+      { q: 'Why do so many countries use the same 35x45mm size?', a: 'It broadly follows ICAO-influenced sizing conventions used across many national passport and visa systems, though each country still publishes and can change its own exact requirement.' },
+      { q: 'Is the DPI the same for every 35x45mm document?', a: 'No - DPI (and therefore the exact pixel output) varies by document even at the same physical size. Check the table above or the specific document\'s page.' },
+      { q: 'My country isn\'t listed here - what size does it use?', a: 'See the <a href="/guides/passport-photo-size-chart.html">full size chart</a> for every country and document this tool currently supports.' },
+    ],
+  },
+]
+
 // Pricing researched via web search in July 2026, not scraped live at build
 // time - it drifts. Each entry says how it was checked: 'primary' means we
 // fetched the operator's own page directly; 'secondary' means the operator's
@@ -209,6 +331,10 @@ const RETAILERS = [
   },
 ]
 
+// GUIDE_PAGES is the sitemap/index/llms.txt manifest for every guide-like page,
+// regardless of which directory it's written to (see each entry's `dir`, default
+// 'guides'). Bespoke pages are listed by hand; INFO_GUIDES-driven pages are derived
+// below so slug/title/dir can't drift out of sync between the two arrays.
 const GUIDE_PAGES = [
   ...RETAILERS.map((r) => ({ slug: r.slug, title: `${r.name} Passport Photo Price` })),
   { slug: 'passport-photo-cost', title: 'Passport Photo Cost: Every Option Compared' },
@@ -216,12 +342,10 @@ const GUIDE_PAGES = [
   { slug: 'ai-edited-passport-photos-2026', title: 'Can You Use AI to Edit a Passport Photo? (2026 Rules)' },
   { slug: 'passport-photo-size-chart', title: 'Passport Photo Size Chart: Every Country Compared' },
   { slug: 'baby-newborn-passport-photo', title: 'Baby and Newborn Passport Photo Guide' },
-  { slug: 'passport-photo-glasses', title: 'Can You Wear Glasses in a Passport Photo?' },
-  { slug: 'passport-photo-head-covering', title: 'Passport Photos with a Hijab, Turban, or Religious Head Covering' },
-  { slug: 'can-you-smile-in-a-passport-photo', title: 'Can You Smile in a Passport Photo?' },
-  { slug: 'passport-photo-lighting', title: 'Passport Photo Lighting: How to Avoid Shadows' },
   { slug: 'take-passport-photo-with-phone', title: 'How to Take a Passport Photo with Your Phone' },
   { slug: 'passport-photo-background-color', title: 'What Background Color Do Passport Photos Need?' },
+  { slug: 'passport-photo-rejected', title: 'Passport Photo Rejected? Common Reasons and How to Fix It' },
+  { slug: 'best-free-passport-photo-makers', title: 'Best Free Passport Photo Makers, Compared', dir: 'compare' },
 ]
 
 function affiliateUrl(affiliate) {
@@ -383,7 +507,7 @@ ${renderAdSlot('footer')}
 // Shared wrapper for short, direct-answer guide pages (glasses, head
 // coverings, smiling, background color, lighting) - same shape each time:
 // a one-paragraph answer up top, a few sections, an FAQ block.
-function renderInfoGuidePage({ slug, title, metaTitle, metaDescription, answer, sections, faqs }) {
+function renderInfoGuidePage({ slug, title, dir, metaTitle, metaDescription, answer, sections, faqs }) {
   const bodyHtml = `
 <nav class="seo-breadcrumb"><a href="/">Home</a> / ${escapeHtml(title)}</nav>
 <h1>${escapeHtml(title)}</h1>
@@ -398,7 +522,7 @@ ${renderAdSlot('footer')}
   return renderLayout({
     title: metaTitle,
     description: metaDescription,
-    canonicalPath: `/guides/${slug}.html`,
+    canonicalPath: `/${dir || 'guides'}/${slug}.html`,
     ldJson: [{
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
@@ -470,7 +594,65 @@ const INFO_GUIDES = [
       { q: 'Does the background need its own light?', a: 'It needs to be evenly lit with no shadow falling on it - usually a side effect of lighting your face evenly from the front, rather than a separate light setup.' },
     ],
   },
+  {
+    slug: 'online-passport-renewal-photo',
+    title: 'Online Passport Renewal Photo Requirements',
+    metaTitle: 'Online Passport Renewal Photo Requirements (2026) - Passport & Visa Photo Maker',
+    metaDescription: 'The U.S. online passport renewal system wants a square digital upload, not the standard 2x2in print size - pixel dimensions, file size, and format explained.',
+    answer: 'A different spec than the printed photo: renewing online through the State Department\'s online renewal system asks for a square digital upload, reported as 600&times;600 to 1200&times;1200 pixels and 54KB-10MB, on a plain white or off-white background - not the 2&times;2 in. / 51&times;51mm print dimensions used for a mailed application or an in-person photo.',
+    sections: [
+      {
+        heading: 'Why it\'s a different spec',
+        bodyHtml: '<p>A mailed or in-person passport photo is specified as a physical print: 2&times;2 inches (51&times;51mm) at a given DPI. The online renewal system instead asks you to upload a digital file directly, so its spec is pixel-based and square instead - there\'s no DPI or physical print size involved once it\'s a straight digital upload.</p>',
+      },
+      {
+        heading: 'What multiple 2026 guides report',
+        bodyHtml: '<p>The State Department\'s own renewal-upload page returned an access-denied response when we tried to fetch it directly, so we can\'t quote it verbatim - the figures below are corroborated across several independent 2026 guides rather than confirmed against the primary source. Always check the live upload screen when you actually renew, since it will tell you immediately if a file is rejected.</p><ul class="seo-checklist"><li><strong>Dimensions:</strong> square (1:1), reported as 600&times;600 px minimum up to 1200&times;1200 px maximum.</li><li><strong>File size:</strong> reported as 54 KB minimum, 10 MB maximum.</li><li><strong>Format:</strong> JPEG is the most consistently reported safe choice; some guides also list PNG, HEIC, and HEIF as accepted.</li><li><strong>Background:</strong> plain white or off-white, same as the printed photo.</li><li><strong>Head height:</strong> reported as roughly 50-69% of the total image height.</li></ul>',
+      },
+      {
+        heading: 'How to get a square export from this tool',
+        bodyHtml: '<p>This tool\'s templates (including the printed US template) export a rectangular size in millimeters, not a square pixel size - for a square digital upload, use <strong>Custom Size</strong> instead: set both width and height to the <em>same</em> value (76mm at the default 300 DPI export is a convenient square, comfortably inside the reported 600-1200px window), upload your photo, crop, and export the single photo file (not the print sheet). Check the exported file\'s pixel dimensions before uploading, since the exact output depends on DPI.</p>',
+      },
+    ],
+    faqs: [
+      { q: 'Can I use the same photo for a mailed application and an online renewal?', a: 'Not directly - they\'re specified differently (a rectangular print size vs. a square digital upload). Export each format separately from the same source photo rather than trying to reuse one file for both.' },
+      { q: 'Does Compliance Mode apply to the online renewal upload too?', a: 'The no-AI-alteration policy is the same regardless of how you submit - a digitally altered background is treated as unacceptable whether you\'re mailing a print or uploading a file.' },
+      { q: 'What if my upload gets rejected by the online system?', a: 'The online system typically gives an immediate reason (wrong dimensions, background, expression). Recheck against the figures above and your original photo\'s lighting and background before re-exporting.' },
+    ],
+  },
+  {
+    slug: 'passport-photo-privacy',
+    dir: 'privacy',
+    title: 'Why In-Browser Passport Photo Processing Matters',
+    metaTitle: 'Passport Photo Privacy: Why In-Browser Processing Matters - Passport & Visa Photo Maker',
+    metaDescription: 'Most online passport photo tools upload your face to a server. This one processes entirely in your browser - the photo never leaves your device. Here\'s what that means and how to verify it.',
+    answer: 'A passport photo means uploading a picture of your face and identity to a government form - many free online tools ask you to upload that same photo to their own server first, to run the cropping and background removal. This tool doesn\'t: cropping, background removal, and face alignment all run locally in your browser, and the only network requests they make are to download the (non-photo) AI model files, never your photo.',
+    sections: [
+      {
+        heading: 'What "runs in your browser" actually means',
+        bodyHtml: '<p>Every step - reading the uploaded file, detecting your face, removing the background, cropping to the exact size, and exporting the final file - happens using your device\'s own processing power, via WebAssembly and in-browser AI models (ONNX Runtime Web and MediaPipe). Nothing about your photo is sent anywhere. Compare that to a typical "upload your photo" tool, where the file has to reach a server before anything can happen to it.</p>',
+      },
+      {
+        heading: 'How to verify this yourself, not just take our word for it',
+        bodyHtml: '<p>This is a genuinely checkable claim, not a marketing line: the project is open source. You can read the code that handles your photo directly, or open your browser\'s network tab while using the tool and watch for yourself - the only requests you\'ll see are for the app\'s own files and the AI model downloads (identifiable by their size, tens of megabytes, unrelated to any photo you\'ve loaded), never a photo upload.</p><p><a href="https://github.com/georgeputhean/passport-photo-maker" target="_blank" rel="noreferrer">View the source on GitHub &rarr;</a></p>',
+      },
+      {
+        heading: 'What does leave your device',
+        bodyHtml: '<p>Two things, neither of which is your photo: the AI model files themselves (downloaded once per session so background removal and auto-align can run locally), and standard site analytics (page views, not photo content) if you accept the cookie banner. See the <a href="/privacy-policy.html">full Privacy Policy</a> for the complete detail on analytics, ads, and cookies.</p>',
+      },
+    ],
+    faqs: [
+      { q: 'Is my photo ever stored anywhere?', a: 'Not by this site - it exists only in your browser\'s memory while you\'re editing, and is discarded when you close the tab or navigate away. There\'s no server-side storage to store it in.' },
+      { q: 'Does this apply to the background-removal / AI features too, not just cropping?', a: 'Yes - background removal and auto-align both run through the same in-browser models, not a server call.' },
+      { q: 'Why do other tools upload the photo to a server?', a: 'Server-side processing can be simpler to build and doesn\'t depend on the visitor\'s device having enough power to run AI models locally. The tradeoff is that your photo has to leave your device - increasingly a real concern for a photo tied to a government ID application.' },
+    ],
+  },
 ]
+
+// Derive GUIDE_PAGES' entries for the info-guide and size-group pages from their
+// own arrays, so adding a guide there doesn't also require hand-editing GUIDE_PAGES.
+GUIDE_PAGES.push(...INFO_GUIDES.map((g) => ({ slug: g.slug, title: g.title, dir: g.dir || 'guides' })))
+GUIDE_PAGES.push(...SIZE_GROUP_PAGES.map((g) => ({ slug: g.slug, title: g.title, dir: g.dir || 'guides' })))
 
 function renderBabyPhotoGuidePage() {
   const bodyHtml = `
@@ -566,6 +748,93 @@ ${renderAdSlot('footer')}
     title: 'Passport Photo Background Color by Country - Passport & Visa Photo Maker',
     description: 'What background color each country requires for a passport or visa photo - almost always plain white or another light, uniform color.',
     canonicalPath: '/guides/passport-photo-background-color.html',
+    ldJson: [],
+    bodyHtml,
+  })
+}
+
+const REJECTION_REASONS = [
+  { reason: 'Digital alteration (background replaced, skin smoothed, AI-edited)', detail: 'Increasingly the top cause for US applications specifically - as of 2026, State Department guidance treats any software/AI alteration, including background replacement, as unacceptable and checks for it.', link: { href: '/guides/ai-edited-passport-photos-2026.html', label: 'Full AI-editing rules' } },
+  { reason: 'Non-neutral expression, or eyes closed', detail: 'A slight smile, raised eyebrows, or a mid-blink shot are all common, easy-to-miss mistakes - take several shots and pick the most neutral one.', link: { href: '/guides/can-you-smile-in-a-passport-photo.html', label: 'What "neutral" means' } },
+  { reason: 'Shadow or uneven lighting on the background or face', detail: 'A single light source, on-camera flash, or backlighting from a window behind you all cast the shadows reviewers are specifically trained to catch.', link: { href: '/guides/passport-photo-lighting.html', label: 'How to light it correctly' } },
+  { reason: 'Wrong or non-uniform background color', detail: 'A patterned wall, a colored background outside the accepted range, or a background that isn\'t evenly lit.', link: { href: '/guides/passport-photo-background-color.html', label: 'Background color by country' } },
+  { reason: 'Glasses causing glare or obscuring the eyes', detail: 'A growing number of countries now discourage or disallow glasses entirely because of facial-recognition interference, not just glare.', link: { href: '/guides/passport-photo-glasses.html', label: 'Glasses rules' } },
+  { reason: 'Head covering obscuring part of the face', detail: 'Religious head coverings are generally fine as long as the full face - chin to forehead - is visible with no shadow from the covering itself.', link: { href: '/guides/passport-photo-head-covering.html', label: 'Head covering rules' } },
+  { reason: 'Wrong size, head position, or cropping', detail: 'Head too large, too small, or off-center within the frame relative to the document\'s exact spec.', link: { href: '/photos/', label: 'Every country\'s exact size' } },
+  { reason: 'Blurry or low-resolution photo', detail: 'Often caused by digitally zooming in on a photo taken from far away instead of physically standing closer.', link: { href: '/guides/take-passport-photo-with-phone.html', label: 'Taking it with your phone' } },
+  { reason: 'Photo is too old', detail: 'Most documents require a photo taken within the last 6 months - check the specific age limit on your document\'s page.', link: { href: '/photos/', label: 'Country-specific rules' } },
+  { reason: 'Wrong file size or dimensions for a digital upload', detail: 'An online-renewal upload has a different pixel/file-size spec than a printed photo - uploading the print-sized file is a common mismatch.', link: { href: '/guides/online-passport-renewal-photo.html', label: 'Online renewal photo spec' } },
+]
+
+function renderRejectedGuidePage() {
+  const items = REJECTION_REASONS.map((r, i) => `  <li><strong>${escapeHtml(r.reason)}.</strong> ${escapeHtml(r.detail)} <a href="${r.link.href}">${escapeHtml(r.link.label)} &rarr;</a></li>`).join('\n')
+  const faqs = [
+    { q: 'How do I know why my specific photo was rejected?', a: 'A rejection notice doesn\'t always give the exact reason. Work through the list above in order - digital alteration and expression/lighting issues are the most common causes - and use this tool\'s built-in "🔍 Check Photo" feature before resubmitting, which flags several of these automatically.' },
+    { q: 'Can I fix a rejected photo, or do I need to retake it?', a: 'It depends on the cause. Sizing and cropping can be fixed from the same photo. Lighting, shadows, expression, and background issues generally can\'t be fixed after the fact without counting as digital alteration - retake the photo instead.' },
+    { q: 'Does this tool guarantee my photo will be accepted?', a: 'No tool can guarantee acceptance - final review is up to the issuing authority. This tool handles the size, DPI, and background requirements precisely and flags common issues, which addresses most rejection causes, but always compare against the official source linked on your document\'s page before submitting.' },
+  ]
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / Passport photo rejected</nav>
+<h1>Passport Photo Rejected? Here's Why, and How to Fix It</h1>
+<p><strong>The most common causes, in roughly the order we'd check them: digital alteration (including background removal), a non-neutral expression, lighting/shadow problems, a wrong or non-uniform background, glasses, an obscured face, incorrect size or cropping, low resolution, an outdated photo, or - for an online upload specifically - the wrong file size or pixel dimensions.</strong></p>
+<h2>Work through these in order</h2>
+<ol class="seo-steps">
+${items}
+</ol>
+<h2>Check before you resubmit</h2>
+<p>This tool's built-in <strong>"🔍 Check Photo"</strong> feature runs several of these checks automatically against your uploaded photo - face detection, eyes/expression, head tilt, and a couple of lower-confidence heuristics for glasses and covered ears - before you export. It's not a substitute for reviewing the official requirements yourself, but it catches a meaningful share of the common mistakes above.</p>
+<a class="seo-cta" href="/">Make a corrected photo now &rarr;</a>
+${renderAdSlot('incontent')}
+<h2>FAQ</h2>
+${faqs.map((f) => `<div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`).join('\n')}
+${renderAdSlot('footer')}
+`
+  return renderLayout({
+    title: 'Passport Photo Rejected? Common Reasons and How to Fix It',
+    description: 'The most common reasons a passport or visa photo gets rejected - digital alteration, expression, lighting, background, and sizing - and how to fix each one.',
+    canonicalPath: '/guides/passport-photo-rejected.html',
+    ldJson: [{
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+    }],
+    bodyHtml,
+  })
+}
+
+// Positioning claims here are about what's generally, durably true of the free
+// passport-photo-tool category (server-upload vs. in-browser, watermarked vs.
+// not, country-count order of magnitude) rather than specific prices or feature
+// lists for named competitors, which drift and which we haven't independently
+// re-verified against each site at build time - see RETAILERS above for the
+// stricter primary/secondary sourcing bar applied where we do cite a number.
+function renderCompareGuidePage() {
+  const bodyHtml = `
+<nav class="seo-breadcrumb"><a href="/">Home</a> / Best free passport photo makers</nav>
+<h1>Best Free Passport Photo Makers, Compared</h1>
+<p><strong>Most "free" passport photo tools are free to crop, but charge for the print-ready sheet, add a watermark, or require an account - and nearly all of them upload your photo to a server to process it. What to check before you pick one.</strong></p>
+<h2>What actually varies between these tools</h2>
+<ul class="seo-checklist">
+  <li><strong>Where your photo is processed.</strong> Most free tools upload your photo to a server to crop and remove the background, then send back a result - meaning a copy of your photo passes through their infrastructure. A smaller number process entirely in your browser, so the photo never leaves your device. This is a genuinely checkable difference, not a marketing claim: open your browser's network tab while using a tool and watch what it actually sends.</li>
+  <li><strong>Whether "free" includes the print sheet.</strong> Many tools let you crop for free but charge to unlock a printable multi-photo sheet or remove a watermark - effectively making the useful output paid.</li>
+  <li><strong>Country/document coverage.</strong> Ranges widely across tools in this space, from a handful of major countries to 50+; check the specific tool's current list rather than a marketing headline, since coverage changes.</li>
+  <li><strong>Whether it's open source.</strong> Rare in this category. Being able to read the actual code that handles your photo is a stronger privacy guarantee than a privacy-policy paragraph.</li>
+</ul>
+<h2>Where this tool stands</h2>
+<ul class="seo-checklist">
+  <li>Processes entirely in your browser - see our <a href="/privacy/passport-photo-privacy.html">privacy page</a> for how to verify that yourself.</li>
+  <li>Free, unwatermarked, no account required, including the print-sheet export.</li>
+  <li>Open source - <a href="https://github.com/georgeputhean/passport-photo-maker" target="_blank" rel="noreferrer">the code is public</a>.</li>
+  <li>Compliance Mode / Edit Mode split for the US template, so background removal isn't offered by default where it could get an application rejected - see our <a href="/guides/ai-edited-passport-photos-2026.html">AI-editing guide</a>.</li>
+</ul>
+<p>We're not neutral here - we built this tool. Judge the specific claims above (upload behavior, pricing, watermarking, open-source-ness) against whatever alternative you're considering rather than taking either side's word for it; most are directly checkable in a couple of minutes.</p>
+<a class="seo-cta" href="/">Try it free &rarr;</a>
+${renderAdSlot('footer')}
+`
+  return renderLayout({
+    title: 'Best Free Passport Photo Makers, Compared - Passport & Visa Photo Maker',
+    description: 'What actually varies between free passport photo tools - server upload vs. in-browser processing, watermarking, print-sheet pricing, and open-source availability.',
+    canonicalPath: '/compare/best-free-passport-photo-makers.html',
     ldJson: [],
     bodyHtml,
   })
@@ -706,6 +975,15 @@ function escapeHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+}
+
+// Writes a guide-like page to public/<dir>/<slug>.html, creating <dir> on demand -
+// lets guide pages live outside public/guides/ (e.g. public/sizes/, public/compare/,
+// public/privacy/) without every call site needing its own mkdirSync.
+function writePage(dir, slug, html) {
+  const dirPath = path.join(PUBLIC_DIR, dir)
+  fs.mkdirSync(dirPath, { recursive: true })
+  fs.writeFileSync(path.join(dirPath, `${slug}.html`), html)
 }
 
 function loadTemplates() {
@@ -1008,6 +1286,17 @@ ${faqHtml}
 function updateIndexHtml(entries) {
   const indexPath = path.join(PUBLIC_DIR, 'index.html')
   const html = fs.readFileSync(indexPath, 'utf8')
+
+  // The <title>/og/twitter/ld+json tags above the SEO_CONTENT markers hand-write
+  // the country count in prose ("for 14 Countries") rather than interpolating it,
+  // since it reads better than a purely dynamic string - but that means adding a
+  // country doesn't update them automatically. Warn on drift instead of silently
+  // shipping a stale count, the same failure mode as the old "13 countries" bug.
+  const titleMatch = html.match(/<title>[^<]*for (\d+) Countries/)
+  if (titleMatch && Number(titleMatch[1]) !== entries.length) {
+    console.warn(`[generate-seo] public/index.html's <title> says "${titleMatch[1]} Countries" but there are actually ${entries.length} - update the hand-written count in public/index.html's <head>.`)
+  }
+
   const block = renderHomepageSeoBlock(entries)
   const updated = html.replace(
     /<!-- SEO_CONTENT_START -->[\s\S]*<!-- SEO_CONTENT_END -->/,
@@ -1043,7 +1332,7 @@ ${entries.map((e) => `  <li><a href="/photos/${e.content.slug}.html">${escapeHtm
 
   return renderLayout({
     title: 'Passport & Visa Photo Requirements by Country - Free Online Maker',
-    description: 'Exact passport and visa photo size, background, and DPI requirements for 13 countries and document types, with a free online photo maker for each.',
+    description: `Exact passport and visa photo size, background, and DPI requirements for ${entries.length} countries and document types, with a free online photo maker for each.`,
     canonicalPath: '/photos/',
     ldJson,
     bodyHtml,
@@ -1058,7 +1347,7 @@ function renderGuidesIndexPage() {
       '@type': 'ListItem',
       position: i + 1,
       name: g.title,
-      url: `${SITE_URL}/guides/${g.slug}.html`,
+      url: `${SITE_URL}/${g.dir || 'guides'}/${g.slug}.html`,
     })),
   }]
 
@@ -1067,7 +1356,7 @@ function renderGuidesIndexPage() {
 <h1>Passport Photo Guides</h1>
 <p>Costs, how-tos, and rules that go beyond a single country's size and DPI spec.</p>
 <ul class="seo-index-list">
-${GUIDE_PAGES.map((g) => `  <li><a href="/guides/${g.slug}.html">${escapeHtml(g.title)}</a></li>`).join('\n')}
+${GUIDE_PAGES.map((g) => `  <li><a href="/${g.dir || 'guides'}/${g.slug}.html">${escapeHtml(g.title)}</a></li>`).join('\n')}
 </ul>
 `
 
@@ -1166,7 +1455,7 @@ function renderLlmsTxt(entries) {
     ...entries.map((e) => `- [${e.content.h1}](${SITE_URL}/photos/${e.content.slug}.html)`),
     '',
     '## Guides',
-    ...GUIDE_PAGES.map((g) => `- [${g.title}](${SITE_URL}/guides/${g.slug}.html)`),
+    ...GUIDE_PAGES.map((g) => `- [${g.title}](${SITE_URL}/${g.dir || 'guides'}/${g.slug}.html)`),
     '',
   ]
   return lines.join('\n')
@@ -1206,7 +1495,7 @@ function renderSitemap(entries) {
     `${SITE_URL}/photos/`,
     ...entries.map((e) => `${SITE_URL}/photos/${e.content.slug}.html`),
     `${SITE_URL}/guides/`,
-    ...GUIDE_PAGES.map((g) => `${SITE_URL}/guides/${g.slug}.html`),
+    ...GUIDE_PAGES.map((g) => `${SITE_URL}/${g.dir || 'guides'}/${g.slug}.html`),
     `${SITE_URL}/about.html`,
     `${SITE_URL}/contact.html`,
     `${SITE_URL}/methodology.html`,
@@ -1248,6 +1537,12 @@ async function main() {
     })
     .filter(Boolean)
 
+  entries.forEach(({ template }) => {
+    if (!BACKGROUND_LABELS[template.title]) {
+      console.warn(`[generate-seo] No BACKGROUND_LABELS entry for template "${template.title}" - its size-chart and background-color guide rows will show "See page".`)
+    }
+  })
+
   fs.mkdirSync(PHOTOS_DIR, { recursive: true })
   fs.mkdirSync(OG_DIR, { recursive: true })
   fs.mkdirSync(GUIDES_DIR, { recursive: true })
@@ -1270,8 +1565,13 @@ async function main() {
   fs.writeFileSync(path.join(GUIDES_DIR, 'baby-newborn-passport-photo.html'), renderBabyPhotoGuidePage())
   fs.writeFileSync(path.join(GUIDES_DIR, 'take-passport-photo-with-phone.html'), renderPhonePhotoGuidePage())
   fs.writeFileSync(path.join(GUIDES_DIR, 'passport-photo-background-color.html'), renderBackgroundColorGuidePage(entries))
+  fs.writeFileSync(path.join(GUIDES_DIR, 'passport-photo-rejected.html'), renderRejectedGuidePage())
+  writePage('compare', 'best-free-passport-photo-makers', renderCompareGuidePage())
   INFO_GUIDES.forEach((guide) => {
-    fs.writeFileSync(path.join(GUIDES_DIR, `${guide.slug}.html`), renderInfoGuidePage(guide))
+    writePage(guide.dir || 'guides', guide.slug, renderInfoGuidePage(guide))
+  })
+  SIZE_GROUP_PAGES.forEach((group) => {
+    writePage(group.dir || 'guides', group.slug, renderSizeGroupPage(entries, group))
   })
   fs.writeFileSync(path.join(GUIDES_DIR, 'index.html'), renderGuidesIndexPage())
 

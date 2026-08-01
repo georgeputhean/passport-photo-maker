@@ -940,6 +940,17 @@ label.color-reset:hover {
   margin-top: 0.5em;
 }
 
+.save-warning {
+  color: var(--pico-form-element-invalid-active-border-color, #d32f2f);
+  font-size: 0.85em;
+  margin-top: 0.25em;
+}
+
+.sheet-size-select {
+  width: auto;
+  margin: 0.5em;
+}
+
 .save-option-button {
   margin: 0.5em;
 }

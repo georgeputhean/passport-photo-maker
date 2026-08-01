@@ -263,5 +263,122 @@
       { "q": "How tall should my face be in the photo?", "a": "Per the official page, chin-to-crown height should be 26-30mm for applicants aged 11 and up (19-30mm for children under 10). This tool's alignment guide bars approximate that range, but there was no exact published diagram for where the top and bottom bands sit within the frame, so treat the guide lines as a close approximation and check your result against the official page before submitting." },
       { "q": "Can I wear a head covering for religious reasons?", "a": "Yes - per the official guidance, a head covering worn for religious or ideological reasons is allowed if it's solid, single-colored, and contrasts with the background." }
     ]
+  },
+  "South Korea Passport Photo": {
+    "slug": "south-korea-passport-photo",
+    "metaTitle": "South Korea Passport Photo Size & Requirements (2026) - Free Maker",
+    "metaDescription": "South Korean passport photos must be 35x45mm with head height 32-36mm, on a plain white background. Make one online free.",
+    "h1": "South Korea Passport Photo Size and Requirements",
+    "sourceLabel": "Ministry of Foreign Affairs (Korea) - Passport Guide",
+    "sourceUrl": "https://www.passport.go.kr/home/kor/contents.do?menuPos=32",
+    "intro": [
+      "A South Korean passport photo must be 35x45mm (3.5x4.5cm), with head height from the hairline (excluding hair) to the chin measuring 32-36mm, on a plain white background, taken within 6 months of application.",
+      "This tool crops your photo to exactly 35x45mm at 300 DPI to match the official spec - 413x531 pixels, the size recommended for online submission."
+    ],
+    "faqs": [
+      { "q": "What size is a South Korean passport photo?", "a": "35mm wide by 45mm tall (3.5 x 4.5cm), per the Ministry of Foreign Affairs' official passport guide." },
+      { "q": "What background color is required?", "a": "Plain white, with no shadows, marks, or borders." },
+      { "q": "How is head height measured?", "a": "From the hairline (excluding hair itself) to the chin, 32-36mm - a stricter reference point than the \"top of head including hair\" measurement some other countries use. This tool's alignment guide approximates that zone, but there was no published diagram pinpointing the exact hairline reference within the frame, so check your result against the official page before submitting." },
+      { "q": "Is there a resolution requirement?", "a": "300 DPI for a printed photo. For online submission, the government recommends 413x531 pixels - exactly 35x45mm at 300 DPI - within an accepted range of roughly 395-431px wide by 507-550px tall." },
+      { "q": "Can I use a filter or AI editing?", "a": "No - the official guidance explicitly excludes software-edited, filtered, or AI-generated/composited photos." },
+      { "q": "Is there an official maximum file size?", "a": "We couldn't find a published KB limit on the official page - this tool's export ceiling for this template is a reasonable placeholder based on comparable countries' requirements, not a government-sourced figure. Check the online application's upload screen, which will reject a file that's too large." }
+    ]
+  },
+  "Singapore Passport Photo": {
+    "slug": "singapore-passport-photo",
+    "metaTitle": "Singapore Passport Photo Size & Requirements (2026) - Free Maker",
+    "metaDescription": "Singapore (ICA) passport photos must be 35x45mm, 400x514px for e-Services upload, on a white background, with no photo editing. Make one online free.",
+    "h1": "Singapore Passport Photo Size and Requirements",
+    "sourceLabel": "Immigration & Checkpoints Authority (ICA), Singapore",
+    "sourceUrl": "https://www.ica.gov.sg/photo-guidelines",
+    "intro": [
+      "A Singapore passport photo follows ICA's specifications, based on ISO and ICAO standards: 35x45mm, with your face (chin to crown) reportedly 25-35mm and occupying about 70-80% of the frame, on a plain white background. For online e-Services upload, ICA's own page specifies 400x514 pixels and a maximum file size of 8MB, in JPG, JPEG, HEIC, HEIF, or PNG format.",
+      "This tool crops your photo to exactly 35x45mm at 290 DPI, which produces the 400x514 pixel size ICA's page recommends for online upload."
+    ],
+    "faqs": [
+      { "q": "What size is a Singapore passport photo?", "a": "35mm wide by 45mm tall. ICA's own photo-guidelines page confirms the 400x514 pixel size for online upload, which is exactly this size at 290 DPI; we corroborated the millimeter figure, background color, and face-height percentage against several independent 2026 guides rather than a diagram on ICA's own page, which didn't include one in the version we could fetch." },
+      { "q": "What background color is required?", "a": "Plain white, with a matte or semi-matte (non-reflective) finish for a printed photo, per ICA's own page." },
+      { "q": "Can I edit or retouch my photo?", "a": "No - ICA's page states the photograph \"must not be altered or enhanced in any way,\" explicitly including modification of facial features and the use of photo-editing software. This tool defaults to Compliance Mode (crop and resize only) for this document." },
+      { "q": "What file formats and size does online upload accept?", "a": "JPG, JPEG, HEIC, HEIF, or PNG, per ICA's page, with a maximum file size of 8MB - much larger than most countries' limits, so compression generally isn't a concern here." },
+      { "q": "How recent must the photo be?", "a": "Reported as within the last 3 months across several guides; we couldn't confirm the exact wording on ICA's own page, so treat this as a close approximation and check the current application instructions." }
+    ]
+  },
+  "Switzerland Passport Photo": {
+    "slug": "switzerland-passport-photo",
+    "metaTitle": "Switzerland Passport Photo Size & Requirements (2026) - Free Maker",
+    "metaDescription": "Swiss passport photos must be 35x45mm with face height 29-34mm chin to crown, on a plain, neutral, uniform background. Make one online free.",
+    "h1": "Switzerland Passport Photo Size and Requirements",
+    "sourceLabel": "Federal Office of Police (fedpol), Switzerland - Official Photo Criteria (PDF)",
+    "sourceUrl": "https://www.fedpol.admin.ch/dam/de/sd-web/ZA--3ny9zRWt/fotomustertafel.pdf",
+    "intro": [
+      "A Swiss passport or ID card photo must be 35x45mm with no border, with face height from chin to the top of the skull between 29mm and 34mm (minimum 23mm for children under 11), on a plain, uniform, neutral-colored background with no shadows, and no more than 1 year old.",
+      "This tool crops your photo to exactly 35x45mm at 300 DPI to match the official spec's physical size; fedpol's own document covers photo-paper criteria rather than a digital upload spec, so there's no official pixel or file-size figure to match against."
+    ],
+    "faqs": [
+      { "q": "What size is a Swiss passport photo?", "a": "35mm wide by 45mm tall, with no border, per fedpol's (Federal Office of Police) official photo-criteria document." },
+      { "q": "What background color is required?", "a": "The official document specifies a plain, uniform, neutral-colored background with no shadows, without naming an exact color - its example photos use a light grey backdrop. Several third-party guides describe this as \"light grey or light blue, not white,\" which we couldn't independently confirm as an explicit rule in the primary document itself - a plain, evenly lit, light-neutral background is the safest interpretation." },
+      { "q": "How tall should my face be in the photo?", "a": "29-34mm from chin to the top of the skull (crown), or at least 23mm for children under 11. The document notes that for someone with voluminous hair, hitting the 29mm minimum face height matters more than fitting all the hair in frame - hair is allowed to exceed the frame edge." },
+      { "q": "How recent must the photo be?", "a": "No more than 1 year old, per the official document - longer than the 6-month limit common elsewhere, so double-check this if you're used to another country's rule." },
+      { "q": "Can I wear a head covering for religious reasons?", "a": "Yes - the official document allows an exception for documented medical or religious reasons (for example, a headscarf worn as part of religious practice), provided the face remains visible from the bottom of the chin to the hairline with no shadow on the face." },
+      { "q": "Is there an official file size or pixel requirement for digital submission?", "a": "Not in the document we sourced this from - it covers physical photo-paper criteria (smooth, non-textured, glossy or semi-matte finish) rather than a digital upload spec. This tool's DPI and file-size ceiling for this template are reasonable defaults, not government-sourced figures." }
+    ]
+  },
+  "Vietnam Passport Photo": {
+    "slug": "vietnam-passport-photo",
+    "metaTitle": "Vietnam Passport Photo Size & Requirements (2026) - Free Maker",
+    "metaDescription": "Vietnamese passport photos must be 4x6cm (40x60mm) on a white background, frontal, head uncovered. Make one online free.",
+    "h1": "Vietnam Passport Photo Size and Requirements",
+    "sourceLabel": "Vietnam Immigration Department - Official Passport Application Portal",
+    "sourceUrl": "https://hochieu.xuatnhapcanh.gov.vn/faces/faq.jspx",
+    "intro": [
+      "A Vietnamese passport photo must be 4cm by 6cm (40x60mm) - larger than the 35x45mm size many other countries use - on a plain white background, taken frontally with the head uncovered and no tinted glasses.",
+      "This tool crops your photo to exactly 40x60mm at 300 DPI to match the official size."
+    ],
+    "faqs": [
+      { "q": "What size is a Vietnamese passport photo?", "a": "4cm by 6cm (40x60mm), per Vietnam's Immigration Department passport application portal - notably larger than the 35x45mm size used by many other countries, so don't reuse a photo sized for elsewhere." },
+      { "q": "What background color is required?", "a": "White (\"phông nền trắng\" in the original Vietnamese), per the official portal." },
+      { "q": "Does the application require a specific head height in mm?", "a": "We couldn't find an official published figure for this - the source we verified covers size, background, and pose (frontal, head uncovered, no tinted glasses) without a precise head-height measurement. This tool's alignment guide is a reasonable approximation for a typical Vietnamese passport photo, not sourced from an official diagram." },
+      { "q": "Can I upload a photo digitally, or does it need to be printed?", "a": "The official guidance we verified describes printed photos (2 copies) taken at an immigration-authority-approved studio, without a digital pixel or file-size spec - check the current application process for whether a digital upload option exists at the time you apply." },
+      { "q": "Can I wear glasses in the photo?", "a": "The official portal specifically excludes tinted/colored glasses (\"không đeo kính màu\"); clear glasses without glare are the safer choice." }
+    ]
+  },
+  "France Passport Photo": {
+    "slug": "france-passport-photo",
+    "metaTitle": "France Passport Photo Size & Requirements (2026) - Free Maker",
+    "metaDescription": "French passport photos must be 35x45mm with face height 32-36mm, on a light grey or light blue background - white is prohibited. Make one online free.",
+    "h1": "France Passport Photo Size and Requirements",
+    "sourceLabel": "Service-public.fr (French Government)",
+    "sourceUrl": "https://www.service-public.gouv.fr/particuliers/vosdroits/F10619",
+    "intro": [
+      "A French passport or ID card photo must be 35x45mm, with face height (chin to crown) between 32mm and 36mm, on a uniform, light-colored background - light grey or light blue. Notably, service-public.fr states plainly that a white background is not accepted (\"le fond blanc est interdit\").",
+      "This tool crops your photo to exactly 35x45mm at 300 DPI to match the spec; use the background-color tools here to get a light grey or blue background rather than white."
+    ],
+    "faqs": [
+      { "q": "What size is a French passport photo?", "a": "35mm wide by 45mm tall, with face height (chin to crown) between 32mm and 36mm, per service-public.fr, France's official government information site." },
+      { "q": "Can the background be white?", "a": "No - service-public.fr explicitly states a white background is not accepted (\"le fond blanc est interdit\"). Use a uniform light grey or light blue background instead." },
+      { "q": "Can I wear glasses?", "a": "Glasses aren't mandatory, but if worn, the frames must not be thick or cover the eyes, and lenses must be uncolored, untinted, and free of reflections." },
+      { "q": "Can I wear a head covering?", "a": "The official guidance we verified says the head must be bare - no hat, scarf, or headband. We didn't find an explicit religious exception in this particular source (several other countries this tool supports do publish one); check current guidance for your specific situation before applying." },
+      { "q": "Does the photo have to be taken by a professional?", "a": "Official guidance states the photo must come from an authorized professional or an approved photo booth, not a self-taken photo. This tool can still get your framing, size, and background exactly right - check current rules for your specific application channel on whether a compliant self-produced photo is accepted, since this can vary." }
+    ]
+  },
+  "OCI Card Photo": {
+    "slug": "oci-card-photo",
+    "metaTitle": "OCI Card Photo Size & Requirements (2026) - Free Maker",
+    "metaDescription": "OCI (Overseas Citizen of India) card photos must be square, at least 51x51mm, 200-900px, under 200KB, on a plain light (not white) background. Make one online free.",
+    "h1": "OCI Card Photo Size and Requirements",
+    "sourceLabel": "OCI Services (Government of India) - Official FAQ",
+    "sourceUrl": "https://ociservices.gov.in/onlineOCI/faq",
+    "intro": [
+      "An OCI (Overseas Citizen of India) card photo must be square - width and height equal - not less than 51x51mm, on a plain light-colored background that is explicitly not white, with no border. For the online application's digital upload, the official FAQ specifies 200-900 pixels (width and height equal) as JPEG/JPG, under 200KB.",
+      "This tool crops your photo to exactly 51x51mm at 300 DPI - 602x602 pixels, comfortably inside the official 200-900px digital range - and compresses it under the 200KB ceiling. This is a digital-upload-only document, so the print-sheet export isn't offered for it."
+    ],
+    "faqs": [
+      { "q": "What size is an OCI card photo?", "a": "Square, not less than 51x51mm physically; for the online application's digital upload, 200-900 pixels (equal width and height), per OCI Services' official FAQ." },
+      { "q": "What background color is required?", "a": "A plain, light-colored background - the official FAQ explicitly says \"not white,\" without naming a specific alternative color. A light grey or pastel tone is a safe interpretation." },
+      { "q": "Is there a file size limit?", "a": "Yes - 200KB maximum, in JPEG/JPG format, per the official FAQ. That's stricter than most other documents this tool supports." },
+      { "q": "How tall should my face be in the photo?", "a": "The official FAQ says \"80% coverage of face\" without a precise chin-to-crown millimeter figure; several third-party guides cite 25-33mm, which is more consistent with how a 51x51mm frame is typically proportioned (matching this tool's US template, the same physical size). This tool's alignment guide follows that more specific figure - treat it as a close approximation and check your result against the official page." },
+      { "q": "Can I get this photo printed for a physical application?", "a": "The specification we sourced is for the online application's digital upload. This tool doesn't offer a print-sheet export for this document since the online process is digital-only - check current OCI application instructions if a physical photo is separately required in your case." },
+      { "q": "Can I smile in the photo?", "a": "No - a neutral expression with mouth closed is expected, consistent with the biometric-style photo rules most Indian government documents share." }
+    ]
   }
 }

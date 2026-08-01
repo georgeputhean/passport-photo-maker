@@ -1,4 +1,4 @@
-import { getFaceLandmarker, loadImage } from './AutoAlign'
+import { getFaceLandmarker, loadImage, measureCrownY } from './AutoAlign'
 
 // MediaPipe Face Mesh landmark indices (same 478-point topology used in AutoAlign.js)
 const FACE_OVAL_LEFT = 234
@@ -13,6 +13,14 @@ const RIGHT_EYE_UPPER = 386
 const RIGHT_EYE_LOWER = 374
 const NOSE_TIP = 1
 const FOREHEAD_REFERENCE = 8 // between the brows, reliably bare skin - used as a skin-tone reference
+const FOREHEAD_TOP = 10
+const CHIN_BOTTOM = 152
+
+// Same fallback estimate AutoAlign.js uses when a true crown measurement
+// (which needs background removal) isn't available - see measureCrownY.
+const HAIR_ALLOWANCE = 0.25
+const HEAD_TOP_GUIDES = ['Bar: Top', 'Top Head Area']
+const CHIN_GUIDES = ['Bar: Bottom', 'Center Square: bottom']
 
 export const SEVERITY = { RELIABLE: 'reliable', HEURISTIC: 'heuristic' }
 
@@ -36,6 +44,20 @@ const THRESHOLDS = {
   // check in the set.
   GLASSES_EDGE_DENSITY: 35,
   EAR_COLOR_DISTANCE: 55, // RGB Euclidean distance vs. the skin-tone reference sample
+  // Laplacian variance inside the face region. Lower = blurrier. Uncalibrated -
+  // same caveat as above.
+  BLUR_VARIANCE_MIN: 80,
+  // Mean grayscale (0-255) of the face region considered acceptably exposed.
+  EXPOSURE_MEAN_MIN: 60,
+  EXPOSURE_MEAN_MAX: 200,
+  // Standard deviation of the face region's grayscale - too low means flat/washed-out.
+  CONTRAST_STD_MIN: 20,
+  // RGB variance of sampled background pixels - higher means a patterned/uneven backdrop.
+  BACKGROUND_VARIANCE_MAX: 900,
+  // A source photo is flagged as low-resolution if, once cropped to the current
+  // zoom, it would need to be upscaled beyond this factor to reach the
+  // template's export pixel size.
+  RESOLUTION_UPSCALE_TOLERANCE: 1.15,
 }
 
 const blendScore = (blendshapes, name) =>
@@ -152,11 +174,123 @@ const checkEarsVisible = (raster, maskedRaster, landmarks) => {
   return !anyVisible
 }
 
+// Bounding box around the face (forehead-to-chin, padded sideways to the face
+// oval), used to restrict blur/exposure sampling to the subject rather than
+// the whole frame - a sharp background behind a blurry face (or vice versa)
+// would otherwise skew a whole-frame measurement.
+const faceRegionBox = (landmarks, width, height) => {
+  const left = toPx(landmarks[FACE_OVAL_LEFT], width, height)
+  const right = toPx(landmarks[FACE_OVAL_RIGHT], width, height)
+  const top = toPx(landmarks[FOREHEAD_TOP], width, height)
+  const bottom = toPx(landmarks[CHIN_BOTTOM], width, height)
+  const padX = Math.abs(right.x - left.x) * 0.15
+  const padY = Math.abs(bottom.y - top.y) * 0.15
+  return {
+    x0: Math.min(left.x, right.x) - padX,
+    x1: Math.max(left.x, right.x) + padX,
+    y0: Math.min(top.y, bottom.y) - padY,
+    y1: Math.max(top.y, bottom.y) + padY,
+  }
+}
+
+// Blur heuristic: variance of the Laplacian (a standard focus-measure) inside
+// the face region. A sharp, detailed face has high-variance edges; a blurry
+// one is smoother and has lower variance.
+const laplacianVariance = (raster, box) => {
+  const { data, width, height } = raster
+  const x0 = Math.max(1, Math.round(box.x0))
+  const x1 = Math.min(width - 2, Math.round(box.x1))
+  const y0 = Math.max(1, Math.round(box.y0))
+  const y1 = Math.min(height - 2, Math.round(box.y1))
+  let sum = 0
+  let sumSq = 0
+  let count = 0
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      const lap = -4 * grayAt(data, width, height, x, y)
+        + grayAt(data, width, height, x - 1, y) + grayAt(data, width, height, x + 1, y)
+        + grayAt(data, width, height, x, y - 1) + grayAt(data, width, height, x, y + 1)
+      sum += lap
+      sumSq += lap * lap
+      count++
+    }
+  }
+  if (count === 0) return null
+  const mean = sum / count
+  return sumSq / count - mean * mean
+}
+
+// Exposure/contrast: mean and standard deviation of grayscale values in the
+// face region. Too dark/bright a mean, or too low a spread, both correspond
+// to under/overexposed or flat, washed-out photos.
+const exposureStats = (raster, box) => {
+  const { data, width, height } = raster
+  const x0 = Math.max(0, Math.round(box.x0))
+  const x1 = Math.min(width, Math.round(box.x1))
+  const y0 = Math.max(0, Math.round(box.y0))
+  const y1 = Math.min(height, Math.round(box.y1))
+  let sum = 0
+  let sumSq = 0
+  let count = 0
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      const g = grayAt(data, width, height, x, y)
+      sum += g
+      sumSq += g * g
+      count++
+    }
+  }
+  if (count === 0) return null
+  const mean = sum / count
+  const variance = Math.max(0, sumSq / count - mean * mean)
+  return { mean, std: Math.sqrt(variance) }
+}
+
+// Background uniformity: sample color variance outside the face region. Only
+// a real signal when a background-removal mask is on hand (Edit Mode) to
+// distinguish background from foreground - without one (Compliance Mode,
+// where background removal is off by default), this falls back to sampling
+// raw-photo pixels outside the face box, which may include hair, shoulders,
+// or clothing rather than true background. That fallback is reported with
+// isReliable: false so the caller can surface it as a lower-confidence check.
+const backgroundUniformity = (raster, maskedRaster, landmarks) => {
+  const { width, height } = raster
+  const faceBox = faceRegionBox(landmarks, width, height)
+  const source = maskedRaster || raster
+  const isReliable = Boolean(maskedRaster)
+  const scaleX = source.width / width
+  const scaleY = source.height / height
+  const step = Math.max(1, Math.round(Math.max(source.width, source.height) / 60))
+
+  const samples = []
+  for (let y = 0; y < source.height; y += step) {
+    for (let x = 0; x < source.width; x += step) {
+      const rasterX = x / scaleX
+      const rasterY = y / scaleY
+      if (rasterX >= faceBox.x0 && rasterX <= faceBox.x1 && rasterY >= faceBox.y0 && rasterY <= faceBox.y1) continue
+      const px = rgbAt(source.data, source.width, source.height, x, y)
+      if (maskedRaster && px.a < 128) continue // masked-out (background) pixel - not what we're sampling
+      samples.push(px)
+    }
+  }
+  if (samples.length < 10) return null
+
+  const meanR = samples.reduce((a, p) => a + p.r, 0) / samples.length
+  const meanG = samples.reduce((a, p) => a + p.g, 0) / samples.length
+  const meanB = samples.reduce((a, p) => a + p.b, 0) / samples.length
+  const variance = samples.reduce((a, p) => a + (p.r - meanR) ** 2 + (p.g - meanG) ** 2 + (p.b - meanB) ** 2, 0) / samples.length
+  return { variance, isReliable }
+}
+
 // Runs automated compliance checks against a single photo. Intended to be
 // triggered on demand (the "Check My Photo" button), not automatically on
 // upload, so it always reflects whatever photo/crop the user currently has
 // loaded.
-export const checkPhotoCompliance = async ({ photoSrc, maskedPhotoSrc }) => {
+//
+// template/exportPhoto/zoom/position/editorDimensions are all optional and
+// only needed for the spec-relative checks (resolution, head position) - the
+// face/expression/tilt checks below work from photoSrc alone, same as before.
+export const checkPhotoCompliance = async ({ photoSrc, maskedPhotoSrc, template, exportPhoto, zoom, position, editorDimensions }) => {
   const [landmarker, image] = await Promise.all([getFaceLandmarker(), loadImage(photoSrc)])
   const result = landmarker.detect(image)
   const faces = result.faceLandmarks || []
@@ -207,7 +341,83 @@ export const checkPhotoCompliance = async ({ photoSrc, maskedPhotoSrc }) => {
     issues.push({ id: 'faceTooSmall', severity: SEVERITY.RELIABLE, messageKey: 'checkFaceTooSmall' })
   }
 
+  // Resolution and head-position-vs-spec both need to know what fraction of
+  // the source photo the current crop actually uses - same yScale/cropHeight
+  // math react-avatar-editor and AutoAlign.js use internally. Only run when
+  // the caller supplied enough state to compute it (zoom/position/editorDimensions).
+  if (zoom && position && editorDimensions?.width && editorDimensions?.height) {
+    const imageAspect = image.naturalWidth / image.naturalHeight
+    const canvasAspect = editorDimensions.width / editorDimensions.height
+    const yScale = Math.min(1, imageAspect / canvasAspect)
+    const cropHeight = yScale / zoom
+
+    if (exportPhoto?.height) {
+      const sourcePixelsUsedVertically = cropHeight * image.naturalHeight
+      if (exportPhoto.height > sourcePixelsUsedVertically * THRESHOLDS.RESOLUTION_UPSCALE_TOLERANCE) {
+        issues.push({ id: 'lowResolution', severity: SEVERITY.RELIABLE, messageKey: 'checkLowResolution' })
+      }
+    }
+
+    const topGuide = template?.guide?.find((g) => HEAD_TOP_GUIDES.includes(g.title))
+    const bottomGuide = template?.guide?.find((g) => CHIN_GUIDES.includes(g.title))
+    if (topGuide && bottomGuide && editorDimensions.dpi_ratio) {
+      const forehead = landmarks[FOREHEAD_TOP]
+      const chin = landmarks[CHIN_BOTTOM]
+      const faceWidth = faceWidthRatio
+
+      // A true crown measurement needs background removal (see measureCrownY),
+      // which Compliance Mode deliberately avoids - fall back to the same
+      // anthropometric estimate AutoAlign.js uses when it can't segment, and
+      // mark the check HEURISTIC rather than RELIABLE in that case.
+      let crownY = forehead.y - (chin.y - forehead.y) * HAIR_ALLOWANCE
+      let crownReliable = false
+      if (maskedPhotoSrc) {
+        try {
+          crownY = await measureCrownY({ photoSrc, maskedPhotoSrc, nose: landmarks[NOSE_TIP], forehead, chin, faceWidth })
+          crownReliable = true
+        } catch (error) {
+          console.error('Compliance check: crown measurement failed, using estimate', error)
+        }
+      }
+
+      const canvasYOf = (imageY) => editorDimensions.height * ((imageY - position.y) / cropHeight + 0.5)
+      const toGuideUnits = (canvasY) => canvasY / editorDimensions.dpi_ratio
+
+      const crownGuideY = toGuideUnits(canvasYOf(crownY))
+      const chinGuideY = toGuideUnits(canvasYOf(chin.y))
+      const topBandLo = parseFloat(topGuide.start_y)
+      const topBandHi = topBandLo + parseFloat(topGuide.height)
+      const bottomBandLo = parseFloat(bottomGuide.start_y)
+      const bottomBandHi = bottomBandLo + parseFloat(bottomGuide.height)
+      // Generous tolerance beyond the band itself - these are aim points for
+      // Auto Align, not a hard pixel-perfect boundary most applications enforce.
+      const tolerance = parseFloat(topGuide.height)
+
+      const outOfPosition =
+        crownGuideY < topBandLo - tolerance || crownGuideY > topBandHi + tolerance ||
+        chinGuideY < bottomBandLo - tolerance || chinGuideY > bottomBandHi + tolerance
+      if (outOfPosition) {
+        issues.push({ id: 'headPosition', severity: crownReliable ? SEVERITY.RELIABLE : SEVERITY.HEURISTIC, messageKey: 'checkHeadPosition' })
+      }
+    }
+  }
+
   const raster = rasterize(image)
+  const faceBox = faceRegionBox(landmarks, raster.width, raster.height)
+
+  const variance = laplacianVariance(raster, faceBox)
+  if (variance !== null && variance < THRESHOLDS.BLUR_VARIANCE_MIN) {
+    issues.push({ id: 'blurry', severity: SEVERITY.HEURISTIC, messageKey: 'checkBlurry' })
+  }
+
+  const exposure = exposureStats(raster, faceBox)
+  if (exposure) {
+    if (exposure.mean < THRESHOLDS.EXPOSURE_MEAN_MIN || exposure.mean > THRESHOLDS.EXPOSURE_MEAN_MAX) {
+      issues.push({ id: 'exposure', severity: SEVERITY.HEURISTIC, messageKey: 'checkExposure' })
+    } else if (exposure.std < THRESHOLDS.CONTRAST_STD_MIN) {
+      issues.push({ id: 'lowContrast', severity: SEVERITY.HEURISTIC, messageKey: 'checkLowContrast' })
+    }
+  }
   if (checkGlasses(raster, landmarks)) {
     issues.push({ id: 'glasses', severity: SEVERITY.HEURISTIC, messageKey: 'checkGlasses' })
   }
@@ -216,6 +426,15 @@ export const checkPhotoCompliance = async ({ photoSrc, maskedPhotoSrc }) => {
   const maskedRaster = maskedImage ? rasterize(maskedImage) : null
   if (checkEarsVisible(raster, maskedRaster, landmarks)) {
     issues.push({ id: 'earsCovered', severity: SEVERITY.HEURISTIC, messageKey: 'checkEarsCovered' })
+  }
+
+  const background = backgroundUniformity(raster, maskedRaster, landmarks)
+  if (background && background.variance > THRESHOLDS.BACKGROUND_VARIANCE_MAX) {
+    issues.push({
+      id: 'backgroundNotUniform',
+      severity: SEVERITY.HEURISTIC,
+      messageKey: background.isReliable ? 'checkBackgroundNotUniform' : 'checkBackgroundNotUniformLowConfidence',
+    })
   }
 
   return { issues, faceCount: faces.length }
