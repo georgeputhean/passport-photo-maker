@@ -1,4 +1,4 @@
-import { getFaceLandmarker, loadImage, measureCrownY } from './AutoAlign'
+import { getFaceLandmarker, loadImage, measureCrownY, detectFace } from './AutoAlign'
 
 // MediaPipe Face Mesh landmark indices (same 478-point topology used in AutoAlign.js)
 const FACE_OVAL_LEFT = 234
@@ -292,7 +292,7 @@ const backgroundUniformity = (raster, maskedRaster, landmarks) => {
 // face/expression/tilt checks below work from photoSrc alone, same as before.
 export const checkPhotoCompliance = async ({ photoSrc, maskedPhotoSrc, template, exportPhoto, zoom, position, editorDimensions }) => {
   const [landmarker, image] = await Promise.all([getFaceLandmarker(), loadImage(photoSrc)])
-  const result = landmarker.detect(image)
+  const result = detectFace(landmarker, image)
   const faces = result.faceLandmarks || []
   const issues = []
 
