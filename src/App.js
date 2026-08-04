@@ -278,6 +278,138 @@ const ThemeToggle = ({ theme, setTheme }) => (
   </div>
 )
 
+// Marketing header shown above the editor before a photo is loaded. The
+// upload dropzone itself lives in MiddleColumn (LoadPhotoButton) - this only
+// adds the headline/subcopy and a spec strip read from the selected template,
+// so switching documents in NavBar updates real numbers here too.
+const Hero = ({ template }) => (
+  <section className="hero">
+    <div className="hero-kicker">21 DOCUMENTS &middot; OFFICIAL SPECS &middot; UPDATED 2026</div>
+    <h1 className="hero-title">A passport photo<br />that gets accepted.<br /><span className="accent">In 30 seconds.</span></h1>
+    <p className="hero-sub">Drop a photo below. We line it up to the official guides for your chosen document and crop to the exact millimetre &mdash; free, no watermark, and nothing ever leaves your device.</p>
+    <div className="hero-specs">
+      <div className="hero-spec">
+        <span className="hero-spec-label">Size</span>
+        <span className="hero-spec-value">{template.width} &times; {template.height} mm</span>
+      </div>
+      <div className="hero-spec">
+        <span className="hero-spec-label">Resolution</span>
+        <span className="hero-spec-value">{template.dpi} DPI</span>
+      </div>
+      <div className="hero-spec">
+        <span className="hero-spec-label">Max file</span>
+        <span className="hero-spec-value">{template.size} KB</span>
+      </div>
+    </div>
+  </section>
+)
+
+const TRUST_ITEMS = [
+  {
+    text: 'Photo never uploaded',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
+  },
+  {
+    text: 'No signup, no watermark',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg>,
+  },
+  {
+    text: 'Ready in about 30 seconds',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>,
+  },
+  {
+    text: 'Free 4×6 print sheet',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7" /><rect x="6" y="14" width="12" height="8" /><path d="M6 18H2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5h-4" /></svg>,
+  },
+]
+
+const TrustBar = () => (
+  <div className="trust-bar">
+    {TRUST_ITEMS.map((item) => (
+      <div className="trust-item" key={item.text}>{item.icon}<span>{item.text}</span></div>
+    ))}
+  </div>
+)
+
+// Decorative "drag to compare" panel illustrating the alignment concept.
+// Deliberately not wired to the user's own photo - it's marketing copy, shown
+// only in the empty state, using the same placeholder-shape approach as the
+// source design mockup rather than a fabricated real "after" result.
+const CompareSlider = () => {
+  const sliderRef = useRef(null)
+  const draggingRef = useRef(false)
+  const [pct, setPct] = useState(56)
+
+  const updateFromClientX = (clientX) => {
+    const el = sliderRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const next = Math.max(2, Math.min(98, ((clientX - rect.left) / rect.width) * 100))
+    setPct(next)
+  }
+
+  const onPointerDown = (e) => {
+    draggingRef.current = true
+    e.currentTarget.setPointerCapture(e.pointerId)
+    updateFromClientX(e.clientX)
+  }
+  const onPointerMove = (e) => {
+    if (!draggingRef.current) return
+    updateFromClientX(e.clientX)
+  }
+  const onPointerUp = () => { draggingRef.current = false }
+
+  return (
+    <div
+      ref={sliderRef}
+      className="compare-slider"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      role="slider"
+      aria-label="Drag to compare before and after alignment"
+      aria-valuenow={Math.round(pct)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
+      <div className="compare-pane">
+        <div className="compare-shape-head" />
+        <div className="compare-shape-shoulders" />
+        <span className="compare-label">Before</span>
+      </div>
+      <div className="compare-after" style={{ width: `${pct}%` }}>
+        <div className="compare-pane" style={{ background: 'var(--pico-card-background-color)' }}>
+          <div className="compare-shape-head" style={{ top: '11%' }} />
+          <div className="compare-shape-shoulders" />
+          <div className="compare-guide-band" />
+          <span className="compare-label">After &mdash; aligned to guide</span>
+        </div>
+      </div>
+      <div className="compare-handle" style={{ left: `${pct}%` }} />
+      <div className="compare-grip" style={{ left: `${pct}%` }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 6l-6 6 6 6" /><path d="M15 6l6 6-6 6" /></svg>
+      </div>
+    </div>
+  )
+}
+
+const CompareShowcase = () => (
+  <section className="compare-section">
+    <div className="compare-copy">
+      <div className="compare-kicker">Drag to compare</div>
+      <h2>The alignment is the hard part.<br />We do it for you.</h2>
+      <p>Most rejections come from head size and eye position, not image quality. The editor draws the document's official guide bands over your face so you can see exactly where the crop needs to land.</p>
+      <ul className="compare-list">
+        <li>Head height and eye line checked against the document's own guide</li>
+        <li>Alignment guides drawn directly over your photo as you crop</li>
+        <li>Exported at the exact pixel size the document requires</li>
+      </ul>
+    </div>
+    <CompareSlider />
+  </section>
+)
+
 const NavBar = ({
   template,
   selectTemplate,
@@ -1940,6 +2072,7 @@ const App = () => {
             navRef={navRef}
           />
         </div>
+        {!photo && <Hero template={template} />}
         <div className="container columns-row">
           <LeftColumn
             photo={photo}
@@ -2027,6 +2160,12 @@ const App = () => {
             croppedImag={croppedImage}
           />
         </div>
+        {!photo && (
+          <>
+            <TrustBar />
+            <CompareShowcase />
+          </>
+        )}
         <div className="container" ref={footerRef}>
           <Changelog
             translate={translate}

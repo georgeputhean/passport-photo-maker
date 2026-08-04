@@ -1370,6 +1370,9 @@ function renderLayout({ title, description, canonicalPath, ldJson, bodyHtml, ogI
 <meta name="description" content="${escapeHtml(description)}">
 <link rel="canonical" href="${canonicalUrl}">
 <link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/seo.css">
 <meta property="og:title" content="${escapeHtml(title)}">
 <meta property="og:description" content="${escapeHtml(description)}">
@@ -1561,15 +1564,21 @@ const HOME_FAQS = [
 
 function renderHomepageSeoBlock(entries) {
   const countryLinks = entries
-    .map((e) => `    <li><a href="/photos/${e.content.slug}.html">${escapeHtml(e.content.h1)}</a></li>`)
+    .map((e) => {
+      const spec = deriveSpec(e.template)
+      const label = e.content.h1.replace(' Size and Requirements', '')
+      return `    <li><a href="/photos/${e.content.slug}.html">${escapeHtml(label)}<br><small>${spec.widthMm} &times; ${spec.heightMm} mm &middot; ${spec.dpi} DPI</small></a></li>`
+    })
     .join('\n')
 
   const faqHtml = HOME_FAQS
     .map((f) => `  <div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`)
     .join('\n')
 
+  // h2, not h1 - the React hero above this block (src/App.js, only rendered
+  // once React mounts and no photo is loaded yet) owns the page's one <h1>.
   return `<div id="seo-content">
-<h1>Free Passport Photo Editor</h1>
+<h2 class="seo-content-title">Free Passport Photo Editor</h2>
 <p><strong>Passport &amp; Visa Photo Maker</strong> is a free online passport photo editor: upload a photo and get the exact 2x2 (51x51mm) size, background, and DPI for ${entries.length} countries and document types, with an option to remove the background automatically - all processed locally in your browser, never uploaded to a server.</p>
 <h2>How it works</h2>
 <ol class="seo-steps">
