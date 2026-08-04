@@ -332,6 +332,46 @@ const TrustBar = () => (
   </div>
 )
 
+// In-app ad slots (mockup 3a's 970x90 leaderboard, 3b's 300x250 box).
+// Same convention as generate-seo.js's renderAdSlot: with no valid AdSense
+// client ID, production renders nothing and dev shows a dashed placeholder
+// so the layout is previewable. When configured, mounts a real responsive
+// adsbygoogle unit (the loader script is injected by App on consent).
+const rawAdClientId = process.env.REACT_APP_ADSENSE_CLIENT_ID || ''
+const AD_CLIENT_ID = /^ca-pub-\d+$/.test(rawAdClientId) ? rawAdClientId : ''
+const AD_SLOT_INCONTENT = /^\d+$/.test(process.env.REACT_APP_ADSENSE_SLOT_INCONTENT || '') ? process.env.REACT_APP_ADSENSE_SLOT_INCONTENT : ''
+
+const AdSlot = ({ variant }) => {
+  const configured = AD_CLIENT_ID && AD_SLOT_INCONTENT
+  useEffect(() => {
+    if (!configured) return
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({})
+    } catch (e) { /* loader blocked or not yet consented - the empty ins is harmless */ }
+  }, [configured])
+
+  if (!configured) {
+    if (process.env.NODE_ENV === 'production') return null
+    return (
+      <div className={`ad-slot ad-slot-${variant}`}>
+        AD SLOT &middot; {variant === 'leaderboard' ? '970×90 LEADERBOARD' : '300×250'}
+      </div>
+    )
+  }
+  return (
+    <div className={`ad-slot-live ad-slot-${variant}`}>
+      <ins
+        className="adsbygoogle"
+        style={{ display: 'block' }}
+        data-ad-client={AD_CLIENT_ID}
+        data-ad-slot={AD_SLOT_INCONTENT}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+    </div>
+  )
+}
+
 // "Three steps. No account." section from mockup 3a - copy adapted to what
 // this app actually does (guide-band cropping; background removal is an
 // option, not automatic).
@@ -1624,6 +1664,7 @@ const RightColumn = ({
                 }}
               >{translate("saveTitle")}</div>
               <LoadPhotoButton onPhotoLoad={onPhotoLoad} title={translate("loadNewPhotoButton")} compact />
+              <AdSlot variant="box" />
             </div>
           </article>
         </>
@@ -2305,6 +2346,7 @@ const App = () => {
           <>
             <TrustBar />
             <ThreeSteps />
+            <AdSlot variant="leaderboard" />
             <CompareShowcase />
             <PosterBanner />
           </>

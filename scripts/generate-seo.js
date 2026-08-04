@@ -1637,6 +1637,7 @@ function renderHomepageSeoBlock(entries) {
 ${countryLinks}
 </ul>
 <a class="seo-cta" href="/photos/">See full requirements for every country &rarr;</a>
+${renderAdSlot('incontent')}
 <h2>Frequently asked questions</h2>
 ${faqHtml}
 <p class="seo-source-note">Photo requirements are set by each country’s government and can change. Always confirm the current specification on the official source linked from that country’s page before submitting.</p>

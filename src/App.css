@@ -40,7 +40,7 @@ html {
   --pico-code-background-color: #262322;
   --canvas-color: #0f0e0e;
   --tint-color: rgba(255, 86, 60, 0.14);
-  --grid-color: rgba(243, 242, 242, 0.05);
+  --grid-color: rgba(243, 242, 242, 0.08);
   /* A copy of --pico-color under a name Pico never reassigns. Pico locally
      redefines --pico-color to --pico-primary-inverse (white) inside any bare
      [role=button]/<button> that doesn't carry its .outline/.secondary
@@ -258,8 +258,12 @@ nav {
   gap: 40px;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 24px 24px;
   width: 100%;
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
 .home-top .hero {
@@ -1339,7 +1343,7 @@ label.color-reset:hover {
   --canvas-color: #e6e4e3;
   --tint-color: #fbe4e0;
   --ink-color: #201e1d;
-  --grid-color: rgba(32, 30, 29, 0.06);
+  --grid-color: rgba(32, 30, 29, 0.09);
   --guide-green: #16a34a;
   --guide-red: #dc2626;
   --guide-aqua: #0891b2;
@@ -1465,7 +1469,9 @@ label.color-reset:hover {
    ============================================================ */
 
 /* Flush left, never centered - the Modernist readme's explicit rule for
-   hero copy ("Don't center button labels or hero copy"). */
+   hero copy ("Don't center button labels or hero copy"). The modular-grid
+   background lives on .home-top (the full hero band), not here, so it runs
+   behind both the copy and the dropzone as one continuous field. */
 .hero {
   display: grid;
   grid-template-columns: 1fr;
@@ -1474,10 +1480,6 @@ label.color-reset:hover {
   margin: 0 auto;
   padding: 40px 24px 8px;
   text-align: left;
-  background-image:
-    linear-gradient(var(--grid-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-  background-size: 28px 28px;
 }
 
 .hero-kicker {
@@ -1737,6 +1739,54 @@ label.color-reset:hover {
   align-items: center;
   justify-content: center;
   color: #fff;
+}
+
+/* ============================================================
+   Ad slots — dashed placeholders in dev (mockup 3a/3b), real responsive
+   AdSense units when configured. Hidden entirely in unconfigured
+   production builds (see AdSlot in App.js).
+   ============================================================ */
+
+.ad-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--pico-card-border-color);
+  color: var(--pico-muted-color);
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.ad-slot-leaderboard {
+  max-width: 970px;
+  height: 104px;
+  margin: 36px auto 0;
+  width: calc(100% - 48px);
+}
+
+.ad-slot-box {
+  height: 250px;
+  margin-top: 0.75em;
+}
+
+.ad-slot-live {
+  overflow: hidden;
+}
+
+.ad-slot-live.ad-slot-leaderboard {
+  max-width: 970px;
+  min-height: 90px;
+  height: auto;
+  margin: 36px auto 0;
+  width: calc(100% - 48px);
+}
+
+.ad-slot-live.ad-slot-box {
+  min-height: 250px;
+  height: auto;
+  margin-top: 0.75em;
 }
 
 /* ============================================================
