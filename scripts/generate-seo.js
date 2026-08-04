@@ -1387,7 +1387,7 @@ ${(ldJson || []).map((obj) => `<script type="application/ld+json">${JSON.stringi
 </head>
 <body>
 <header class="seo-header">
-  <a class="seo-brand" href="/">Passport &amp; Visa Photo Maker</a>
+  <a class="seo-brand" href="/" aria-label="Passport &amp; Visa Photo Maker">PASSPORT<span class="accent">PHOTO</span>EDIT</a>
   <a href="/">Open the photo editor &rarr;</a>
 </header>
 <main>

@@ -125,6 +125,13 @@ a:hover { color: var(--seo-primary); }
   font-size: 15px;
 }
 
+.seo-brand .accent {
+  color: var(--seo-primary);
+}
+.seo-brand:hover .accent {
+  color: var(--seo-primary-ink);
+}
+
 main {
   max-width: 720px;
   margin: 0 auto;

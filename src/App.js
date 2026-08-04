@@ -202,6 +202,7 @@ const LoadPhotoButton = ({ onPhotoLoad, title, compact }) => {
           className="load-file-button"
           onClick={handleClickBrowse}
         >
+          <div className="load-file-scanline" aria-hidden="true" />
           <svg className="load-file-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 15.5V4M12 4L7.5 8.5M12 4l4.5 4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M4.5 15.5v2.75A1.75 1.75 0 006.25 20h11.5a1.75 1.75 0 001.75-1.75V15.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
@@ -458,11 +459,12 @@ const NavBar = ({
     <nav ref={navRef}>
       <ul>
         <li>
-          <div className="nav-brand">
+          <div className="nav-brand" aria-label={translate("app.title")}>
             <span className="nav-logo-badge">P</span>
-            <strong>{translate("app.title")}</strong>
+            <strong className="wordmark">PASSPORT<span className="accent">PHOTO</span>EDIT</strong>
           </div>
         </li>
+        <li><a className="nav-link" href="/photos/">Countries</a></li>
       </ul>
       <ul>
         <li><StepIndicator photo={photo} croppedImage={croppedImage} /></li>

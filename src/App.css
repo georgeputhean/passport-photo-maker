@@ -40,6 +40,7 @@ html {
   --pico-code-background-color: #262322;
   --canvas-color: #0f0e0e;
   --tint-color: rgba(255, 86, 60, 0.14);
+  --grid-color: rgba(243, 242, 242, 0.05);
   /* A copy of --pico-color under a name Pico never reassigns. Pico locally
      redefines --pico-color to --pico-primary-inverse (white) inside any bare
      [role=button]/<button> that doesn't carry its .outline/.secondary
@@ -96,6 +97,24 @@ nav li {
   padding: 8px 10px;
 }
 
+nav {
+  border-bottom: 2px solid var(--pico-card-border-color);
+  padding-left: 18px;
+  padding-right: 18px;
+  min-height: 58px;
+}
+
+.nav-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pico-muted-color);
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: var(--pico-primary);
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -138,11 +157,36 @@ nav li {
   border-radius: 0;
   color: var(--pico-muted-color);
   cursor: pointer;
+  overflow: hidden;
   transition: filter 0.15s ease, background-color 0.15s ease, color 0.15s ease;
 }
 
 .load-file-button:hover {
   filter: brightness(1.04);
+}
+
+.load-file-scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: var(--pico-primary);
+  opacity: 0.55;
+  animation: scanDown 2.6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scanDown {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .load-file-scanline {
+    animation: none;
+    display: none;
+  }
 }
 
 .load-file-icon {
@@ -220,6 +264,10 @@ nav li {
      and right are plain <div>s with none, so without this the three
      columns don't actually end up the same width. */
   padding: 0;
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 26px 26px;
 }
 
 .editor-canvas {
@@ -475,6 +523,10 @@ label.color-reset:hover {
   font-weight: 800;
   font-size: 15px;
   letter-spacing: -0.01em;
+}
+
+.wordmark .accent {
+  color: var(--pico-primary);
 }
 
 .nav-logo-badge {
@@ -1011,6 +1063,7 @@ label.color-reset:hover {
   --canvas-color: #e6e4e3;
   --tint-color: #fbe4e0;
   --ink-color: #201e1d;
+  --grid-color: rgba(32, 30, 29, 0.06);
   --guide-green: #16a34a;
   --guide-red: #dc2626;
   --guide-aqua: #0891b2;
@@ -1143,6 +1196,10 @@ label.color-reset:hover {
   margin: 0 auto;
   padding: 40px 24px 8px;
   text-align: center;
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
 .hero-kicker {
