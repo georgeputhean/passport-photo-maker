@@ -332,6 +332,55 @@ const TrustBar = () => (
   </div>
 )
 
+// "Three steps. No account." section from mockup 3a - copy adapted to what
+// this app actually does (guide-band cropping; background removal is an
+// option, not automatic).
+const THREE_STEPS = [
+  {
+    n: '01',
+    title: 'Pick the document',
+    text: 'US passport, UK, India, an OCI card, a Mexico TN visa - each carries its own official size, DPI and background rule.',
+  },
+  {
+    n: '02',
+    title: 'Drop a photo',
+    text: 'Line your face up with the document’s official guide bands - or let Auto Align do it - and remove the background with one click if you need to.',
+  },
+  {
+    n: '03',
+    title: 'Download or print',
+    text: 'Take the single sized photo for an online application, or a 4×6 sheet with multiple copies to print at any pharmacy kiosk.',
+  },
+]
+
+const ThreeSteps = () => (
+  <section className="steps-section">
+    <h2>Three steps. No account.</h2>
+    <div className="steps-grid">
+      {THREE_STEPS.map((s) => (
+        <div className="steps-cell" key={s.n}>
+          <div className="steps-num">{s.n}</div>
+          <h4>{s.title}</h4>
+          <p>{s.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+)
+
+// The red poster statement from mockup 3a - the one place the accent runs as
+// a full field, per the Modernist readme ("the deck's section dividers and
+// the landing's closing banner").
+const PosterBanner = () => (
+  <section className="poster-banner">
+    <div className="poster-title">YOUR FACE<br />NEVER LEAVES<br />THIS DEVICE.</div>
+    <div className="poster-body">
+      <p>Background removal and face alignment run on models downloaded into your browser. The photo itself is never sent anywhere &mdash; there is no server to send it to. Close the tab and it is gone.</p>
+      <a className="poster-cta" href="/privacy-policy.html">Read the privacy policy &rarr;</a>
+    </div>
+  </section>
+)
+
 // Decorative "drag to compare" panel illustrating the alignment concept.
 // Deliberately not wired to the user's own photo - it's marketing copy, shown
 // only in the empty state, using the same placeholder-shape approach as the
@@ -509,7 +558,16 @@ const NavBar = ({
             </label>
           </li>
         )}
+        <li className="nav-tagline">FREE &middot; NO SIGNUP &middot; NO WATERMARK</li>
         <li><ThemeToggle theme={theme} setTheme={setTheme} /></li>
+        {!photo && (
+          <li>
+            <button
+              className="nav-cta"
+              onClick={() => document.getElementById('selectedFile')?.click()}
+            >Make a photo</button>
+          </li>
+        )}
       </ul>
     </nav>
   )
@@ -2165,7 +2223,9 @@ const App = () => {
         {!photo && (
           <>
             <TrustBar />
+            <ThreeSteps />
             <CompareShowcase />
+            <PosterBanner />
           </>
         )}
         <div className="container" ref={footerRef}>
@@ -2209,6 +2269,13 @@ const App = () => {
               style={{ textDecoration: 'none', color: 'inherit' }}
             >{translate("feedback")}</a>
           </div>
+        </div>
+        <div className="site-footer">
+          <span className="wordmark site-footer-brand">PASSPORT<span className="accent">PHOTO</span>EDIT</span>
+          <span className="site-footer-note">Photo requirements are set by each country's government and can change. Always confirm the current specification on the official source linked from that country's page before submitting.</span>
+          <span className="site-footer-links">
+            <a href="/privacy-policy.html">Privacy</a> &middot; <a href="/about.html">About</a> &middot; <a href="/contact.html">Contact</a>
+          </span>
         </div>
         <CookieConsent
           //debug={true}

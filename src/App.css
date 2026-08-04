@@ -115,6 +115,39 @@ nav {
   color: var(--pico-primary);
 }
 
+.nav-tagline {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--pico-muted-color);
+  white-space: nowrap;
+}
+
+.nav-cta {
+  background: var(--pico-primary) !important;
+  color: var(--pico-primary-inverse) !important;
+  border: none !important;
+  border-radius: 0;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 13px;
+  padding: 9px 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.nav-cta:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 1100px) {
+  .nav-tagline {
+    display: none;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -1188,14 +1221,16 @@ label.color-reset:hover {
    loaded (mockup 3a). Sits between NavBar and the upload dropzone.
    ============================================================ */
 
+/* Flush left, never centered - the Modernist readme's explicit rule for
+   hero copy ("Don't center button labels or hero copy"). */
 .hero {
   display: grid;
   grid-template-columns: 1fr;
   gap: 8px;
-  max-width: 900px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 40px 24px 8px;
-  text-align: center;
+  text-align: left;
   background-image:
     linear-gradient(var(--grid-color) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
@@ -1229,15 +1264,15 @@ label.color-reset:hover {
   line-height: 1.5;
   color: var(--pico-muted-color);
   max-width: 56ch;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .hero-specs {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 28px;
-  margin: 22px auto 0;
+  margin: 22px 0 0;
   padding: 12px 0;
   max-width: 560px;
   border-top: 2px solid var(--pico-card-border-color);
@@ -1461,8 +1496,165 @@ label.color-reset:hover {
   color: #fff;
 }
 
+/* ============================================================
+   Three steps — big red 01/02/03 numbers over a ruled 3-column grid
+   (mockup 3a). Empty state only.
+   ============================================================ */
+
+.steps-section {
+  max-width: 1120px;
+  margin: 40px auto 0;
+  padding: 0 24px;
+}
+
+.steps-section h2 {
+  font-size: clamp(26px, 3.8vw, 34px);
+  margin: 0;
+  color: var(--pico-color);
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 22px;
+  border-top: 2px solid var(--pico-card-border-color);
+}
+
+.steps-cell {
+  padding: 22px 24px 24px 0;
+  border-right: 1px solid var(--pico-hair-color);
+}
+
+.steps-cell + .steps-cell {
+  padding-left: 24px;
+}
+
+.steps-cell:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+
+.steps-num {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 44px;
+  line-height: 1;
+  color: var(--pico-primary);
+}
+
+.steps-cell h4 {
+  margin: 12px 0 6px;
+  font-size: 17px;
+  color: var(--pico-color);
+}
+
+.steps-cell p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--pico-muted-color);
+  margin: 0;
+}
+
+/* ============================================================
+   Red poster banner — the accent as a full field (mockup 3a). The literal
+   #ec3013 field with white type is the design in both themes, deliberately
+   not routed through theme tokens.
+   ============================================================ */
+
+.poster-banner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  align-items: center;
+  margin-top: 44px;
+  padding: 44px 32px;
+  background: #ec3013;
+  color: #fff;
+}
+
+.poster-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(34px, 5.5vw, 58px);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+}
+
+.poster-body p {
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 46ch;
+  margin: 0 0 16px;
+}
+
+.poster-cta {
+  display: inline-block;
+  background: #fff;
+  color: #ec3013;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 14px;
+  padding: 12px 16px;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.poster-cta:hover {
+  opacity: 0.9;
+  color: #ec3013;
+}
+
+/* ============================================================
+   Footer strip — wordmark + disclaimer + links (mockup 3a).
+   ============================================================ */
+
+.site-footer {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 32px;
+  padding: 24px 32px;
+  border-top: 2px solid var(--pico-card-border-color);
+  font-size: 12px;
+  color: var(--pico-muted-color);
+}
+
+.site-footer-brand {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--pico-color);
+  flex: none;
+}
+
+.site-footer-note {
+  max-width: 60ch;
+}
+
+.site-footer-links {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.site-footer-links a {
+  color: var(--pico-muted-color);
+  text-decoration: none;
+}
+
+.site-footer-links a:hover {
+  color: var(--pico-primary);
+}
+
 @media (max-width: 819px) {
   .hero { padding: 28px 18px 4px; }
   .trust-item { flex-basis: 100%; border-left: none; border-top: 1px solid var(--pico-hair-color); }
   .trust-item:first-child { border-top: none; }
+  .steps-grid { grid-template-columns: 1fr; }
+  .steps-cell { border-right: none; border-bottom: 1px solid var(--pico-hair-color); padding-left: 0; }
+  .steps-cell + .steps-cell { padding-left: 0; }
+  .steps-cell:last-child { border-bottom: none; }
+  .poster-banner { grid-template-columns: 1fr; gap: 20px; padding: 32px 20px; }
+  .site-footer { flex-direction: column; align-items: flex-start; gap: 10px; padding: 20px; }
+  .site-footer-links { margin-left: 0; }
 }
