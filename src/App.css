@@ -148,6 +148,78 @@ nav {
   }
 }
 
+/* Nav + editor bar wrapper - carries navRef so the editor's height budget
+   counts both rows of top chrome, not just the nav. */
+.top-chrome {
+  flex-direction: column;
+}
+
+.top-chrome nav {
+  width: 100%;
+}
+
+/* Editor chrome: step indicator + document picker, its own slim bar below
+   the marketing nav. */
+.editor-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--pico-hair-color);
+}
+
+.editor-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Empty state: hero copy left, upload dropzone right - one wide row like
+   the mockup's homepage, instead of a single centered vertical column. */
+.home-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+}
+
+.home-top .hero {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 32px 0 24px;
+}
+
+.home-top .columns-row {
+  width: auto;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  max-width: none;
+}
+
+@media (max-width: 819px) {
+  .home-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0 18px;
+  }
+
+  .home-top .columns-row {
+    width: 100%;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;

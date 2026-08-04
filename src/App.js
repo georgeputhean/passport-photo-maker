@@ -460,17 +460,44 @@ const CompareShowcase = () => (
   </section>
 )
 
-const NavBar = ({
+// Marketing nav only - brand, links, tagline, theme, CTA. The step
+// indicator and document picker are editor chrome and live in EditorBar.
+const NavBar = ({ translate, photo, theme, setTheme }) => (
+  <nav>
+    <ul>
+      <li>
+        <div className="nav-brand" aria-label={translate("app.title")}>
+          <span className="nav-logo-badge">P</span>
+          <strong className="wordmark">PASSPORT<span className="accent">PHOTO</span>EDIT</strong>
+        </div>
+      </li>
+      <li><a className="nav-link" href="/photos/">Countries</a></li>
+    </ul>
+    <ul>
+      <li className="nav-tagline">FREE &middot; NO SIGNUP &middot; NO WATERMARK</li>
+      <li><ThemeToggle theme={theme} setTheme={setTheme} /></li>
+      {!photo && (
+        <li>
+          <button
+            className="nav-cta"
+            onClick={() => document.getElementById('selectedFile')?.click()}
+          >Make a photo</button>
+        </li>
+      )}
+    </ul>
+  </nav>
+)
+
+// Editor chrome bar below the nav: step indicator on the left, document
+// picker (and custom-size inputs) on the right. Shown in both states -
+// choosing the document drives the hero spec strip before a photo exists.
+const EditorBar = ({
   template,
   selectTemplate,
-  exportPhoto,
   translate,
   translateObject,
   photo,
   croppedImage,
-  theme,
-  setTheme,
-  navRef,
 }) => {
 
   const handleTemplateChange = (event) => {
@@ -505,21 +532,9 @@ const NavBar = ({
   }
 
   return (
-    <nav ref={navRef}>
-      <ul>
-        <li>
-          <div className="nav-brand" aria-label={translate("app.title")}>
-            <span className="nav-logo-badge">P</span>
-            <strong className="wordmark">PASSPORT<span className="accent">PHOTO</span>EDIT</strong>
-          </div>
-        </li>
-        <li><a className="nav-link" href="/photos/">Countries</a></li>
-      </ul>
-      <ul>
-        <li><StepIndicator photo={photo} croppedImage={croppedImage} /></li>
-      </ul>
-      <ul>
-        <li>
+    <div className="editor-bar">
+      <StepIndicator photo={photo} croppedImage={croppedImage} />
+      <div className="editor-bar-right">
           <select
             aria-label="Templates"
             required
@@ -531,9 +546,8 @@ const NavBar = ({
               <option key={index} value={translateObject(template.title)}>{getTemplateFlag(translateObject(template.title))} {translateObject(template.title)}</option>
             ))}
           </select>
-        </li>
         {isCustomSize && (
-          <li className="custom-size-inputs">
+          <div className="custom-size-inputs">
             <label>
               <small>{translate("customWidthLabel")}</small>
               <input
@@ -556,20 +570,10 @@ const NavBar = ({
                 onChange={handleCustomDimensionChange('height')}
               />
             </label>
-          </li>
+          </div>
         )}
-        <li className="nav-tagline">FREE &middot; NO SIGNUP &middot; NO WATERMARK</li>
-        <li><ThemeToggle theme={theme} setTheme={setTheme} /></li>
-        {!photo && (
-          <li>
-            <button
-              className="nav-cta"
-              onClick={() => document.getElementById('selectedFile')?.click()}
-            >Make a photo</button>
-          </li>
-        )}
-      </ul>
-    </nav>
+      </div>
+    </div>
   )
 }
 
@@ -2118,20 +2122,23 @@ const App = () => {
   return (
     <div className={`app${photo ? ' app-editing' : ''}`}>
       <div className="frame">
-        <div className="container">
+        <div className="container top-chrome" ref={navRef}>
           <NavBar
+            translate={translate}
+            photo={photo}
+            theme={theme}
+            setTheme={setTheme}
+          />
+          <EditorBar
             template={template}
             selectTemplate={selectTemplate}
-            exportPhoto={exportPhoto}
             translate={translate}
             translateObject={translateObject}
             photo={photo}
             croppedImage={croppedImage}
-            theme={theme}
-            setTheme={setTheme}
-            navRef={navRef}
           />
         </div>
+        <div className={photo ? 'home-wrap' : 'home-wrap home-top'}>
         {!photo && <Hero template={template} />}
         <div className="container columns-row">
           <LeftColumn
@@ -2219,6 +2226,7 @@ const App = () => {
             setModals={setModals}
             croppedImag={croppedImage}
           />
+        </div>
         </div>
         {!photo && (
           <>
