@@ -460,9 +460,10 @@ const CompareShowcase = () => (
   </section>
 )
 
-// Marketing nav only - brand, links, tagline, theme, CTA. The step
-// indicator and document picker are editor chrome and live in EditorBar.
-const NavBar = ({ translate, photo, theme, setTheme }) => (
+// Two headers, one component (mockup 3a vs 3b). Homepage: brand, links,
+// tagline, CTA. Editor (photo loaded): brand, SESSION - LOCAL ONLY chip,
+// document name, Start over + Download actions.
+const NavBar = ({ translate, translateObject, template, photo, croppedImage, theme, setTheme, setModals }) => (
   <nav>
     <ul>
       <li>
@@ -471,12 +472,35 @@ const NavBar = ({ translate, photo, theme, setTheme }) => (
           <strong className="wordmark">PASSPORT<span className="accent">PHOTO</span>EDIT</strong>
         </div>
       </li>
-      <li><a className="nav-link" href="/photos/">Countries</a></li>
+      {photo ? (
+        <>
+          <li><span className="session-chip">SESSION &middot; LOCAL ONLY</span></li>
+          <li><span className="nav-doc-name">{translateObject(template.title)}</span></li>
+        </>
+      ) : (
+        <li><a className="nav-link" href="/photos/">Countries</a></li>
+      )}
     </ul>
     <ul>
-      <li className="nav-tagline">FREE &middot; NO SIGNUP &middot; NO WATERMARK</li>
+      {!photo && <li className="nav-tagline">FREE &middot; NO SIGNUP &middot; NO WATERMARK</li>}
       <li><ThemeToggle theme={theme} setTheme={setTheme} /></li>
-      {!photo && (
+      {photo ? (
+        <>
+          <li>
+            <button
+              className="nav-secondary"
+              onClick={() => window.location.reload()}
+            >Start over</button>
+          </li>
+          <li>
+            <button
+              className="nav-cta"
+              disabled={!croppedImage}
+              onClick={() => setModals((prev) => ({ ...prev, save: true }))}
+            >Download &rarr;</button>
+          </li>
+        </>
+      ) : (
         <li>
           <button
             className="nav-cta"
@@ -488,17 +512,10 @@ const NavBar = ({ translate, photo, theme, setTheme }) => (
   </nav>
 )
 
-// Editor chrome bar below the nav: step indicator on the left, document
-// picker (and custom-size inputs) on the right. Shown in both states -
-// choosing the document drives the hero spec strip before a photo exists.
-const EditorBar = ({
-  template,
-  selectTemplate,
-  translate,
-  translateObject,
-  photo,
-  croppedImage,
-}) => {
+// Document picker: template select + custom-size inputs. Lives in the
+// EditorBar before a photo exists, and in the right panel's DOCUMENT
+// section while editing (mockup 3b).
+const DocumentPicker = ({ template, selectTemplate, translate, translateObject }) => {
 
   const handleTemplateChange = (event) => {
     const selectedTemplateTitle = event.target.value
@@ -532,50 +549,73 @@ const EditorBar = ({
   }
 
   return (
-    <div className="editor-bar">
-      <StepIndicator photo={photo} croppedImage={croppedImage} />
-      <div className="editor-bar-right">
-          <select
-            aria-label="Templates"
-            required
-            className="template-select"
-            value={translateObject(template.title)}
-            onChange={handleTemplateChange}
-          >
-            {TEMPLATES.map((template, index) => (
-              <option key={index} value={translateObject(template.title)}>{getTemplateFlag(translateObject(template.title))} {translateObject(template.title)}</option>
-            ))}
-          </select>
-        {isCustomSize && (
-          <div className="custom-size-inputs">
-            <label>
-              <small>{translate("customWidthLabel")}</small>
-              <input
-                type="number"
-                inputMode="decimal"
-                aria-label="Custom width in millimeters"
-                aria-invalid={!isDraftValid('width')}
-                value={customDraft.width}
-                onChange={handleCustomDimensionChange('width')}
-              />
-            </label>
-            <label>
-              <small>{translate("customHeightLabel")}</small>
-              <input
-                type="number"
-                inputMode="decimal"
-                aria-label="Custom height in millimeters"
-                aria-invalid={!isDraftValid('height')}
-                value={customDraft.height}
-                onChange={handleCustomDimensionChange('height')}
-              />
-            </label>
-          </div>
-        )}
-      </div>
-    </div>
+    <>
+      <select
+        aria-label="Templates"
+        required
+        className="template-select"
+        value={translateObject(template.title)}
+        onChange={handleTemplateChange}
+      >
+        {TEMPLATES.map((template, index) => (
+          <option key={index} value={translateObject(template.title)}>{getTemplateFlag(translateObject(template.title))} {translateObject(template.title)}</option>
+        ))}
+      </select>
+      {isCustomSize && (
+        <div className="custom-size-inputs">
+          <label>
+            <small>{translate("customWidthLabel")}</small>
+            <input
+              type="number"
+              inputMode="decimal"
+              aria-label="Custom width in millimeters"
+              aria-invalid={!isDraftValid('width')}
+              value={customDraft.width}
+              onChange={handleCustomDimensionChange('width')}
+            />
+          </label>
+          <label>
+            <small>{translate("customHeightLabel")}</small>
+            <input
+              type="number"
+              inputMode="decimal"
+              aria-label="Custom height in millimeters"
+              aria-invalid={!isDraftValid('height')}
+              value={customDraft.height}
+              onChange={handleCustomDimensionChange('height')}
+            />
+          </label>
+        </div>
+      )}
+    </>
   )
 }
+
+// Editor chrome bar below the nav: step indicator on the left; the document
+// picker rides here only before a photo exists (it drives the hero's spec
+// strip) - once editing starts it moves to the right panel per mockup 3b.
+const EditorBar = ({
+  template,
+  selectTemplate,
+  translate,
+  translateObject,
+  photo,
+  croppedImage,
+}) => (
+  <div className="editor-bar">
+    <StepIndicator photo={photo} croppedImage={croppedImage} />
+    {!photo && (
+      <div className="editor-bar-right">
+        <DocumentPicker
+          template={template}
+          selectTemplate={selectTemplate}
+          translate={translate}
+          translateObject={translateObject}
+        />
+      </div>
+    )}
+  </div>
+)
 
 const LeftColumn = ({
   photo,
@@ -1454,6 +1494,9 @@ const RightColumn = ({
   exportPhoto,
   setExportPhoto,
   translate,
+  translateObject,
+  template,
+  selectTemplate,
   setModals,
 }) => {
 
@@ -1512,6 +1555,20 @@ const RightColumn = ({
       {croppedImage && (
         <>
           <article className="preview-container">
+            <div className="panel-section">
+              <div className="panel-label">DOCUMENT</div>
+              <DocumentPicker
+                template={template}
+                selectTemplate={selectTemplate}
+                translate={translate}
+                translateObject={translateObject}
+              />
+              <div className="panel-specs">
+                <span>{template.width}&times;{template.height} MM</span>
+                <span>{template.dpi} DPI</span>
+                <span>MAX {template.size} KB</span>
+              </div>
+            </div>
             <img src={croppedImage} alt="Cropped preview" className="cropped-preview" />
             <div className="export-panel">
               <div className='export-container'>
@@ -1706,17 +1763,20 @@ const SaveModal = ({
           text1={translate("anmiatedText1")}
           text2={translate("anmiatedText2")}
         /> */}
-        <article>
-          <h2>{isSaveLoading ? translate("saveGenerating") : translate("saveTitle")}</h2>
+        <article className="done-card">
+          <div className="done-header">
+            <div className="done-title">{isSaveLoading ? translate("saveGenerating").toUpperCase() : 'DONE.'}</div>
+            <p>Your photo is sized, aligned and ready. Nothing was uploaded.</p>
+          </div>
           <div aria-busy={isSaveLoading} >
             {!isSaveLoading && (<div className="save-option-container">
               <div className="save-option">
+                <div className="panel-label">SINGLE PHOTO &middot; {translate("saveSingleText").toUpperCase()}</div>
                 <img src={imageSingleSrc || croppedImage} alt="Save preview" className="save-preview" height={editorDimensions.height * editorDimensions.zoom / 2} width={editorDimensions.width * editorDimensions.zoom / 2} />
-                <p className="save-text" >{translate("saveSingleText")}</p>
                 {singleBelowMinSize && <p className="save-text save-warning">{translate("belowMinSizeWarning")}</p>}
                 <div
                   role="button"
-                  className="save-option-button"
+                  className="save-option-button save-option-primary"
                   disabled={!imageSingleSrc}
                   onClick={() => {
                     imageSingleSrc && handleSaveSingle(imageSingleSrc)
@@ -1729,11 +1789,11 @@ const SaveModal = ({
                 >{translate("saveSingle")}</div>
               </div>
               {!digitalOnly && <div className="save-option">
+                <div className="panel-label">PRINT SHEET &middot; {translate("save4x6Text").toUpperCase()}</div>
                 {
                   image4x6Src &&
                   <img src={image4x6Src} alt="Save print sheet preview" className="save-preview" height={editorDimensions.height * editorDimensions.zoom / 2} width={editorDimensions.width * editorDimensions.zoom / 2} />
                 }
-                <p className="save-text" >{translate("save4x6Text")}</p>
                 <select
                   aria-label={translate("sheetSizeLabel")}
                   className="sheet-size-select"
@@ -1747,7 +1807,7 @@ const SaveModal = ({
                 <div
                   role="button"
                   disabled={!image4x6Src}
-                  className="save-option-button"
+                  className="save-option-button save-option-secondary"
                   onClick={() => {
                     image4x6Src && handleSaveSheet(image4x6Src, `${sheetSize.key}-image.jpeg`)
                     ReactGA.event({
@@ -1760,7 +1820,13 @@ const SaveModal = ({
               </div>}
             </div>)}
           </div>
-          <footer>
+          {!isSaveLoading && !digitalOnly && (
+            <div className="done-tip">
+              <strong>Printing tip.</strong> Take the print-sheet file to any pharmacy or supermarket kiosk and ask for a standard photo print at the sheet size you picked &mdash; then cut along the guides. It usually costs under a dollar.
+            </div>
+          )}
+          <footer className="done-footer">
+            <a href="/photos/" className="done-link">Check another country's rules</a>
             <button onClick={() => setModals((prevModals) => ({ ...prevModals, save: false }))}>OK</button>
           </footer>
         </article>
@@ -2125,9 +2191,13 @@ const App = () => {
         <div className="container top-chrome" ref={navRef}>
           <NavBar
             translate={translate}
+            translateObject={translateObject}
+            template={template}
             photo={photo}
+            croppedImage={croppedImage}
             theme={theme}
             setTheme={setTheme}
+            setModals={setModals}
           />
           <EditorBar
             template={template}
@@ -2207,6 +2277,9 @@ const App = () => {
             exportPhoto={exportPhoto}
             setExportPhoto={setExportPhoto}
             translate={translate}
+            translateObject={translateObject}
+            template={template}
+            selectTemplate={selectTemplate}
             setModals={setModals}
           />
           <SaveModal

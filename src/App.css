@@ -142,6 +142,47 @@ nav {
   filter: brightness(1.08);
 }
 
+.nav-cta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.nav-secondary {
+  background: transparent !important;
+  color: var(--ink-color) !important;
+  border: 1px solid var(--pico-card-border-color) !important;
+  border-radius: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.nav-secondary:hover {
+  background: var(--pico-chip-color, rgba(128, 128, 128, 0.12)) !important;
+}
+
+/* Editor header extras (mockup 3b) */
+.session-chip {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--pico-muted-color);
+  border: 1px solid var(--pico-card-border-color);
+  padding: 5px 8px;
+  white-space: nowrap;
+}
+
+.nav-doc-name {
+  font-size: 13px;
+  color: var(--pico-muted-color);
+  white-space: nowrap;
+}
+
 @media (max-width: 1100px) {
   .nav-tagline {
     display: none;
@@ -176,6 +217,36 @@ nav {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+/* Right-panel sections (mockup 3b): mono section label over the control,
+   hairline below, mono spec readout under the document picker. */
+.panel-section {
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--pico-hair-color);
+}
+
+.panel-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--pico-muted-color);
+  margin-bottom: 10px;
+}
+
+.panel-section .template-select {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.panel-specs {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  color: var(--pico-muted-color);
 }
 
 /* Empty state: hero copy left, upload dropzone right - one wide row like
@@ -1134,10 +1205,110 @@ label.color-reset:hover {
 .sheet-size-select {
   width: auto;
   margin: 0.5em;
+  border-radius: 0;
 }
 
 .save-option-button {
   margin: 0.5em;
+  border-radius: 0;
+  font-family: var(--font-heading);
+  font-weight: 800;
+}
+
+/* Done screen (mockup 3d) */
+.done-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.done-header {
+  background: #ec3013;
+  color: #fff;
+  padding: 24px 26px;
+}
+
+.done-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.done-header p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.done-card .save-option-container {
+  padding: 18px 16px 0;
+}
+
+.done-card .save-option {
+  align-items: stretch;
+  text-align: left;
+  padding: 12px;
+}
+
+.done-card .save-option .panel-label {
+  margin-bottom: 6px;
+}
+
+.save-option-primary {
+  background: var(--pico-primary) !important;
+  color: var(--pico-primary-inverse) !important;
+  border: none !important;
+}
+
+.save-option-secondary {
+  background: transparent !important;
+  color: var(--ink-color) !important;
+  border: 1px solid var(--pico-card-border-color) !important;
+}
+
+.done-tip {
+  margin: 10px 26px 0;
+  padding-top: 14px;
+  border-top: 2px solid var(--pico-card-border-color);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--pico-muted-color);
+}
+
+.done-tip strong {
+  font-family: var(--font-heading);
+  color: var(--pico-color);
+}
+
+.done-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 26px 20px;
+  margin: 0;
+  border: none;
+  background: transparent;
+}
+
+.done-footer button {
+  width: auto;
+  margin: 0;
+  border-radius: 0;
+  font-family: var(--font-heading);
+  font-weight: 800;
+}
+
+.done-link {
+  font-size: 13px;
+  color: var(--pico-primary-hover, var(--pico-primary));
+  text-decoration: none;
+}
+
+.done-link:hover {
+  color: var(--pico-primary);
+  text-decoration: underline;
 }
 
 .disable-scroll {

@@ -1413,13 +1413,39 @@ function renderAlterationPolicy(template) {
 `
 }
 
+// "Do and don't" two-column grid (design mockup 3c) - a terser, scannable
+// recut of the same guidance GENERIC_CHECKLIST carries in prose.
+const DO_LIST = [
+  'Face the camera square-on with a neutral expression',
+  'Use even, front-on lighting with no shadow behind you',
+  'Wear normal everyday clothing',
+  'Print on photo-quality matte or glossy paper',
+]
+const DONT_LIST = [
+  "Don't use filters, beauty modes or AI edits",
+  "Don't wear glasses, hats or headphones unless religious or medical rules apply",
+  "Don't submit a selfie taken at arm's length",
+  "Don't crop a group photo down to your face",
+]
+
 function renderChecklist() {
   return `
-<h2>General photo rules</h2>
+<h2>Do and don't</h2>
+<div class="seo-dodont">
+  <div class="seo-do">
+    <div class="seo-dodont-label seo-dodont-do">DO</div>
+    <ul>
+${DO_LIST.map((item) => `      <li>${escapeHtml(item)}</li>`).join('\n')}
+    </ul>
+  </div>
+  <div class="seo-dont">
+    <div class="seo-dodont-label">DON'T</div>
+    <ul>
+${DONT_LIST.map((item) => `      <li>${escapeHtml(item)}</li>`).join('\n')}
+    </ul>
+  </div>
+</div>
 <p>These apply broadly, but always confirm the specifics for this document on the official source below.</p>
-<ul class="seo-checklist">
-${GENERIC_CHECKLIST.map((item) => `  <li>${escapeHtml(item)}</li>`).join('\n')}
-</ul>
 `
 }
 
@@ -1496,10 +1522,27 @@ function renderPhotoPage(template, content, entries) {
     },
   ]
 
+  // Two-column layout per design mockup 3c: main content left, sidebar
+  // (dimension diagram + ad + related documents) right; stacks on mobile
+  // via .seo-cols in seo.css.
+  const sourceCallout = content.sourceUrl
+    ? `<div class="seo-callout">
+  <div class="seo-callout-title">Official source</div>
+  <p>${escapeHtml(content.sourceLabel)} &mdash; requirements can change; confirm before you submit. <a target="_blank" rel="noreferrer" href="${content.sourceUrl}">${escapeHtml(content.sourceLabel)} &rarr;</a></p>
+</div>`
+    : `<div class="seo-callout">
+  <div class="seo-callout-title">No single official source</div>
+  <p>This document type does not have one consistently published official specification - always confirm the exact requirement with the office processing your application.</p>
+</div>`
+
   const bodyHtml = `
 <nav class="seo-breadcrumb"><a href="/">Home</a> / <a href="/photos/">All countries</a> / ${escapeHtml(content.h1)}</nav>
+<div class="seo-cols">
+<div class="seo-main">
 <h1>${escapeHtml(content.h1)}</h1>
 ${content.intro.map((p) => `<p>${escapeHtml(p)}</p>`).join('\n')}
+<a class="seo-cta" href="${ctaHref}">Make this photo now &rarr;</a>
+<h2>Specification</h2>
 <table class="seo-spec">
   <tbody>
     <tr><th>Photo size</th><td>${spec.widthMm} &times; ${spec.heightMm} mm (${spec.widthIn}" &times; ${spec.heightIn}")</td></tr>
@@ -1508,8 +1551,6 @@ ${content.intro.map((p) => `<p>${escapeHtml(p)}</p>`).join('\n')}
     <tr><th>Format</th><td>${spec.format}</td></tr>
   </tbody>
 </table>
-<img class="seo-diagram" src="${diagramPath}" alt="${escapeHtml(diagramAlt)}" width="640" height="760" loading="lazy">
-<a class="seo-cta" href="${ctaHref}">Make this photo now &rarr;</a>
 ${renderAlterationPolicy(template)}
 ${renderChecklist()}
 ${renderAtHomeSteps()}
@@ -1517,11 +1558,14 @@ ${renderAffiliateSection()}
 ${renderAdSlot('incontent')}
 <h2>Frequently asked questions</h2>
 ${content.faqs.map((f) => `<div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`).join('\n')}
-${content.sourceUrl
-      ? `<p class="seo-source-note">Source: <a target="_blank" rel="noreferrer" href="${content.sourceUrl}">${escapeHtml(content.sourceLabel)}</a>. Requirements change over time - always confirm the current specification before submitting.</p>`
-      : `<p class="seo-source-note">This document type does not have one consistently published official specification - always confirm the exact requirement with the office processing your application.</p>`
-    }
+${sourceCallout}
+</div>
+<aside class="seo-side">
+<img class="seo-diagram" src="${diagramPath}" alt="${escapeHtml(diagramAlt)}" width="640" height="760" loading="lazy">
+${renderAdSlot('incontent')}
 ${renderRelatedCountries(entries, content)}
+</aside>
+</div>
 ${renderAdSlot('footer')}
 `
 

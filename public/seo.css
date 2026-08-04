@@ -225,6 +225,94 @@ table.seo-spec td { font-weight: 600; }
   border-top: 1px solid var(--seo-hair);
 }
 
+/* Two-column country-page layout (design mockup 3c): main + sidebar. */
+main:has(.seo-cols) { max-width: 1040px; }
+
+.seo-cols {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 32px;
+  align-items: start;
+}
+
+.seo-side .seo-diagram { margin: 0 0 1rem; width: 100%; height: auto; }
+.seo-side h2 {
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--seo-muted);
+  border-bottom: none;
+  margin: 1.5rem 0 0.5rem;
+  padding-bottom: 0;
+}
+.seo-side .seo-index-list { grid-template-columns: 1fr; border-left: none; }
+.seo-side .seo-index-list li { border-right: none; }
+.seo-side .seo-index-list a { padding: 0.6rem 0; font-size: 0.85rem; }
+
+@media (max-width: 860px) {
+  .seo-cols { grid-template-columns: 1fr; }
+}
+
+/* Official-source callout: red left rule over a tint field (mockup 3c). */
+.seo-callout {
+  margin-top: 1.5rem;
+  border-left: 3px solid var(--seo-primary);
+  background: var(--seo-tint);
+  padding: 14px 16px;
+}
+
+.seo-callout-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.seo-callout p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--seo-muted);
+}
+
+/* Do / don't grid (mockup 3c). */
+.seo-dodont {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 2px solid var(--seo-rule);
+  margin-bottom: 1rem;
+}
+
+.seo-do { padding: 16px 20px 16px 0; border-right: 1px solid var(--seo-hair); }
+.seo-dont { padding: 16px 0 16px 20px; }
+
+.seo-dodont-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--seo-muted);
+  margin-bottom: 10px;
+}
+
+.seo-dodont-label.seo-dodont-do { color: var(--seo-primary); }
+
+.seo-dodont ul {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--seo-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (max-width: 600px) {
+  .seo-dodont { grid-template-columns: 1fr; }
+  .seo-do { border-right: none; border-bottom: 1px solid var(--seo-hair); padding-right: 0; }
+  .seo-dont { padding-left: 0; }
+}
+
 .seo-index-list {
   list-style: none;
   padding: 0;
