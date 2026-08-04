@@ -37,6 +37,45 @@
   }
 }
 
+/* The standalone static pages (no React on them) have no [data-theme]
+   attribute, so they fall back to the prefers-color-scheme media query
+   above. On the homepage, #seo-content sits under the same <html> the React
+   app's theme toggle stamps data-theme onto (src/App.js) - when a visitor's
+   OS preference and their in-app toggle choice disagree, that attribute
+   must win over the media query, or this block renders unreadable (light
+   text on light ground, or the reverse). Attribute-selector specificity
+   already beats the plain :root inside the media query above, so no
+   !important is needed. */
+:root[data-theme="dark"] {
+  --seo-bg: #171615;
+  --seo-panel: #201e1d;
+  --seo-color: #f3f2f2;
+  --seo-muted: rgba(243, 242, 242, 0.66);
+  --seo-rule: rgba(243, 242, 242, 0.3);
+  --seo-hair: rgba(243, 242, 242, 0.16);
+  --seo-card-bg: #201e1d;
+  --seo-border: rgba(243, 242, 242, 0.3);
+  --seo-tint: rgba(236, 48, 19, 0.16);
+  --seo-primary: #ff563c;
+  --seo-primary-ink: #ff8f7d;
+  --seo-primary-contrast: #ffffff;
+}
+
+:root[data-theme="light"] {
+  --seo-bg: #f3f2f2;
+  --seo-panel: #ffffff;
+  --seo-color: #201e1d;
+  --seo-muted: rgba(32, 30, 29, 0.66);
+  --seo-rule: rgba(32, 30, 29, 0.42);
+  --seo-hair: rgba(32, 30, 29, 0.14);
+  --seo-card-bg: #ffffff;
+  --seo-border: rgba(32, 30, 29, 0.42);
+  --seo-tint: #fbe4e0;
+  --seo-primary: #ec3013;
+  --seo-primary-ink: #a81f0a;
+  --seo-primary-contrast: #ffffff;
+}
+
 * { box-sizing: border-box; }
 
 body {

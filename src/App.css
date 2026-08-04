@@ -40,6 +40,13 @@ html {
   --pico-code-background-color: #262322;
   --canvas-color: #0f0e0e;
   --tint-color: rgba(255, 86, 60, 0.14);
+  /* A copy of --pico-color under a name Pico never reassigns. Pico locally
+     redefines --pico-color to --pico-primary-inverse (white) inside any bare
+     [role=button]/<button> that doesn't carry its .outline/.secondary
+     variant class, assuming a solid accent fill - several buttons here are
+     tinted/outlined instead, so their own text needs the real ink color,
+     not Pico's button-context override. */
+  --ink-color: #f3f2f2;
   --guide-green: #34c076;
   --guide-red: #ef4444;
   --guide-aqua: #22d3ee;
@@ -147,7 +154,7 @@ nav li {
 .load-file-title {
   font-weight: 800;
   font-size: 16px;
-  color: var(--pico-color) !important;
+  color: var(--ink-color) !important;
 }
 
 .load-file-hint {
@@ -396,7 +403,7 @@ label.color-reset:hover {
   line-height: 1;
   background-color: var(--pico-form-element-background-color) !important;
   border: 1px solid var(--pico-card-border-color) !important;
-  color: var(--pico-color) !important;
+  color: var(--ink-color) !important;
   border-radius: 0;
   cursor: pointer;
   transition: border-color 0.15s ease, filter 0.15s ease, transform 0.1s ease;
@@ -819,7 +826,7 @@ label.color-reset:hover {
 
 .load-file-button-compact:hover {
   border-color: var(--pico-primary) !important;
-  color: var(--pico-color) !important;
+  color: var(--ink-color) !important;
 }
 
 /* Primary CTA — the ONLY solid-accent button on the page */
@@ -871,7 +878,7 @@ label.color-reset:hover {
   flex: 1;
   min-width: 0;
   background-color: transparent !important;
-  color: var(--pico-color) !important;
+  color: var(--ink-color) !important;
   border: 1px solid var(--pico-card-border-color) !important;
   border-radius: 0;
   font-weight: 700;
@@ -1003,6 +1010,7 @@ label.color-reset:hover {
   --pico-code-background-color: #eae9e9;
   --canvas-color: #e6e4e3;
   --tint-color: #fbe4e0;
+  --ink-color: #201e1d;
   --guide-green: #16a34a;
   --guide-red: #dc2626;
   --guide-aqua: #0891b2;
