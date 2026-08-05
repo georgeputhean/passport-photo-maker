@@ -1547,6 +1547,7 @@ ${content.intro.map((p) => `<p>${escapeHtml(p)}</p>`).join('\n')}
   <tbody>
     <tr><th>Photo size</th><td>${spec.widthMm} &times; ${spec.heightMm} mm (${spec.widthIn}" &times; ${spec.heightIn}")</td></tr>
     <tr><th>Resolution</th><td>${spec.dpi} DPI (${spec.widthPx} &times; ${spec.heightPx} px)</td></tr>
+    <tr><th>Background</th><td>${escapeHtml(BACKGROUND_LABELS[template.title] || 'See official source below')}</td></tr>
     <tr><th>Max file size</th><td>${spec.maxSizeKb} KB</td></tr>
     <tr><th>Format</th><td>${spec.format}</td></tr>
   </tbody>
@@ -1640,6 +1641,12 @@ ${countryLinks}
 ${renderAdSlot('incontent')}
 <h2>Frequently asked questions</h2>
 ${faqHtml}
+<div class="seo-unsure-card">
+  <div class="seo-unsure-kicker">STILL UNSURE?</div>
+  <div class="seo-unsure-title">Read your country's rule first</div>
+  <p>Every country page lists the official specification and links to the government source it came from.</p>
+  <a class="seo-cta" href="/photos/">Browse countries &rarr;</a>
+</div>
 <p class="seo-source-note">Photo requirements are set by each country’s government and can change. Always confirm the current specification on the official source linked from that country’s page before submitting.</p>
 </div>
 <script type="application/ld+json">${JSON.stringify({

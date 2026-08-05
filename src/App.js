@@ -394,7 +394,7 @@ const THREE_STEPS = [
 ]
 
 const ThreeSteps = () => (
-  <section className="steps-section">
+  <section className="steps-section" id="how-it-works">
     <h2>Three steps. No account.</h2>
     <div className="steps-grid">
       {THREE_STEPS.map((s) => (
@@ -518,7 +518,11 @@ const NavBar = ({ translate, translateObject, template, photo, croppedImage, the
           <li><span className="nav-doc-name">{translateObject(template.title)}</span></li>
         </>
       ) : (
-        <li><a className="nav-link" href="/photos/">Countries</a></li>
+        <>
+          <li><a className="nav-link" href="/photos/">Countries</a></li>
+          <li><a className="nav-link" href="#how-it-works">How it works</a></li>
+          <li><a className="nav-link" href="/privacy-policy.html">Privacy</a></li>
+        </>
       )}
     </ul>
     <ul>

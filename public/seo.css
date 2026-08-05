@@ -253,6 +253,41 @@ main:has(.seo-cols) { max-width: 1040px; }
   .seo-cols { grid-template-columns: 1fr; }
 }
 
+/* "Still unsure?" card beside the homepage FAQ (mockup 3a). */
+.seo-unsure-card {
+  margin-top: 1.5rem;
+  border: 2px solid var(--seo-rule);
+  padding: 18px;
+  max-width: 420px;
+}
+
+.seo-unsure-kicker {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--seo-primary);
+  margin-bottom: 8px;
+}
+
+.seo-unsure-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.1rem;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+.seo-unsure-card p {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--seo-muted);
+}
+
+.seo-unsure-card .seo-cta {
+  margin: 0;
+}
+
 /* Official-source callout: red left rule over a tint field (mockup 3c). */
 .seo-callout {
   margin-top: 1.5rem;
