@@ -2425,10 +2425,29 @@ const App = () => {
           declineButtonText={translate("Disagree")}
           style={{
             alignItems: "center",
-            color: "var(--pico-contrast)",
-            background: "var(--pico-form-element-selected-background-color)"
+            color: "var(--pico-color)",
+            background: "var(--pico-card-background-color)",
+            borderTop: "2px solid var(--pico-card-border-color)",
           }}
-          buttonStyle={{}}
+          // The library's default button styling is its own yellow - restyle
+          // both buttons to the Modernist tokens (solid accent / outlined).
+          buttonStyle={{
+            background: "var(--pico-primary)",
+            color: "var(--pico-primary-inverse)",
+            borderRadius: 0,
+            fontFamily: "var(--font-heading)",
+            fontWeight: 800,
+            padding: "10px 16px",
+          }}
+          declineButtonStyle={{
+            background: "transparent",
+            color: "var(--pico-color)",
+            border: "1px solid var(--pico-card-border-color)",
+            borderRadius: 0,
+            fontFamily: "var(--font-heading)",
+            fontWeight: 700,
+            padding: "10px 16px",
+          }}
         >
           {translate("disclaimer3")}{" "}
           <a href="/privacy-policy.html" style={{ color: "inherit", textDecoration: "underline" }}>{translate("privacyPolicyLink")}</a>
