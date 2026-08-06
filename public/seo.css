@@ -1,24 +1,79 @@
-/* Shared stylesheet for statically generated SEO pages (see scripts/generate-seo.js). */
+/* Shared stylesheet for statically generated SEO pages (see scripts/generate-seo.js)
+   and for the permanent #seo-content block rendered under the editor on the
+   homepage. Modernist design system: flat, architectural, set in Archivo -
+   a single red accent on an ink/paper ground, a visible rule-based grid,
+   zero corner radius, strong 2px dividers. */
 :root {
-  --seo-bg: #ffffff;
-  --seo-color: #14161a;
-  --seo-muted: #5b6270;
-  --seo-card-bg: #f7f7f8;
-  --seo-border: rgba(0, 0, 0, 0.1);
-  --seo-primary: #b8860b;
-  --seo-primary-contrast: #14161a;
+  --seo-bg: #f3f2f2;
+  --seo-panel: #ffffff;
+  --seo-color: #201e1d;
+  --seo-muted: rgba(32, 30, 29, 0.66);
+  --seo-rule: rgba(32, 30, 29, 0.42);
+  --seo-hair: rgba(32, 30, 29, 0.14);
+  --seo-card-bg: #ffffff;
+  --seo-border: rgba(32, 30, 29, 0.42);
+  --seo-tint: #fbe4e0;
+  --seo-primary: #ec3013;
+  --seo-primary-ink: #a81f0a;
+  --seo-primary-contrast: #ffffff;
+  --font-heading: "Archivo", system-ui, sans-serif;
+  --font-body: "Archivo", system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --seo-bg: #12141a;
-    --seo-color: #f2f3f5;
-    --seo-muted: #9aa1ad;
-    --seo-card-bg: #181b22;
-    --seo-border: rgba(255, 255, 255, 0.08);
-    --seo-primary: #f5c518;
-    --seo-primary-contrast: #12141a;
+    --seo-bg: #171615;
+    --seo-panel: #201e1d;
+    --seo-color: #f3f2f2;
+    --seo-muted: rgba(243, 242, 242, 0.66);
+    --seo-rule: rgba(243, 242, 242, 0.3);
+    --seo-hair: rgba(243, 242, 242, 0.16);
+    --seo-card-bg: #201e1d;
+    --seo-border: rgba(243, 242, 242, 0.3);
+    --seo-tint: rgba(236, 48, 19, 0.16);
+    --seo-primary: #ff563c;
+    --seo-primary-ink: #ff8f7d;
+    --seo-primary-contrast: #ffffff;
   }
+}
+
+/* The standalone static pages (no React on them) have no [data-theme]
+   attribute, so they fall back to the prefers-color-scheme media query
+   above. On the homepage, #seo-content sits under the same <html> the React
+   app's theme toggle stamps data-theme onto (src/App.js) - when a visitor's
+   OS preference and their in-app toggle choice disagree, that attribute
+   must win over the media query, or this block renders unreadable (light
+   text on light ground, or the reverse). Attribute-selector specificity
+   already beats the plain :root inside the media query above, so no
+   !important is needed. */
+:root[data-theme="dark"] {
+  --seo-bg: #171615;
+  --seo-panel: #201e1d;
+  --seo-color: #f3f2f2;
+  --seo-muted: rgba(243, 242, 242, 0.66);
+  --seo-rule: rgba(243, 242, 242, 0.3);
+  --seo-hair: rgba(243, 242, 242, 0.16);
+  --seo-card-bg: #201e1d;
+  --seo-border: rgba(243, 242, 242, 0.3);
+  --seo-tint: rgba(236, 48, 19, 0.16);
+  --seo-primary: #ff563c;
+  --seo-primary-ink: #ff8f7d;
+  --seo-primary-contrast: #ffffff;
+}
+
+:root[data-theme="light"] {
+  --seo-bg: #f3f2f2;
+  --seo-panel: #ffffff;
+  --seo-color: #201e1d;
+  --seo-muted: rgba(32, 30, 29, 0.66);
+  --seo-rule: rgba(32, 30, 29, 0.42);
+  --seo-hair: rgba(32, 30, 29, 0.14);
+  --seo-card-bg: #ffffff;
+  --seo-border: rgba(32, 30, 29, 0.42);
+  --seo-tint: #fbe4e0;
+  --seo-primary: #ec3013;
+  --seo-primary-ink: #a81f0a;
+  --seo-primary-contrast: #ffffff;
 }
 
 * { box-sizing: border-box; }
@@ -27,96 +82,128 @@ body {
   margin: 0;
   background: var(--seo-bg);
   color: var(--seo-color);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  line-height: 1.6;
+  font-family: var(--font-body);
+  line-height: 1.55;
 }
 
-a { color: var(--seo-primary); }
+a { color: var(--seo-primary-ink); text-underline-offset: 3px; }
+a:hover { color: var(--seo-primary); }
 
 .seo-header, .seo-footer {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--seo-border);
+  padding: 16px 22px;
+  border-bottom: 2px solid var(--seo-rule);
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 10px;
 }
+
+.seo-header a:not(.seo-brand) {
+  font-size: 13px;
+  color: var(--seo-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+.seo-header a:not(.seo-brand):hover { color: var(--seo-primary); }
 
 .seo-footer {
   border-bottom: none;
-  border-top: 1px solid var(--seo-border);
-  margin-top: 2rem;
-  font-size: 0.9rem;
+  border-top: 2px solid var(--seo-rule);
+  margin-top: 2.5rem;
+  font-size: 12px;
   color: var(--seo-muted);
 }
 
 .seo-brand {
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
   text-decoration: none;
   color: var(--seo-color);
+  font-size: 15px;
+}
+
+.seo-brand .accent {
+  color: var(--seo-primary);
+}
+.seo-brand:hover .accent {
+  color: var(--seo-primary-ink);
 }
 
 main {
   max-width: 720px;
   margin: 0 auto;
-  padding: 1.5rem 1.25rem 3rem;
+  padding: 1.75rem 1.25rem 3rem;
 }
 
 .seo-breadcrumb {
-  font-size: 0.85rem;
+  font-size: 12px;
   color: var(--seo-muted);
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .seo-breadcrumb a { color: var(--seo-muted); }
 
-h1 { font-size: 1.6rem; margin-bottom: 0.75rem; }
-h2 { font-size: 1.2rem; margin-top: 2rem; }
-h3 { font-size: 1.05rem; margin-bottom: 0.25rem; }
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.08;
+}
+h1 { font-size: 2.4rem; margin: 0 0 0.85rem; }
+h2 {
+  font-size: 1.5rem;
+  margin: 2.25rem 0 0.9rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--seo-rule);
+}
+h3 { font-size: 1.05rem; margin: 0 0 0.3rem; }
 
 table.seo-spec {
   width: 100%;
   border-collapse: collapse;
   margin: 1.25rem 0;
-  background: var(--seo-card-bg);
-  border: 1px solid var(--seo-border);
-  border-radius: 8px;
-  overflow: hidden;
+  border-top: 2px solid var(--seo-rule);
 }
 
 table.seo-spec th, table.seo-spec td {
   text-align: left;
-  padding: 0.6rem 0.9rem;
-  border-bottom: 1px solid var(--seo-border);
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--seo-hair);
   font-size: 0.95rem;
 }
 
-table.seo-spec tr:last-child th, table.seo-spec tr:last-child td { border-bottom: none; }
-table.seo-spec th { color: var(--seo-muted); font-weight: 500; width: 40%; }
+table.seo-spec tr:last-child th, table.seo-spec tr:last-child td { border-bottom: 1px solid var(--seo-hair); }
+table.seo-spec th { color: var(--seo-muted); font-weight: 400; width: 44%; }
+table.seo-spec td { font-weight: 600; }
 
 .seo-diagram {
   display: block;
   max-width: 100%;
   height: auto;
   margin: 1.5rem auto;
-  border-radius: 8px;
+  border: 2px solid var(--seo-rule);
 }
 
 .seo-cta {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   margin: 1rem 0 1.5rem;
-  padding: 0.8rem 1.4rem;
+  padding: 0.85rem 1.3rem;
   background: var(--seo-primary);
   color: var(--seo-primary-contrast);
   text-decoration: none;
-  font-weight: 700;
-  border-radius: 8px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.95rem;
 }
+.seo-cta:hover { background: var(--seo-primary-ink); color: var(--seo-primary-contrast); }
 
 .seo-faq-item {
   padding: 1rem 0;
-  border-top: 1px solid var(--seo-border);
+  border-top: 1px solid var(--seo-hair);
 }
 
 .seo-checklist,
@@ -134,24 +221,163 @@ table.seo-spec th { color: var(--seo-muted); font-weight: 500; width: 40%; }
   font-size: 0.85rem;
   color: var(--seo-muted);
   margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--seo-hair);
+}
+
+/* Two-column country-page layout (design mockup 3c): main + sidebar. */
+main:has(.seo-cols) { max-width: 1040px; }
+
+.seo-cols {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 32px;
+  align-items: start;
+}
+
+.seo-side .seo-diagram { margin: 0 0 1rem; width: 100%; height: auto; }
+.seo-side h2 {
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--seo-muted);
+  border-bottom: none;
+  margin: 1.5rem 0 0.5rem;
+  padding-bottom: 0;
+}
+.seo-side .seo-index-list { grid-template-columns: 1fr; border-left: none; }
+.seo-side .seo-index-list li { border-right: none; }
+.seo-side .seo-index-list a { padding: 0.6rem 0; font-size: 0.85rem; }
+
+@media (max-width: 860px) {
+  .seo-cols { grid-template-columns: 1fr; }
+}
+
+/* "Still unsure?" card beside the homepage FAQ (mockup 3a). */
+.seo-unsure-card {
+  margin-top: 1.5rem;
+  border: 2px solid var(--seo-rule);
+  padding: 18px;
+  max-width: 420px;
+}
+
+.seo-unsure-kicker {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--seo-primary);
+  margin-bottom: 8px;
+}
+
+.seo-unsure-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.1rem;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+.seo-unsure-card p {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--seo-muted);
+}
+
+.seo-unsure-card .seo-cta {
+  margin: 0;
+}
+
+/* Official-source callout: red left rule over a tint field (mockup 3c). */
+.seo-callout {
+  margin-top: 1.5rem;
+  border-left: 3px solid var(--seo-primary);
+  background: var(--seo-tint);
+  padding: 14px 16px;
+}
+
+.seo-callout-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.seo-callout p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--seo-muted);
+}
+
+/* Do / don't grid (mockup 3c). */
+.seo-dodont {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 2px solid var(--seo-rule);
+  margin-bottom: 1rem;
+}
+
+.seo-do { padding: 16px 20px 16px 0; border-right: 1px solid var(--seo-hair); }
+.seo-dont { padding: 16px 0 16px 20px; }
+
+.seo-dodont-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--seo-muted);
+  margin-bottom: 10px;
+}
+
+.seo-dodont-label.seo-dodont-do { color: var(--seo-primary); }
+
+.seo-dodont ul {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--seo-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (max-width: 600px) {
+  .seo-dodont { grid-template-columns: 1fr; }
+  .seo-do { border-right: none; border-bottom: 1px solid var(--seo-hair); padding-right: 0; }
+  .seo-dont { padding-left: 0; }
 }
 
 .seo-index-list {
   list-style: none;
   padding: 0;
+  margin: 0;
   display: grid;
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  border-top: 2px solid var(--seo-rule);
+  border-left: 1px solid var(--seo-hair);
 }
+
+.seo-index-list li { border-bottom: 1px solid var(--seo-hair); border-right: 1px solid var(--seo-hair); }
 
 .seo-index-list a {
   display: block;
-  padding: 0.9rem 1.1rem;
-  background: var(--seo-card-bg);
-  border: 1px solid var(--seo-border);
-  border-radius: 8px;
+  padding: 0.85rem 1rem;
   text-decoration: none;
   color: var(--seo-color);
   font-weight: 600;
+  font-size: 0.92rem;
+}
+.seo-index-list a:hover { background: var(--seo-tint); color: var(--seo-color); }
+
+.seo-index-list a small {
+  display: block;
+  margin-top: 0.3rem;
+  font-family: ui-monospace, Menlo, monospace;
+  font-weight: 400;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: var(--seo-muted);
 }
 
 .seo-ad-slot {
@@ -162,18 +388,17 @@ table.seo-spec th { color: var(--seo-muted); font-weight: 500; width: 40%; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--seo-card-bg);
-  border: 1px dashed var(--seo-border);
-  border-radius: 8px;
-  overflow: hidden;
+  background: transparent;
+  border: 1px dashed var(--seo-rule);
 }
 
 .seo-ad-label {
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--seo-muted);
   margin-bottom: 0.4rem;
+  font-weight: 600;
 }
 
 .seo-disclosure {
@@ -193,14 +418,13 @@ table.seo-spec th { color: var(--seo-muted); font-weight: 500; width: 40%; }
 .seo-affiliate-list a {
   display: inline-block;
   padding: 0.5rem 0.9rem;
-  background: var(--seo-card-bg);
   border: 1px solid var(--seo-border);
-  border-radius: 999px;
   text-decoration: none;
   color: var(--seo-color);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
+.seo-affiliate-list a:hover { background: var(--seo-tint); color: var(--seo-color); }
 
 .seo-consent-banner {
   position: fixed;
@@ -211,10 +435,8 @@ table.seo-spec th { color: var(--seo-muted); font-weight: 500; width: 40%; }
   max-width: 640px;
   margin: 0 auto;
   padding: 1rem 1.25rem;
-  background: var(--seo-card-bg);
-  border: 1px solid var(--seo-border);
-  border-radius: 10px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  background: var(--seo-panel);
+  border: 2px solid var(--seo-rule);
   font-size: 0.9rem;
 }
 
@@ -227,17 +449,29 @@ table.seo-spec th { color: var(--seo-muted); font-weight: 500; width: 40%; }
 }
 
 .seo-consent-actions button {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 0.55rem 1rem;
   border: 1px solid var(--seo-border);
   background: transparent;
   color: var(--seo-color);
+  font-family: var(--font-body);
   font-weight: 600;
   cursor: pointer;
 }
+.seo-consent-actions button:hover { background: var(--seo-tint); }
 
 .seo-consent-actions button#seo-consent-accept {
   background: var(--seo-primary);
   color: var(--seo-primary-contrast);
   border-color: var(--seo-primary);
+}
+.seo-consent-actions button#seo-consent-accept:hover { background: var(--seo-primary-ink); }
+
+/* #seo-content is the same crawler-visible block rendered permanently under
+   the React editor on the homepage (see public/index.html): it isn't wrapped
+   in a <main>, so it needs the same reading-column treatment applied directly. */
+#seo-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 3.5rem;
+  border-top: 2px solid var(--seo-rule);
 }

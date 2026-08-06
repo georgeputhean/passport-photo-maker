@@ -1370,6 +1370,9 @@ function renderLayout({ title, description, canonicalPath, ldJson, bodyHtml, ogI
 <meta name="description" content="${escapeHtml(description)}">
 <link rel="canonical" href="${canonicalUrl}">
 <link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/seo.css">
 <meta property="og:title" content="${escapeHtml(title)}">
 <meta property="og:description" content="${escapeHtml(description)}">
@@ -1384,7 +1387,7 @@ ${(ldJson || []).map((obj) => `<script type="application/ld+json">${JSON.stringi
 </head>
 <body>
 <header class="seo-header">
-  <a class="seo-brand" href="/">Passport &amp; Visa Photo Maker</a>
+  <a class="seo-brand" href="/" aria-label="Passport &amp; Visa Photo Maker">PASSPORT<span class="accent">PHOTO</span>EDIT</a>
   <a href="/">Open the photo editor &rarr;</a>
 </header>
 <main>
@@ -1410,13 +1413,39 @@ function renderAlterationPolicy(template) {
 `
 }
 
+// "Do and don't" two-column grid (design mockup 3c) - a terser, scannable
+// recut of the same guidance GENERIC_CHECKLIST carries in prose.
+const DO_LIST = [
+  'Face the camera square-on with a neutral expression',
+  'Use even, front-on lighting with no shadow behind you',
+  'Wear normal everyday clothing',
+  'Print on photo-quality matte or glossy paper',
+]
+const DONT_LIST = [
+  "Don't use filters, beauty modes or AI edits",
+  "Don't wear glasses, hats or headphones unless religious or medical rules apply",
+  "Don't submit a selfie taken at arm's length",
+  "Don't crop a group photo down to your face",
+]
+
 function renderChecklist() {
   return `
-<h2>General photo rules</h2>
+<h2>Do and don't</h2>
+<div class="seo-dodont">
+  <div class="seo-do">
+    <div class="seo-dodont-label seo-dodont-do">DO</div>
+    <ul>
+${DO_LIST.map((item) => `      <li>${escapeHtml(item)}</li>`).join('\n')}
+    </ul>
+  </div>
+  <div class="seo-dont">
+    <div class="seo-dodont-label">DON'T</div>
+    <ul>
+${DONT_LIST.map((item) => `      <li>${escapeHtml(item)}</li>`).join('\n')}
+    </ul>
+  </div>
+</div>
 <p>These apply broadly, but always confirm the specifics for this document on the official source below.</p>
-<ul class="seo-checklist">
-${GENERIC_CHECKLIST.map((item) => `  <li>${escapeHtml(item)}</li>`).join('\n')}
-</ul>
 `
 }
 
@@ -1493,20 +1522,36 @@ function renderPhotoPage(template, content, entries) {
     },
   ]
 
+  // Two-column layout per design mockup 3c: main content left, sidebar
+  // (dimension diagram + ad + related documents) right; stacks on mobile
+  // via .seo-cols in seo.css.
+  const sourceCallout = content.sourceUrl
+    ? `<div class="seo-callout">
+  <div class="seo-callout-title">Official source</div>
+  <p>${escapeHtml(content.sourceLabel)} &mdash; requirements can change; confirm before you submit. <a target="_blank" rel="noreferrer" href="${content.sourceUrl}">${escapeHtml(content.sourceLabel)} &rarr;</a></p>
+</div>`
+    : `<div class="seo-callout">
+  <div class="seo-callout-title">No single official source</div>
+  <p>This document type does not have one consistently published official specification - always confirm the exact requirement with the office processing your application.</p>
+</div>`
+
   const bodyHtml = `
 <nav class="seo-breadcrumb"><a href="/">Home</a> / <a href="/photos/">All countries</a> / ${escapeHtml(content.h1)}</nav>
+<div class="seo-cols">
+<div class="seo-main">
 <h1>${escapeHtml(content.h1)}</h1>
 ${content.intro.map((p) => `<p>${escapeHtml(p)}</p>`).join('\n')}
+<a class="seo-cta" href="${ctaHref}">Make this photo now &rarr;</a>
+<h2>Specification</h2>
 <table class="seo-spec">
   <tbody>
     <tr><th>Photo size</th><td>${spec.widthMm} &times; ${spec.heightMm} mm (${spec.widthIn}" &times; ${spec.heightIn}")</td></tr>
     <tr><th>Resolution</th><td>${spec.dpi} DPI (${spec.widthPx} &times; ${spec.heightPx} px)</td></tr>
+    <tr><th>Background</th><td>${escapeHtml(BACKGROUND_LABELS[template.title] || 'See official source below')}</td></tr>
     <tr><th>Max file size</th><td>${spec.maxSizeKb} KB</td></tr>
     <tr><th>Format</th><td>${spec.format}</td></tr>
   </tbody>
 </table>
-<img class="seo-diagram" src="${diagramPath}" alt="${escapeHtml(diagramAlt)}" width="640" height="760" loading="lazy">
-<a class="seo-cta" href="${ctaHref}">Make this photo now &rarr;</a>
 ${renderAlterationPolicy(template)}
 ${renderChecklist()}
 ${renderAtHomeSteps()}
@@ -1514,11 +1559,14 @@ ${renderAffiliateSection()}
 ${renderAdSlot('incontent')}
 <h2>Frequently asked questions</h2>
 ${content.faqs.map((f) => `<div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`).join('\n')}
-${content.sourceUrl
-      ? `<p class="seo-source-note">Source: <a target="_blank" rel="noreferrer" href="${content.sourceUrl}">${escapeHtml(content.sourceLabel)}</a>. Requirements change over time - always confirm the current specification before submitting.</p>`
-      : `<p class="seo-source-note">This document type does not have one consistently published official specification - always confirm the exact requirement with the office processing your application.</p>`
-    }
+${sourceCallout}
+</div>
+<aside class="seo-side">
+<img class="seo-diagram" src="${diagramPath}" alt="${escapeHtml(diagramAlt)}" width="640" height="760" loading="lazy">
+${renderAdSlot('incontent')}
 ${renderRelatedCountries(entries, content)}
+</aside>
+</div>
 ${renderAdSlot('footer')}
 `
 
@@ -1561,15 +1609,21 @@ const HOME_FAQS = [
 
 function renderHomepageSeoBlock(entries) {
   const countryLinks = entries
-    .map((e) => `    <li><a href="/photos/${e.content.slug}.html">${escapeHtml(e.content.h1)}</a></li>`)
+    .map((e) => {
+      const spec = deriveSpec(e.template)
+      const label = e.content.h1.replace(' Size and Requirements', '')
+      return `    <li><a href="/photos/${e.content.slug}.html">${escapeHtml(label)}<br><small>${spec.widthMm} &times; ${spec.heightMm} mm &middot; ${spec.dpi} DPI</small></a></li>`
+    })
     .join('\n')
 
   const faqHtml = HOME_FAQS
     .map((f) => `  <div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`)
     .join('\n')
 
+  // h2, not h1 - the React hero above this block (src/App.js, only rendered
+  // once React mounts and no photo is loaded yet) owns the page's one <h1>.
   return `<div id="seo-content">
-<h1>Free Passport Photo Editor</h1>
+<h2 class="seo-content-title">Free Passport Photo Editor</h2>
 <p><strong>Passport &amp; Visa Photo Maker</strong> is a free online passport photo editor: upload a photo and get the exact 2x2 (51x51mm) size, background, and DPI for ${entries.length} countries and document types, with an option to remove the background automatically - all processed locally in your browser, never uploaded to a server.</p>
 <h2>How it works</h2>
 <ol class="seo-steps">
@@ -1584,8 +1638,15 @@ function renderHomepageSeoBlock(entries) {
 ${countryLinks}
 </ul>
 <a class="seo-cta" href="/photos/">See full requirements for every country &rarr;</a>
+${renderAdSlot('incontent')}
 <h2>Frequently asked questions</h2>
 ${faqHtml}
+<div class="seo-unsure-card">
+  <div class="seo-unsure-kicker">STILL UNSURE?</div>
+  <div class="seo-unsure-title">Read your country's rule first</div>
+  <p>Every country page lists the official specification and links to the government source it came from.</p>
+  <a class="seo-cta" href="/photos/">Browse countries &rarr;</a>
+</div>
 <p class="seo-source-note">Photo requirements are set by each country’s government and can change. Always confirm the current specification on the official source linked from that country’s page before submitting.</p>
 </div>
 <script type="application/ld+json">${JSON.stringify({

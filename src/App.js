@@ -202,6 +202,7 @@ const LoadPhotoButton = ({ onPhotoLoad, title, compact }) => {
           className="load-file-button"
           onClick={handleClickBrowse}
         >
+          <div className="load-file-scanline" aria-hidden="true" />
           <svg className="load-file-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 15.5V4M12 4L7.5 8.5M12 4l4.5 4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M4.5 15.5v2.75A1.75 1.75 0 006.25 20h11.5a1.75 1.75 0 001.75-1.75V15.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
@@ -278,18 +279,287 @@ const ThemeToggle = ({ theme, setTheme }) => (
   </div>
 )
 
-const NavBar = ({
-  template,
-  selectTemplate,
-  exportPhoto,
-  translate,
-  translateObject,
-  photo,
-  croppedImage,
-  theme,
-  setTheme,
-  navRef,
-}) => {
+// Marketing header shown above the editor before a photo is loaded. The
+// upload dropzone itself lives in MiddleColumn (LoadPhotoButton) - this only
+// adds the headline/subcopy and a spec strip read from the selected template,
+// so switching documents in NavBar updates real numbers here too.
+const Hero = ({ template }) => (
+  <section className="hero">
+    <div className="hero-kicker">21 DOCUMENTS &middot; OFFICIAL SPECS &middot; UPDATED 2026</div>
+    <h1 className="hero-title">A passport photo<br />that gets accepted.<br /><span className="accent">In 30 seconds.</span></h1>
+    <p className="hero-sub">Drop a photo below. We line it up to the official guides for your chosen document and crop to the exact millimetre &mdash; free, no watermark, and nothing ever leaves your device.</p>
+    <div className="hero-specs">
+      <div className="hero-spec">
+        <span className="hero-spec-label">Size</span>
+        <span className="hero-spec-value">{template.width} &times; {template.height} mm</span>
+      </div>
+      <div className="hero-spec">
+        <span className="hero-spec-label">Resolution</span>
+        <span className="hero-spec-value">{template.dpi} DPI</span>
+      </div>
+      <div className="hero-spec">
+        <span className="hero-spec-label">Max file</span>
+        <span className="hero-spec-value">{template.size} KB</span>
+      </div>
+    </div>
+  </section>
+)
+
+const TRUST_ITEMS = [
+  {
+    text: 'Photo never uploaded',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
+  },
+  {
+    text: 'No signup, no watermark',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg>,
+  },
+  {
+    text: 'Ready in about 30 seconds',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>,
+  },
+  {
+    text: 'Free 4×6 print sheet',
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7" /><rect x="6" y="14" width="12" height="8" /><path d="M6 18H2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5h-4" /></svg>,
+  },
+]
+
+const TrustBar = () => (
+  <div className="trust-bar">
+    {TRUST_ITEMS.map((item) => (
+      <div className="trust-item" key={item.text}>{item.icon}<span>{item.text}</span></div>
+    ))}
+  </div>
+)
+
+// In-app ad slots (mockup 3a's 970x90 leaderboard, 3b's 300x250 box).
+// Same convention as generate-seo.js's renderAdSlot: with no valid AdSense
+// client ID, production renders nothing and dev shows a dashed placeholder
+// so the layout is previewable. When configured, mounts a real responsive
+// adsbygoogle unit (the loader script is injected by App on consent).
+const rawAdClientId = process.env.REACT_APP_ADSENSE_CLIENT_ID || ''
+const AD_CLIENT_ID = /^ca-pub-\d+$/.test(rawAdClientId) ? rawAdClientId : ''
+const AD_SLOT_INCONTENT = /^\d+$/.test(process.env.REACT_APP_ADSENSE_SLOT_INCONTENT || '') ? process.env.REACT_APP_ADSENSE_SLOT_INCONTENT : ''
+
+const AdSlot = ({ variant }) => {
+  const configured = AD_CLIENT_ID && AD_SLOT_INCONTENT
+  useEffect(() => {
+    if (!configured) return
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({})
+    } catch (e) { /* loader blocked or not yet consented - the empty ins is harmless */ }
+  }, [configured])
+
+  if (!configured) {
+    if (process.env.NODE_ENV === 'production') return null
+    return (
+      <div className={`ad-slot ad-slot-${variant}`}>
+        AD SLOT &middot; {variant === 'leaderboard' ? '970×90 LEADERBOARD' : '300×250'}
+      </div>
+    )
+  }
+  return (
+    <div className={`ad-slot-live ad-slot-${variant}`}>
+      <ins
+        className="adsbygoogle"
+        style={{ display: 'block' }}
+        data-ad-client={AD_CLIENT_ID}
+        data-ad-slot={AD_SLOT_INCONTENT}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+    </div>
+  )
+}
+
+// "Three steps. No account." section from mockup 3a - copy adapted to what
+// this app actually does (guide-band cropping; background removal is an
+// option, not automatic).
+const THREE_STEPS = [
+  {
+    n: '01',
+    title: 'Pick the document',
+    text: 'US passport, UK, India, an OCI card, a Mexico TN visa - each carries its own official size, DPI and background rule.',
+  },
+  {
+    n: '02',
+    title: 'Drop a photo',
+    text: 'Line your face up with the document’s official guide bands - or let Auto Align do it - and remove the background with one click if you need to.',
+  },
+  {
+    n: '03',
+    title: 'Download or print',
+    text: 'Take the single sized photo for an online application, or a 4×6 sheet with multiple copies to print at any pharmacy kiosk.',
+  },
+]
+
+const ThreeSteps = () => (
+  <section className="steps-section" id="how-it-works">
+    <h2>Three steps. No account.</h2>
+    <div className="steps-grid">
+      {THREE_STEPS.map((s) => (
+        <div className="steps-cell" key={s.n}>
+          <div className="steps-num">{s.n}</div>
+          <h4>{s.title}</h4>
+          <p>{s.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+)
+
+// The red poster statement from mockup 3a - the one place the accent runs as
+// a full field, per the Modernist readme ("the deck's section dividers and
+// the landing's closing banner").
+const PosterBanner = () => (
+  <section className="poster-banner">
+    <div className="poster-title">YOUR FACE<br />NEVER LEAVES<br />THIS DEVICE.</div>
+    <div className="poster-body">
+      <p>Background removal and face alignment run on models downloaded into your browser. The photo itself is never sent anywhere &mdash; there is no server to send it to. Close the tab and it is gone.</p>
+      <a className="poster-cta" href="/privacy-policy.html">Read the privacy policy &rarr;</a>
+    </div>
+  </section>
+)
+
+// Decorative "drag to compare" panel illustrating the alignment concept.
+// Deliberately not wired to the user's own photo - it's marketing copy, shown
+// only in the empty state, using the same placeholder-shape approach as the
+// source design mockup rather than a fabricated real "after" result.
+const CompareSlider = () => {
+  const sliderRef = useRef(null)
+  const draggingRef = useRef(false)
+  const [pct, setPct] = useState(56)
+
+  const updateFromClientX = (clientX) => {
+    const el = sliderRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const next = Math.max(2, Math.min(98, ((clientX - rect.left) / rect.width) * 100))
+    setPct(next)
+  }
+
+  const onPointerDown = (e) => {
+    draggingRef.current = true
+    e.currentTarget.setPointerCapture(e.pointerId)
+    updateFromClientX(e.clientX)
+  }
+  const onPointerMove = (e) => {
+    if (!draggingRef.current) return
+    updateFromClientX(e.clientX)
+  }
+  const onPointerUp = () => { draggingRef.current = false }
+
+  return (
+    <div
+      ref={sliderRef}
+      className="compare-slider"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      role="slider"
+      aria-label="Drag to compare before and after alignment"
+      aria-valuenow={Math.round(pct)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
+      <div className="compare-pane">
+        <div className="compare-shape-head" />
+        <div className="compare-shape-shoulders" />
+        <span className="compare-label">Before</span>
+      </div>
+      <div className="compare-after" style={{ width: `${pct}%` }}>
+        <div className="compare-pane" style={{ background: 'var(--pico-card-background-color)' }}>
+          <div className="compare-shape-head" style={{ top: '11%' }} />
+          <div className="compare-shape-shoulders" />
+          <div className="compare-guide-band" />
+          <span className="compare-label">After &mdash; aligned to guide</span>
+        </div>
+      </div>
+      <div className="compare-handle" style={{ left: `${pct}%` }} />
+      <div className="compare-grip" style={{ left: `${pct}%` }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 6l-6 6 6 6" /><path d="M15 6l6 6-6 6" /></svg>
+      </div>
+    </div>
+  )
+}
+
+const CompareShowcase = () => (
+  <section className="compare-section">
+    <div className="compare-copy">
+      <div className="compare-kicker">Drag to compare</div>
+      <h2>The alignment is the hard part.<br />We do it for you.</h2>
+      <p>Most rejections come from head size and eye position, not image quality. The editor draws the document's official guide bands over your face so you can see exactly where the crop needs to land.</p>
+      <ul className="compare-list">
+        <li>Head height and eye line checked against the document's own guide</li>
+        <li>Alignment guides drawn directly over your photo as you crop</li>
+        <li>Exported at the exact pixel size the document requires</li>
+      </ul>
+    </div>
+    <CompareSlider />
+  </section>
+)
+
+// Two headers, one component (mockup 3a vs 3b). Homepage: brand, links,
+// tagline, CTA. Editor (photo loaded): brand, SESSION - LOCAL ONLY chip,
+// document name, Start over + Download actions.
+const NavBar = ({ translate, translateObject, template, photo, croppedImage, theme, setTheme, setModals }) => (
+  <nav>
+    <ul>
+      <li>
+        <div className="nav-brand" aria-label={translate("app.title")}>
+          <span className="nav-logo-badge">P</span>
+          <strong className="wordmark">PASSPORT<span className="accent">PHOTO</span>EDIT</strong>
+        </div>
+      </li>
+      {photo ? (
+        <>
+          <li><span className="session-chip">SESSION &middot; LOCAL ONLY</span></li>
+          <li><span className="nav-doc-name">{translateObject(template.title)}</span></li>
+        </>
+      ) : (
+        <>
+          <li><a className="nav-link" href="/photos/">Countries</a></li>
+          <li><a className="nav-link" href="#how-it-works">How it works</a></li>
+          <li><a className="nav-link" href="/privacy-policy.html">Privacy</a></li>
+        </>
+      )}
+    </ul>
+    <ul>
+      {!photo && <li className="nav-tagline">FREE &middot; NO SIGNUP &middot; NO WATERMARK</li>}
+      <li><ThemeToggle theme={theme} setTheme={setTheme} /></li>
+      {photo ? (
+        <>
+          <li>
+            <button
+              className="nav-secondary"
+              onClick={() => window.location.reload()}
+            >Start over</button>
+          </li>
+          <li>
+            <button
+              className="nav-cta"
+              disabled={!croppedImage}
+              onClick={() => setModals((prev) => ({ ...prev, save: true }))}
+            >Download &rarr;</button>
+          </li>
+        </>
+      ) : (
+        <li>
+          <button
+            className="nav-cta"
+            onClick={() => document.getElementById('selectedFile')?.click()}
+          >Make a photo</button>
+        </li>
+      )}
+    </ul>
+  </nav>
+)
+
+// Document picker: template select + custom-size inputs. Lives in the
+// EditorBar before a photo exists, and in the right panel's DOCUMENT
+// section while editing (mockup 3b).
+const DocumentPicker = ({ template, selectTemplate, translate, translateObject }) => {
 
   const handleTemplateChange = (event) => {
     const selectedTemplateTitle = event.target.value
@@ -323,63 +593,73 @@ const NavBar = ({
   }
 
   return (
-    <nav ref={navRef}>
-      <ul>
-        <li>
-          <div className="nav-brand">
-            <span className="nav-logo-badge">P</span>
-            <strong>{translate("app.title")}</strong>
-          </div>
-        </li>
-      </ul>
-      <ul>
-        <li><StepIndicator photo={photo} croppedImage={croppedImage} /></li>
-      </ul>
-      <ul>
-        <li>
-          <select
-            aria-label="Templates"
-            required
-            className="template-select"
-            value={translateObject(template.title)}
-            onChange={handleTemplateChange}
-          >
-            {TEMPLATES.map((template, index) => (
-              <option key={index} value={translateObject(template.title)}>{getTemplateFlag(translateObject(template.title))} {translateObject(template.title)}</option>
-            ))}
-          </select>
-        </li>
-        {isCustomSize && (
-          <li className="custom-size-inputs">
-            <label>
-              <small>{translate("customWidthLabel")}</small>
-              <input
-                type="number"
-                inputMode="decimal"
-                aria-label="Custom width in millimeters"
-                aria-invalid={!isDraftValid('width')}
-                value={customDraft.width}
-                onChange={handleCustomDimensionChange('width')}
-              />
-            </label>
-            <label>
-              <small>{translate("customHeightLabel")}</small>
-              <input
-                type="number"
-                inputMode="decimal"
-                aria-label="Custom height in millimeters"
-                aria-invalid={!isDraftValid('height')}
-                value={customDraft.height}
-                onChange={handleCustomDimensionChange('height')}
-              />
-            </label>
-          </li>
-        )}
-        <li><ThemeToggle theme={theme} setTheme={setTheme} /></li>
-      </ul>
-    </nav>
+    <>
+      <select
+        aria-label="Templates"
+        required
+        className="template-select"
+        value={translateObject(template.title)}
+        onChange={handleTemplateChange}
+      >
+        {TEMPLATES.map((template, index) => (
+          <option key={index} value={translateObject(template.title)}>{getTemplateFlag(translateObject(template.title))} {translateObject(template.title)}</option>
+        ))}
+      </select>
+      {isCustomSize && (
+        <div className="custom-size-inputs">
+          <label>
+            <small>{translate("customWidthLabel")}</small>
+            <input
+              type="number"
+              inputMode="decimal"
+              aria-label="Custom width in millimeters"
+              aria-invalid={!isDraftValid('width')}
+              value={customDraft.width}
+              onChange={handleCustomDimensionChange('width')}
+            />
+          </label>
+          <label>
+            <small>{translate("customHeightLabel")}</small>
+            <input
+              type="number"
+              inputMode="decimal"
+              aria-label="Custom height in millimeters"
+              aria-invalid={!isDraftValid('height')}
+              value={customDraft.height}
+              onChange={handleCustomDimensionChange('height')}
+            />
+          </label>
+        </div>
+      )}
+    </>
   )
 }
+
+// Editor chrome bar below the nav: step indicator on the left; the document
+// picker rides here only before a photo exists (it drives the hero's spec
+// strip) - once editing starts it moves to the right panel per mockup 3b.
+const EditorBar = ({
+  template,
+  selectTemplate,
+  translate,
+  translateObject,
+  photo,
+  croppedImage,
+}) => (
+  <div className="editor-bar">
+    <StepIndicator photo={photo} croppedImage={croppedImage} />
+    {!photo && (
+      <div className="editor-bar-right">
+        <DocumentPicker
+          template={template}
+          selectTemplate={selectTemplate}
+          translate={translate}
+          translateObject={translateObject}
+        />
+      </div>
+    )}
+  </div>
+)
 
 const LeftColumn = ({
   photo,
@@ -1262,6 +1542,9 @@ const RightColumn = ({
   exportPhoto,
   setExportPhoto,
   translate,
+  translateObject,
+  template,
+  selectTemplate,
   setModals,
 }) => {
 
@@ -1320,6 +1603,20 @@ const RightColumn = ({
       {croppedImage && (
         <>
           <article className="preview-container">
+            <div className="panel-section">
+              <div className="panel-label">DOCUMENT</div>
+              <DocumentPicker
+                template={template}
+                selectTemplate={selectTemplate}
+                translate={translate}
+                translateObject={translateObject}
+              />
+              <div className="panel-specs">
+                <span>{template.width}&times;{template.height} MM</span>
+                <span>{template.dpi} DPI</span>
+                <span>MAX {template.size} KB</span>
+              </div>
+            </div>
             <img src={croppedImage} alt="Cropped preview" className="cropped-preview" />
             <div className="export-panel">
               <div className='export-container'>
@@ -1375,6 +1672,7 @@ const RightColumn = ({
                 }}
               >{translate("saveTitle")}</div>
               <LoadPhotoButton onPhotoLoad={onPhotoLoad} title={translate("loadNewPhotoButton")} compact />
+              <AdSlot variant="box" />
             </div>
           </article>
         </>
@@ -1514,17 +1812,20 @@ const SaveModal = ({
           text1={translate("anmiatedText1")}
           text2={translate("anmiatedText2")}
         /> */}
-        <article>
-          <h2>{isSaveLoading ? translate("saveGenerating") : translate("saveTitle")}</h2>
+        <article className="done-card">
+          <div className="done-header">
+            <div className="done-title">{isSaveLoading ? translate("saveGenerating").toUpperCase() : 'DONE.'}</div>
+            <p>Your photo is sized, aligned and ready. Nothing was uploaded.</p>
+          </div>
           <div aria-busy={isSaveLoading} >
             {!isSaveLoading && (<div className="save-option-container">
               <div className="save-option">
+                <div className="panel-label">SINGLE PHOTO &middot; {translate("saveSingleText").toUpperCase()}</div>
                 <img src={imageSingleSrc || croppedImage} alt="Save preview" className="save-preview" height={editorDimensions.height * editorDimensions.zoom / 2} width={editorDimensions.width * editorDimensions.zoom / 2} />
-                <p className="save-text" >{translate("saveSingleText")}</p>
                 {singleBelowMinSize && <p className="save-text save-warning">{translate("belowMinSizeWarning")}</p>}
                 <div
                   role="button"
-                  className="save-option-button"
+                  className="save-option-button save-option-primary"
                   disabled={!imageSingleSrc}
                   onClick={() => {
                     imageSingleSrc && handleSaveSingle(imageSingleSrc)
@@ -1537,11 +1838,11 @@ const SaveModal = ({
                 >{translate("saveSingle")}</div>
               </div>
               {!digitalOnly && <div className="save-option">
+                <div className="panel-label">PRINT SHEET &middot; {translate("save4x6Text").toUpperCase()}</div>
                 {
                   image4x6Src &&
                   <img src={image4x6Src} alt="Save print sheet preview" className="save-preview" height={editorDimensions.height * editorDimensions.zoom / 2} width={editorDimensions.width * editorDimensions.zoom / 2} />
                 }
-                <p className="save-text" >{translate("save4x6Text")}</p>
                 <select
                   aria-label={translate("sheetSizeLabel")}
                   className="sheet-size-select"
@@ -1555,7 +1856,7 @@ const SaveModal = ({
                 <div
                   role="button"
                   disabled={!image4x6Src}
-                  className="save-option-button"
+                  className="save-option-button save-option-secondary"
                   onClick={() => {
                     image4x6Src && handleSaveSheet(image4x6Src, `${sheetSize.key}-image.jpeg`)
                     ReactGA.event({
@@ -1568,7 +1869,13 @@ const SaveModal = ({
               </div>}
             </div>)}
           </div>
-          <footer>
+          {!isSaveLoading && !digitalOnly && (
+            <div className="done-tip">
+              <strong>Printing tip.</strong> Take the print-sheet file to any pharmacy or supermarket kiosk and ask for a standard photo print at the sheet size you picked &mdash; then cut along the guides. It usually costs under a dollar.
+            </div>
+          )}
+          <footer className="done-footer">
+            <a href="/photos/" className="done-link">Check another country's rules</a>
             <button onClick={() => setModals((prevModals) => ({ ...prevModals, save: false }))}>OK</button>
           </footer>
         </article>
@@ -1932,20 +2239,28 @@ const App = () => {
   return (
     <div className={`app${photo ? ' app-editing' : ''}`}>
       <div className="frame">
-        <div className="container">
+        <div className="container top-chrome" ref={navRef}>
           <NavBar
-            template={template}
-            selectTemplate={selectTemplate}
-            exportPhoto={exportPhoto}
             translate={translate}
             translateObject={translateObject}
+            template={template}
             photo={photo}
             croppedImage={croppedImage}
             theme={theme}
             setTheme={setTheme}
-            navRef={navRef}
+            setModals={setModals}
+          />
+          <EditorBar
+            template={template}
+            selectTemplate={selectTemplate}
+            translate={translate}
+            translateObject={translateObject}
+            photo={photo}
+            croppedImage={croppedImage}
           />
         </div>
+        <div className={photo ? 'home-wrap' : 'home-wrap home-top'}>
+        {!photo && <Hero template={template} />}
         <div className="container columns-row">
           <LeftColumn
             photo={photo}
@@ -2014,6 +2329,9 @@ const App = () => {
             exportPhoto={exportPhoto}
             setExportPhoto={setExportPhoto}
             translate={translate}
+            translateObject={translateObject}
+            template={template}
+            selectTemplate={selectTemplate}
             setModals={setModals}
           />
           <SaveModal
@@ -2034,6 +2352,16 @@ const App = () => {
             croppedImag={croppedImage}
           />
         </div>
+        </div>
+        {!photo && (
+          <>
+            <TrustBar />
+            <ThreeSteps />
+            <AdSlot variant="leaderboard" />
+            <CompareShowcase />
+            <PosterBanner />
+          </>
+        )}
         <div className="container" ref={footerRef}>
           <Changelog
             translate={translate}
@@ -2076,6 +2404,13 @@ const App = () => {
             >{translate("feedback")}</a>
           </div>
         </div>
+        <div className="site-footer">
+          <span className="wordmark site-footer-brand">PASSPORT<span className="accent">PHOTO</span>EDIT</span>
+          <span className="site-footer-note">Photo requirements are set by each country's government and can change. Always confirm the current specification on the official source linked from that country's page before submitting.</span>
+          <span className="site-footer-links">
+            <a href="/privacy-policy.html">Privacy</a> &middot; <a href="/about.html">About</a> &middot; <a href="/contact.html">Contact</a>
+          </span>
+        </div>
         <CookieConsent
           //debug={true}
           flipButtons={true}
@@ -2097,10 +2432,29 @@ const App = () => {
           declineButtonText={translate("Disagree")}
           style={{
             alignItems: "center",
-            color: "var(--pico-contrast)",
-            background: "var(--pico-form-element-selected-background-color)"
+            color: "var(--pico-color)",
+            background: "var(--pico-card-background-color)",
+            borderTop: "2px solid var(--pico-card-border-color)",
           }}
-          buttonStyle={{}}
+          // The library's default button styling is its own yellow - restyle
+          // both buttons to the Modernist tokens (solid accent / outlined).
+          buttonStyle={{
+            background: "var(--pico-primary)",
+            color: "var(--pico-primary-inverse)",
+            borderRadius: 0,
+            fontFamily: "var(--font-heading)",
+            fontWeight: 800,
+            padding: "10px 16px",
+          }}
+          declineButtonStyle={{
+            background: "transparent",
+            color: "var(--pico-color)",
+            border: "1px solid var(--pico-card-border-color)",
+            borderRadius: 0,
+            fontFamily: "var(--font-heading)",
+            fontWeight: 700,
+            padding: "10px 16px",
+          }}
         >
           {translate("disclaimer3")}{" "}
           <a href="/privacy-policy.html" style={{ color: "inherit", textDecoration: "underline" }}>{translate("privacyPolicyLink")}</a>
