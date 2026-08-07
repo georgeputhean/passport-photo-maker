@@ -11,7 +11,6 @@ import Color from './Color'
 import { autoAlignFace } from './AutoAlign'
 import { checkPhotoCompliance, SEVERITY } from './PhotoCompliance'
 import aiEditingPolicy from './aiEditingPolicy.json'
-import CookieConsent, { getCookieConsentValue } from "react-cookie-consent"
 import PRC_Passport_Photo from './Templates/PRC_Passport_Photo.json'
 import PRC_Travel_Document from './Templates/PRC_Travel_Document_Photo.json'
 import US_Passport_Photo from './Templates/US_Passport_Photo.json'
@@ -1621,20 +1620,6 @@ const Disclaimer = ({
   )
 }
 
-// Pushes a Google Consent Mode v2 update. public/index.html sets the default (all
-// denied) before this file ever loads; this is only called once the user has made
-// a choice via the CookieConsent banner (or already had one stored from a prior visit).
-const updateConsent = (granted) => {
-  if (typeof window === 'undefined' || typeof window.gtag !== 'function') return
-  const status = granted ? 'granted' : 'denied'
-  window.gtag('consent', 'update', {
-    ad_storage: status,
-    ad_user_data: status,
-    ad_personalization: status,
-    analytics_storage: status,
-  })
-}
-
 // Main App component
 const App = () => {
   // Init Google Analytics (no-op until REACT_APP_GA_MEASUREMENT_ID is configured with the site owner's own GA4 property)
@@ -1644,18 +1629,6 @@ const App = () => {
     ReactGA.initialize(gaMeasurementId)
     ReactGA.send({ hitType: "pageview", page: window.location.pathname })
   }, [])
-
-  // Whether the user has already accepted cookies (this visit or a prior one)
-  const [consentGiven, setConsentGiven] = useState(() => getCookieConsentValue() === 'true')
-  useEffect(() => {
-    if (consentGiven) updateConsent(true)
-  }, [consentGiven])
-
-  // The AdSense library script itself is loaded statically from public/index.html
-  // (see ADSENSE_HEAD markers, injected by scripts/generate-seo.js) rather than
-  // here - it needs to be present in the raw HTML, unconditionally, for Google's
-  // AdSense site-verification crawler to find it; a script tag only created by JS
-  // after consentGiven never shows up in that raw HTML at all.
 
   const defaultTemplate = TEMPLATES.find((t) => t.title === "Indian Passport Photo") || TEMPLATES[0]
   const [template, setTemplate] = useState(defaultTemplate) // Default is India
@@ -2068,35 +2041,6 @@ const App = () => {
             >{translate("feedback")}</a>
           </div>
         </div>
-        <CookieConsent
-          //debug={true}
-          flipButtons={true}
-          overlay={true}
-          acceptOnOverlayClick={true}
-          enableDeclineButton
-          onAccept={() => setConsentGiven(true)}
-          onDecline={() => {
-            // Declining only withholds analytics/ad consent (Consent Mode stays "denied") -
-            // the editor itself needs no cookies, so the user stays on the site.
-            setConsentGiven(false)
-            updateConsent(false)
-          }}
-          visible="byCookieValue"
-          hideOnAccept={true}
-          hideOnDecline={true}
-          location="bottom"
-          buttonText={translate("Agree")}
-          declineButtonText={translate("Disagree")}
-          style={{
-            alignItems: "center",
-            color: "var(--pico-contrast)",
-            background: "var(--pico-form-element-selected-background-color)"
-          }}
-          buttonStyle={{}}
-        >
-          {translate("disclaimer3")}{" "}
-          <a href="/privacy-policy.html" style={{ color: "inherit", textDecoration: "underline" }}>{translate("privacyPolicyLink")}</a>
-        </CookieConsent>
       </div>
     </div>
   )

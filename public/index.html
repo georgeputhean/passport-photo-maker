@@ -4,9 +4,10 @@
 <head>
   <meta charset="utf-8" />
   <script>
-    // Google Consent Mode v2: deny ad/analytics storage by default. src/App.js
-    // updates this to "granted" once the cookie banner is accepted (or was
-    // already accepted on a prior visit) - required for AdSense in the EEA/UK.
+    // Google Consent Mode v2: deny ad/analytics storage by default. Google's
+    // own certified CMP (configured in the AdSense dashboard) shows the actual
+    // consent message and calls gtag('consent', 'update', ...) itself once the
+    // visitor responds - required for AdSense in the EEA/UK/Switzerland.
     window.dataLayer = window.dataLayer || [];
     function gtag() { window.dataLayer.push(arguments); }
     gtag('consent', 'default', {

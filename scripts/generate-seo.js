@@ -29,7 +29,7 @@ const BUILD_DATE = new Date().toISOString().slice(0, 10)
 // AdSense client ID set, production builds ship zero ad markup and zero tracking
 // script - see renderAdSlot(). IDs are format-validated rather than just HTML-escaped
 // since the client ID is also interpolated into a JS string context (see
-// consentBanner()), where HTML-entity escaping would not be the correct escaping.
+// adsenseLibraryScriptTag()), where HTML-entity escaping would not be the correct escaping.
 // Affiliate links fall back to a plain informational URL when no partner deep link
 // is configured - see AFFILIATE_PARTNERS.
 const rawClientId = process.env.REACT_APP_ADSENSE_CLIENT_ID || ''
@@ -1078,10 +1078,13 @@ const AT_HOME_STEPS = [
   'Take a few shots, then upload the sharpest one here - cropping to the exact size, and background removal if you use it, are handled automatically.',
 ]
 
-// Renders only an empty, labeled placeholder container - never an <ins> tag and
-// never an adsbygoogle.js push. Real ad markup is created client-side by
-// consentBanner()'s loadAds(), and only once the visitor has actually granted
-// consent, so a user who declines never has an orphaned/empty ad slot rendered.
+// Renders the real <ins> ad unit statically and unconditionally - not gated
+// behind a custom consent click. Google's own certified CMP (see the AdSense
+// dashboard's Privacy & Messaging setup) now owns collecting consent and
+// calling gtag('consent', 'update', ...); the ad library itself reads that
+// Consent Mode state at request time and serves limited/non-personalized ads
+// rather than nothing when consent is denied, so the <ins>/push() don't need
+// to wait on anything this codebase tracks itself.
 function renderAdSlot(position) {
   const slotId = ADSENSE_SLOTS[position]
   const configured = ADSENSE_CLIENT_ID && slotId
@@ -1091,7 +1094,11 @@ function renderAdSlot(position) {
     if (process.env.NODE_ENV === 'production') return ''
     return `<div class="seo-ad-slot" data-position="${position}"><span class="seo-ad-label">Advertisement (unconfigured - dev preview only)</span></div>`
   }
-  return `<div class="seo-ad-slot" data-position="${position}" data-ad-slot="${escapeHtml(slotId)}"><span class="seo-ad-label">Advertisement</span></div>`
+  return `<div class="seo-ad-slot" data-position="${position}">
+  <span class="seo-ad-label">Advertisement</span>
+  <ins class="adsbygoogle" style="display:block;width:100%" data-ad-client="${ADSENSE_CLIENT_ID}" data-ad-slot="${escapeHtml(slotId)}" data-ad-format="auto" data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>`
 }
 
 function renderAffiliateSection() {
@@ -1138,68 +1145,6 @@ gtag('consent', 'default', {
 ${adsenseLibraryScriptTag()}`
 }
 
-function consentBanner() {
-  if (!ADSENSE_CLIENT_ID) return ''
-  // ADSENSE_CLIENT_ID is validated above against /^ca-pub-\d+$/, so it's safe to
-  // interpolate directly into this JS string context (HTML-entity escaping would be
-  // the wrong escaping here, since this lands in JS, not an HTML attribute).
-  return `
-<div class="seo-consent-banner" id="seo-consent-banner" hidden>
-  <p>This site uses cookies for analytics and, if you agree, ad personalization. See our <a href="/privacy-policy.html">Privacy Policy</a>.</p>
-  <div class="seo-consent-actions">
-    <button type="button" id="seo-consent-decline">Decline</button>
-    <button type="button" id="seo-consent-accept">Accept</button>
-  </div>
-</div>
-<script>
-(function () {
-  var KEY = 'seo-ad-consent';
-  var banner = document.getElementById('seo-consent-banner');
-
-  // Only ever called after consent is granted. Builds the real <ins> ad units
-  // client-side and pushes them, so a declined/pending visitor never has ad
-  // markup sitting in the DOM with no library behind it.
-  function loadAds() {
-    document.querySelectorAll('.seo-ad-slot[data-ad-slot]').forEach(function (el) {
-      if (el.querySelector('ins.adsbygoogle')) return;
-      var ins = document.createElement('ins');
-      ins.className = 'adsbygoogle';
-      ins.style.display = 'block';
-      ins.setAttribute('data-ad-client', '${ADSENSE_CLIENT_ID}');
-      ins.setAttribute('data-ad-slot', el.getAttribute('data-ad-slot'));
-      ins.setAttribute('data-ad-format', 'auto');
-      ins.setAttribute('data-full-width-responsive', 'true');
-      el.appendChild(ins);
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    });
-    if (document.querySelector('script[data-adsbygoogle-loader]')) return;
-    var s = document.createElement('script');
-    s.async = true;
-    s.crossOrigin = 'anonymous';
-    s.dataset.adsbygoogleLoader = 'true';
-    s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}';
-    document.head.appendChild(s);
-  }
-  var stored = localStorage.getItem(KEY);
-  if (stored === 'granted') {
-    gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted' });
-    loadAds();
-  } else if (stored !== 'denied') {
-    banner.hidden = false;
-  }
-  document.getElementById('seo-consent-accept').addEventListener('click', function () {
-    localStorage.setItem(KEY, 'granted');
-    gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted' });
-    banner.hidden = true;
-    loadAds();
-  });
-  document.getElementById('seo-consent-decline').addEventListener('click', function () {
-    localStorage.setItem(KEY, 'denied');
-    banner.hidden = true;
-  });
-})();
-</script>`
-}
 
 function escapeHtml(str) {
   return String(str)
@@ -1407,7 +1352,7 @@ ${bodyHtml}
 <footer class="seo-footer">
   <span>&copy; ${new Date().getFullYear()} Passport &amp; Visa Photo Maker</span>
   <span><a href="/photos/">All countries</a> &middot; <a href="/guides/">Guides</a> &middot; <a href="/about.html">About</a> &middot; <a href="/methodology.html">Methodology</a> &middot; <a href="/contact.html">Contact</a> &middot; <a href="/privacy-policy.html">Privacy Policy</a></span>
-</footer>${consentBanner()}
+</footer>
 </body>
 </html>
 `
