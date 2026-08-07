@@ -1126,7 +1126,7 @@ ${links}
 // click-gated <script> tag never shows up in the raw HTML it fetches.
 function adsenseLibraryScriptTag() {
   return `<meta name="google-adsense-account" content="${ADSENSE_CLIENT_ID}">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}" crossorigin="anonymous" data-adsbygoogle-loader="true"></script>`
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}" crossorigin="anonymous"></script>`
 }
 
 function consentAndAdsHead() {
