@@ -1109,6 +1109,18 @@ ${links}
 `
 }
 
+// The consent-mode default (deny) fires first, then the AdSense library script
+// loads unconditionally and statically - not gated behind a consent click. This
+// matches Google's own Consent Mode v2 pattern: the library itself reads the
+// consent signals set above and serves limited/non-personalized ads rather than
+// nothing when consent is denied, so blocking it entirely isn't required for
+// compliance. It also has to be present as static markup (not JS-injected after
+// a click) for Google's AdSense site-verification crawler to find it - a
+// click-gated <script> tag never shows up in the raw HTML it fetches.
+function adsenseLibraryScriptTag() {
+  return `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}" crossorigin="anonymous" data-adsbygoogle-loader="true"></script>`
+}
+
 function consentAndAdsHead() {
   if (!ADSENSE_CLIENT_ID) return ''
   return `
@@ -1121,7 +1133,8 @@ gtag('consent', 'default', {
   ad_personalization: 'denied',
   analytics_storage: 'denied'
 });
-</script>`
+</script>
+${adsenseLibraryScriptTag()}`
 }
 
 function consentBanner() {
@@ -1610,7 +1623,7 @@ function updateIndexHtml(entries) {
   }
 
   const block = renderHomepageSeoBlock(entries)
-  const updated = html.replace(
+  let updated = html.replace(
     /<!-- SEO_CONTENT_START -->[\s\S]*<!-- SEO_CONTENT_END -->/,
     `<!-- SEO_CONTENT_START -->\n${block}\n  <!-- SEO_CONTENT_END -->`
   )
@@ -1618,6 +1631,20 @@ function updateIndexHtml(entries) {
     console.warn('[generate-seo] public/index.html has no SEO_CONTENT markers - skipping homepage content injection.')
     return
   }
+
+  // Same "blank env var disables it" convention as the /photos/*.html pages -
+  // see adsenseLibraryScriptTag() above for why this has to be static markup.
+  const adsHead = ADSENSE_CLIENT_ID ? adsenseLibraryScriptTag() : ''
+  const withAds = updated.replace(
+    /<!-- ADSENSE_HEAD_START -->[\s\S]*<!-- ADSENSE_HEAD_END -->/,
+    `<!-- ADSENSE_HEAD_START -->\n  ${adsHead}\n  <!-- ADSENSE_HEAD_END -->`
+  )
+  if (withAds === updated && !updated.includes('ADSENSE_HEAD_START')) {
+    console.warn('[generate-seo] public/index.html has no ADSENSE_HEAD markers - skipping homepage AdSense script injection.')
+  } else {
+    updated = withAds
+  }
+
   fs.writeFileSync(indexPath, updated)
 }
 

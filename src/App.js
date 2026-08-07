@@ -1651,19 +1651,11 @@ const App = () => {
     if (consentGiven) updateConsent(true)
   }, [consentGiven])
 
-  // Load Google AdSense only once REACT_APP_ADSENSE_CLIENT_ID is configured (after
-  // approval) AND the user has consented - never loads with a placeholder/unset ID.
-  useEffect(() => {
-    const adsenseClientId = process.env.REACT_APP_ADSENSE_CLIENT_ID
-    if (!adsenseClientId || !consentGiven) return
-    if (document.querySelector('script[data-adsbygoogle-loader]')) return
-    const script = document.createElement('script')
-    script.async = true
-    script.crossOrigin = 'anonymous'
-    script.dataset.adsbygoogleLoader = 'true'
-    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`
-    document.head.appendChild(script)
-  }, [consentGiven])
+  // The AdSense library script itself is loaded statically from public/index.html
+  // (see ADSENSE_HEAD markers, injected by scripts/generate-seo.js) rather than
+  // here - it needs to be present in the raw HTML, unconditionally, for Google's
+  // AdSense site-verification crawler to find it; a script tag only created by JS
+  // after consentGiven never shows up in that raw HTML at all.
 
   const defaultTemplate = TEMPLATES.find((t) => t.title === "Indian Passport Photo") || TEMPLATES[0]
   const [template, setTemplate] = useState(defaultTemplate) // Default is India
