@@ -30,6 +30,23 @@ const CHIN_GUIDES = ['Bar: Bottom', 'Center Square: bottom']
 const ABSOLUTE_MIN_ZOOM = 0.05
 const ABSOLUTE_MAX_ZOOM = 50
 
+// MediaPipe's own model input is far smaller than typical phone photos (4000px+),
+// so it downsamples internally anyway - handing it a full-resolution image just
+// spends extra time drawing/uploading pixels the model immediately shrinks back
+// down. Landmarks come back normalized (0-1), so downscaling here doesn't change
+// anything downstream.
+const MAX_DETECT_DIM = 1024
+
+export const detectFace = (landmarker, image) => {
+  const scale = Math.min(1, MAX_DETECT_DIM / Math.max(image.naturalWidth, image.naturalHeight))
+  if (scale === 1) return landmarker.detect(image)
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale))
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale))
+  canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height)
+  return landmarker.detect(canvas)
+}
+
 let landmarkerPromise = null
 
 const createLandmarker = async () => {
@@ -110,11 +127,11 @@ const findMaskTop = (image, centerX, halfWidthNormalized) => {
 // forehead landmark only if segmentation itself fails - that estimate is
 // noticeably wrong on tightly-framed templates (e.g. India), so it's a last
 // resort, not a normal code path.
-export const measureCrownY = async ({ photoSrc, maskedPhotoSrc, nose, forehead, chin, faceWidth }) => {
+export const measureCrownY = async ({ photoSrc, maskedPhotoSrc, nose, forehead, chin, faceWidth, onProgress }) => {
   const fallback = Math.max(0, forehead.y - (chin.y - forehead.y) * HAIR_ALLOWANCE)
   let objectUrl
   try {
-    const maskedSrc = maskedPhotoSrc || (objectUrl = URL.createObjectURL(await removeBackground(photoSrc)))
+    const maskedSrc = maskedPhotoSrc || (objectUrl = URL.createObjectURL(await removeBackground(photoSrc, onProgress)))
     const maskedImage = await loadImage(maskedSrc)
     const maskTop = findMaskTop(maskedImage, nose.x, faceWidth * 0.75)
     return maskTop !== null ? maskTop : fallback
@@ -140,6 +157,7 @@ export const autoAlignFace = async ({
   guides,
   editorDimensions,
   maskedPhotoSrc, // already-background-removed version of photoSrc, if on hand - avoids re-running the model
+  onProgress, // (percent: 0-100) => void - reports the background-removal model's download/inference progress
 }) => {
   const topGuide = guides.find((g) => HEAD_TOP_GUIDES.includes(g.title))
   const bottomGuide = guides.find((g) => CHIN_GUIDES.includes(g.title))
@@ -150,7 +168,7 @@ export const autoAlignFace = async ({
   }
 
   const [landmarker, image] = await Promise.all([getFaceLandmarker(), loadImage(photoSrc)])
-  const landmarks = landmarker.detect(image).faceLandmarks?.[0]
+  const landmarks = detectFace(landmarker, image).faceLandmarks?.[0]
   if (!landmarks) {
     const error = new Error('No face detected')
     error.code = 'NO_FACE'
@@ -162,7 +180,7 @@ export const autoAlignFace = async ({
   const chin = landmarks[CHIN_BOTTOM]
   const faceWidth = Math.abs(landmarks[FACE_OVAL_RIGHT].x - landmarks[FACE_OVAL_LEFT].x)
 
-  const crownY = await measureCrownY({ photoSrc, maskedPhotoSrc, nose, forehead, chin, faceWidth })
+  const crownY = await measureCrownY({ photoSrc, maskedPhotoSrc, nose, forehead, chin, faceWidth, onProgress })
 
   // Guide coordinates are in 0.1mm units; dpi_ratio converts to editor pixels
   const toPx = editorDimensions.dpi_ratio
