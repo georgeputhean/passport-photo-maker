@@ -616,6 +616,15 @@ ${renderAdSlot('footer')}
   })
 }
 
+// Every non-US document aiEditingPolicy.json marks restricted, linked to its page,
+// so this list can't drift from the policy data the tool itself enforces.
+function restrictedDocLinks() {
+  const links = Object.keys(aiEditingPolicy)
+    .filter((title) => aiEditingPolicy[title].restricted && title !== 'US Passport/Visa Photo' && seoContent[title])
+    .map((title) => `<a href="/photos/${seoContent[title].slug}.html">${escapeHtml(title.replace(/ Photo$/, ''))}</a>`)
+  return links.length > 1 ? `${links.slice(0, -1).join(', ')} and ${links[links.length - 1]}` : links.join('')
+}
+
 function renderAiEditingGuidePage() {
   const bodyHtml = `
 <nav class="seo-breadcrumb"><a href="/">Home</a> / AI-edited passport photos in 2026</nav>
@@ -639,7 +648,7 @@ function renderAiEditingGuidePage() {
 </ul>
 <a class="seo-cta" href="/?template=US%20Passport%2FVisa%20Photo">Use Compliance Mode for a US photo &rarr;</a>
 <h2>What about other countries?</h2>
-<p>We've specifically confirmed the US policy above. We have not found a published ban on background removal for the other countries this tool supports, but policies are changing across the industry - check the official source on each <a href="/photos/">country's page</a> before using background removal for any government application, and default to caution if you're unsure.</p>
+<p>We've also found official rules against altering photos for ${restrictedDocLinks()}. The tool defaults to Compliance Mode (no background changes) for each of these, and each page quotes the rule. For the other countries this tool supports we haven't found a published rule yet, but policies are changing across the industry - check the official source on each <a href="/photos/">country's page</a> before using background removal for any government application, and default to caution if you're unsure.</p>
 ${renderAdSlot('incontent')}
 <h2>FAQ</h2>
 <div class="seo-faq-item"><h3>Is cropping considered "editing" too?</h3><p>No - cropping, resizing, and correcting DPI are format changes and are explicitly fine. The restriction is on changing what's actually in the photo (background, skin, features), not its dimensions.</p></div>
@@ -1079,11 +1088,15 @@ ${renderAdSlot('footer')}
 const seoContent = JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'seoContent.json'), 'utf8'))
 const aiEditingPolicy = JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'aiEditingPolicy.json'), 'utf8'))
 
+// Overridden per page by a seoContent "photoAge" field where the country is stricter
+// (e.g. GOV.UK's one-month rule).
+const GENERIC_PHOTO_AGE = 'A recent photo, typically taken within the last 6 months'
+
 const GENERIC_CHECKLIST = [
   'Neutral facial expression, mouth closed, both eyes open',
   'Face the camera directly, with no head tilt',
   'No hats or head coverings, except for religious or medical reasons - your full face must still be visible',
-  'A recent photo, typically taken within the last 6 months',
+  GENERIC_PHOTO_AGE,
   'A plain, evenly lit background with no shadows, patterns, or other people or objects',
   'Glasses are discouraged or restricted by a growing number of countries due to glare - check the official source below for this document specifically',
 ]
@@ -1387,12 +1400,12 @@ function renderAlterationPolicy(template) {
 `
 }
 
-function renderChecklist() {
+function renderChecklist(content) {
   return `
 <h2>General photo rules</h2>
 <p>These apply broadly, but always confirm the specifics for this document on the official source below.</p>
 <ul class="seo-checklist">
-${GENERIC_CHECKLIST.map((item) => `  <li>${escapeHtml(item)}</li>`).join('\n')}
+${GENERIC_CHECKLIST.map((item) => `  <li>${escapeHtml(item === GENERIC_PHOTO_AGE && content.photoAge ? content.photoAge : item)}</li>`).join('\n')}
 </ul>
 `
 }
@@ -1485,7 +1498,7 @@ ${content.intro.map((p) => `<p>${escapeHtml(p)}</p>`).join('\n')}
 <img class="seo-diagram" src="${diagramPath}" alt="${escapeHtml(diagramAlt)}" width="640" height="760" loading="lazy">
 <a class="seo-cta" href="${ctaHref}">Make this photo now &rarr;</a>
 ${renderAlterationPolicy(template)}
-${renderChecklist()}
+${renderChecklist(content)}
 ${renderAtHomeSteps()}
 ${renderAffiliateSection()}
 ${renderAdSlot('incontent')}

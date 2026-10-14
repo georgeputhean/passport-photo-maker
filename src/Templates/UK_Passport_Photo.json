@@ -2,9 +2,10 @@
   "title": "UK Passport Photo",
   "width": "35",
   "height": "45",
-  "dpi": "300",
+  "dpi": "457.2",
   "format": "jpg",
-  "size": "150",
+  "size": "500",
+  "sizeMin": "50",
   "instruction": "Please check the latest requirement at <a target=\"_blank\" rel=\"noreferrer\" href=\"https://www.gov.uk/photos-for-passports/photo-requirements\">here</a>.",
   "guide": [
     {
