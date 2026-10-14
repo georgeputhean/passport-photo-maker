@@ -13,7 +13,7 @@
   },
   "Indian Passport Photo": {
     "restricted": true,
-    "note": "VFS Global's Indian passport application guidance for the USA states that photos \"should be unaltered by computer software\", on a white background at 630 x 810 pixels. Resizing to that exact size is a format change; changing the background or retouching your appearance is not allowed. This tool defaults to Compliance Mode for this document - crop and resize only, no background changes. We recommend staying in Compliance Mode and retaking your photo against a plain white wall instead of switching to Edit Mode."
+    "note": "The Embassy of India's guidelines for ICAO-compliant passport photographs say \"Photos should be unaltered by computer software\", with a plain white background. Cropping and resizing to the exact size are format changes and are fine; changing the background or retouching your appearance is not. This tool defaults to Compliance Mode for this document - crop and resize only, no background changes. We recommend staying in Compliance Mode and retaking your photo against a plain white wall instead of switching to Edit Mode."
   },
   "Singapore Passport Photo": {
     "restricted": true,

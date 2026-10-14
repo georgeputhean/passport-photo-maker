@@ -648,7 +648,7 @@ function renderAiEditingGuidePage() {
 </ul>
 <a class="seo-cta" href="/?template=US%20Passport%2FVisa%20Photo">Use Compliance Mode for a US photo &rarr;</a>
 <h2>What about other countries?</h2>
-<p>We've also found official rules against altering photos for ${restrictedDocLinks()}. The tool defaults to Compliance Mode (no background changes) for each of these, and each page quotes the rule. For the other countries this tool supports we haven't found a published rule yet, but policies are changing across the industry - check the official source on each <a href="/photos/">country's page</a> before using background removal for any government application, and default to caution if you're unsure.</p>
+<p>Besides the US, we've found official rules against altering photos for ${restrictedDocLinks()}. The tool defaults to Compliance Mode (no background changes) for each of these, and each page quotes the rule. For the other countries this tool supports we haven't found a published rule yet, but policies are changing across the industry - check the official source on each <a href="/photos/">country's page</a> before using background removal for any government application, and default to caution if you're unsure.</p>
 ${renderAdSlot('incontent')}
 <h2>FAQ</h2>
 <div class="seo-faq-item"><h3>Is cropping considered "editing" too?</h3><p>No - cropping, resizing, and correcting DPI are format changes and are explicitly fine. The restriction is on changing what's actually in the photo (background, skin, features), not its dimensions.</p></div>
@@ -1088,15 +1088,11 @@ ${renderAdSlot('footer')}
 const seoContent = JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'seoContent.json'), 'utf8'))
 const aiEditingPolicy = JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'aiEditingPolicy.json'), 'utf8'))
 
-// Overridden per page by a seoContent "photoAge" field where the country is stricter
-// (e.g. GOV.UK's one-month rule).
-const GENERIC_PHOTO_AGE = 'A recent photo, typically taken within the last 6 months'
-
 const GENERIC_CHECKLIST = [
   'Neutral facial expression, mouth closed, both eyes open',
   'Face the camera directly, with no head tilt',
   'No hats or head coverings, except for religious or medical reasons - your full face must still be visible',
-  GENERIC_PHOTO_AGE,
+  'A recent photo, typically taken within the last 6 months',
   'A plain, evenly lit background with no shadows, patterns, or other people or objects',
   'Glasses are discouraged or restricted by a growing number of countries due to glare - check the official source below for this document specifically',
 ]
@@ -1400,12 +1396,24 @@ function renderAlterationPolicy(template) {
 `
 }
 
-function renderChecklist(content) {
+// A seoContent entry's own `rules` (sourced from its official page) replace the
+// shared generic list, which is otherwise identical on every country page.
+function renderChecklist(template, content) {
+  if (content.rules) {
+    const [country, ...rest] = template.title.split(' ')
+    return `
+<h2>${escapeHtml(`${country} ${rest.join(' ').toLowerCase()} rules`)}</h2>
+<p>From the official sources listed at the bottom of this page.</p>
+<ul class="seo-checklist">
+${content.rules.map((item) => `  <li>${escapeHtml(item)}</li>`).join('\n')}
+</ul>
+`
+  }
   return `
 <h2>General photo rules</h2>
 <p>These apply broadly, but always confirm the specifics for this document on the official source below.</p>
 <ul class="seo-checklist">
-${GENERIC_CHECKLIST.map((item) => `  <li>${escapeHtml(item === GENERIC_PHOTO_AGE && content.photoAge ? content.photoAge : item)}</li>`).join('\n')}
+${GENERIC_CHECKLIST.map((item) => `  <li>${escapeHtml(item)}</li>`).join('\n')}
 </ul>
 `
 }
@@ -1486,6 +1494,7 @@ function renderPhotoPage(template, content, entries) {
   const bodyHtml = `
 <nav class="seo-breadcrumb"><a href="/">Home</a> / <a href="/photos/">All countries</a> / ${escapeHtml(content.h1)}</nav>
 <h1>${escapeHtml(content.h1)}</h1>
+${content.sizeSummary ? `<p class="seo-answer"><strong>${escapeHtml(content.sizeSummary)}</strong></p>` : ''}
 ${content.intro.map((p) => `<p>${escapeHtml(p)}</p>`).join('\n')}
 <table class="seo-spec">
   <tbody>
@@ -1498,14 +1507,14 @@ ${content.intro.map((p) => `<p>${escapeHtml(p)}</p>`).join('\n')}
 <img class="seo-diagram" src="${diagramPath}" alt="${escapeHtml(diagramAlt)}" width="640" height="760" loading="lazy">
 <a class="seo-cta" href="${ctaHref}">Make this photo now &rarr;</a>
 ${renderAlterationPolicy(template)}
-${renderChecklist(content)}
+${renderChecklist(template, content)}
 ${renderAtHomeSteps()}
 ${renderAffiliateSection()}
 ${renderAdSlot('incontent')}
 <h2>Frequently asked questions</h2>
 ${content.faqs.map((f) => `<div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`).join('\n')}
 ${content.sourceUrl
-      ? `<p class="seo-source-note">Source: <a target="_blank" rel="noreferrer" href="${content.sourceUrl}">${escapeHtml(content.sourceLabel)}</a>. Requirements change over time - always confirm the current specification before submitting.</p>`
+      ? `<p class="seo-source-note">${content.extraSources ? 'Sources' : 'Source'}: ${[{ label: content.sourceLabel, url: content.sourceUrl }, ...(content.extraSources || [])].map((s) => `<a target="_blank" rel="noreferrer" href="${escapeHtml(s.url)}">${escapeHtml(s.label)}</a>`).join('; ')}. Requirements change over time - always confirm the current specification before submitting.</p>`
       : `<p class="seo-source-note">This document type does not have one consistently published official specification - always confirm the exact requirement with the office processing your application.</p>`
     }
 ${renderRelatedCountries(entries, content)}
