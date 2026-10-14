@@ -6,6 +6,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const crypto = require('crypto')
 const sharp = require('sharp')
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development'
@@ -23,6 +24,13 @@ const MM_PER_INCH = 25.4
 
 const SITE_URL = (process.env.REACT_APP_SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')
 const BUILD_DATE = new Date().toISOString().slice(0, 10)
+
+// Pages carry LASTMOD_TOKEN wherever a "last modified" date belongs (JSON-LD
+// dateModified); finalizePageDates() swaps it for the date the page's visible text
+// last changed, tracked in scripts/page-dates.json, so a deploy that doesn't touch a
+// page doesn't claim it changed. BUILD_DATE is only the fallback for new/changed pages.
+const LASTMOD_TOKEN = '__PAGE_LASTMOD__'
+const PAGE_DATES_PATH = path.join(__dirname, 'page-dates.json')
 
 // Ads and affiliate links are opt-in via env vars (same "blank disables" convention
 // as REACT_APP_GA_MEASUREMENT_ID / REACT_APP_ADSENSE_CLIENT_ID below). With no valid
@@ -173,7 +181,7 @@ ${renderAdSlot('footer')}
         '@type': 'Article',
         headline: 'Passport Photo Size Chart: Every Country Compared',
         description: 'Sortable table of passport and visa photo size, DPI, background color, and file-size requirements for every country and document this tool supports.',
-        dateModified: BUILD_DATE,
+        dateModified: LASTMOD_TOKEN,
       },
     ],
     bodyHtml,
@@ -348,6 +356,7 @@ const RETAILERS = [
     name: 'USPS',
     price: '$15.00',
     priceConfidence: 'primary',
+    priceCheckedDate: '1 August 2026',
     details: 'as a flat Post Office acceptance fee, per USPS\'s own site. Not all post offices offer photo service - many do, but availability and whether you need an appointment vary by location.',
     process: 'Use the USPS online appointment scheduler or call ahead to confirm your local post office offers passport photos before visiting.',
     sourceUrl: 'https://www.usps.com/international/passports.htm',
@@ -379,8 +388,8 @@ function affiliateUrl(affiliate) {
 
 function renderRetailerGuide(retailer) {
   const confidenceNote = retailer.priceConfidence === 'primary'
-    ? `Checked directly against ${escapeHtml(retailer.sourceLabel)}'s own site, ${BUILD_DATE}.`
-    : `${escapeHtml(retailer.sourceLabel)}'s own pricing page has blocked automated fetches every time we've checked, most recently ${escapeHtml(retailer.priceCheckedDate || BUILD_DATE)}, so this figure isn't confirmed against the primary source directly - it's cross-checked against ${escapeHtml(String(retailer.sourceCount || 'several'))} independent, current pricing/comparison sites that all agree on this number as of that date. Prices vary by location and change - call ahead or confirm in-store.`
+    ? `Checked directly against ${escapeHtml(retailer.sourceLabel)}'s own site, ${escapeHtml(retailer.priceCheckedDate)}.`
+    : `${escapeHtml(retailer.sourceLabel)}'s own pricing page has blocked automated fetches every time we've checked, most recently ${escapeHtml(retailer.priceCheckedDate)}, so this figure isn't confirmed against the primary source directly - it's cross-checked against ${escapeHtml(String(retailer.sourceCount || 'several'))} independent, current pricing/comparison sites that all agree on this number as of that date. Prices vary by location and change - call ahead or confirm in-store.`
 
   const visitLink = retailer.affiliate
     ? `<p><a target="_blank" rel="sponsored noopener" href="${escapeHtml(affiliateUrl(retailer.affiliate))}">Visit ${escapeHtml(retailer.name)}'s passport photo page &rarr;</a> <span class="seo-source-note">(may be a sponsored link - see disclosure below)</span></p>`
@@ -467,11 +476,20 @@ ${renderAdSlot('footer')}
         '@type': 'Article',
         headline: `${retailer.name} Passport Photo: Price and How It Works`,
         description: `${retailer.name} passport photo price and how the process works, plus a free way to make and print a compliant photo yourself.`,
-        dateModified: BUILD_DATE,
+        dateModified: LASTMOD_TOKEN,
       },
     ],
     bodyHtml,
   })
+}
+
+// Most recent RETAILERS priceCheckedDate ("1 August 2026" format), so the cost page
+// cites when prices were actually researched rather than the build date.
+function latestPriceCheckedDate() {
+  return RETAILERS
+    .map((r) => r.priceCheckedDate)
+    .filter(Boolean)
+    .reduce((latest, d) => (!latest || Date.parse(d) > Date.parse(latest) ? d : latest), '')
 }
 
 function renderCostComparisonPage() {
@@ -492,7 +510,7 @@ ${rows}
     <tr><th>This tool + your own printer</th><td>Free (editor) - typically under $1 to print</td></tr>
   </tbody>
 </table>
-<p class="seo-source-note">Prices researched via web search, most recently ${BUILD_DATE}, and cross-checked against multiple current sources where the retailer's own pricing page blocked a direct check - see each retailer's own page for the exact sourcing note. Retail prices vary by location and change over time; confirm before you go.</p>
+<p class="seo-source-note">Prices researched via web search, most recently ${escapeHtml(latestPriceCheckedDate())}, and cross-checked against multiple current sources where the retailer's own pricing page blocked a direct check - see each retailer's own page for the exact sourcing note. Retail prices vary by location and change over time; confirm before you go.</p>
 <h2>What you're actually paying for</h2>
 <p>Every option here produces the same underlying thing: a photo that meets a government size/background/quality spec. The retail options charge for the service of taking and printing it - a person operating a camera, a printer, and (in principle) a compliance check. None of them are more "official" than a compliant photo you make yourself; the passport agency doesn't care who pressed the shutter, only whether the result matches the spec.</p>
 <h2>Why the DIY option is so much cheaper</h2>
@@ -539,7 +557,7 @@ ${renderAdSlot('footer')}
         '@type': 'Article',
         headline: 'Passport Photo Cost: Every Option Compared (2026)',
         description: 'What Walgreens, CVS, Walmart, and USPS charge for passport photos in 2026, compared to making one free and printing it yourself.',
-        dateModified: BUILD_DATE,
+        dateModified: LASTMOD_TOKEN,
       },
     ],
     bodyHtml,
@@ -948,7 +966,7 @@ ${renderAdSlot('footer')}
         '@type': 'Article',
         headline: 'What Background Color Do Passport Photos Need?',
         description: 'What background color each country requires for a passport or visa photo - almost always plain white or another light, uniform color.',
-        dateModified: BUILD_DATE,
+        dateModified: LASTMOD_TOKEN,
       },
     ],
     bodyHtml,
@@ -1051,7 +1069,7 @@ ${renderAdSlot('footer')}
         '@type': 'Article',
         headline: 'Best Free Passport Photo Makers, Compared',
         description: 'What actually varies between free passport photo tools - server upload vs. in-browser processing, watermarking, print-sheet pricing, and open-source availability.',
-        dateModified: BUILD_DATE,
+        dateModified: LASTMOD_TOKEN,
       },
     ],
     bodyHtml,
@@ -1491,7 +1509,15 @@ ${renderAdSlot('footer')}
   })
 }
 
-const HOME_FAQS = [
+// Distinct countries, not specs: India (passport + OCI), China and Canada each have
+// two templates, so entries.length overstates the country count.
+function countryCount(entries) {
+  return new Set(entries.map((e) => e.content.country).filter(Boolean)).size
+}
+
+function homeFaqs(entries) {
+  const docList = entries.map((e) => e.template.title.replace(/ Photo$/, '')).join(', ')
+  return [
   {
     q: 'Is this passport photo maker actually free?',
     a: 'Yes. The editor, background removal, and the multi-copy 4x6 print layout are all free, with no signup, no watermark, and no paywalled export.',
@@ -1502,7 +1528,7 @@ const HOME_FAQS = [
   },
   {
     q: 'Which countries and documents are supported?',
-    a: 'US, UK, Canada (passport and visa), India, China (passport/visa and travel document), Japan, Malaysia, Germany, Australia, Mexico TN visa, and Spain - each with its own exact size, DPI, and background requirements.',
+    a: `${entries.length} photo specs across ${countryCount(entries)} countries: ${docList}. Each has its own exact size, DPI, and background requirements.`,
   },
   {
     q: 'Will the background removal always be accepted?',
@@ -1516,19 +1542,21 @@ const HOME_FAQS = [
     q: 'Do I need to install anything?',
     a: 'No. It runs entirely in your browser on desktop or mobile - no app download, no account.',
   },
-]
+  ]
+}
 
 function renderHomepageSeoBlock(entries) {
   const countryLinks = entries
     .map((e) => `    <li><a href="/photos/${e.content.slug}.html">${escapeHtml(e.content.h1)}</a></li>`)
     .join('\n')
 
-  const faqHtml = HOME_FAQS
+  const faqs = homeFaqs(entries)
+  const faqHtml = faqs
     .map((f) => `  <div class="seo-faq-item"><h3>${escapeHtml(f.q)}</h3><p>${escapeHtml(f.a)}</p></div>`)
     .join('\n')
 
   return `<div id="seo-content">
-<h1>Free Passport Photo Editor</h1>
+<h1>Free 2x2 Passport Photo Editor</h1>
 <p><strong>Passport &amp; Visa Photo Maker</strong> is a free online passport photo editor: upload a photo and get the exact 2x2 (51x51mm) size, background, and DPI for ${entries.length} countries and document types, with an option to remove the background automatically - all processed locally in your browser, never uploaded to a server.</p>
 <h2>How it works</h2>
 <ol class="seo-steps">
@@ -1550,7 +1578,7 @@ ${faqHtml}
 <script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: HOME_FAQS.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+    mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
   })}</script>`
 }
 
@@ -1563,9 +1591,14 @@ function updateIndexHtml(entries) {
   // since it reads better than a purely dynamic string - but that means adding a
   // country doesn't update them automatically. Warn on drift instead of silently
   // shipping a stale count, the same failure mode as the old "13 countries" bug.
+  const missingCountry = entries.filter((e) => !e.content.country).map((e) => e.template.title)
+  if (missingCountry.length) {
+    console.warn(`[generate-seo] src/seoContent.json entries missing "country" (they won't count toward the homepage country count): ${missingCountry.join(', ')}`)
+  }
+  const countries = countryCount(entries)
   const titleMatch = html.match(/<title>[^<]*for (\d+) Countries/)
-  if (titleMatch && Number(titleMatch[1]) !== entries.length) {
-    console.warn(`[generate-seo] public/index.html's <title> says "${titleMatch[1]} Countries" but there are actually ${entries.length} - update the hand-written count in public/index.html's <head>.`)
+  if (titleMatch && Number(titleMatch[1]) !== countries) {
+    console.warn(`[generate-seo] public/index.html's <title> says "${titleMatch[1]} Countries" but there are actually ${countries} - update the hand-written count in public/index.html's <head>.`)
   }
 
   const block = renderHomepageSeoBlock(entries)
@@ -1774,24 +1807,96 @@ function renderPrivacyPolicyPage() {
   })
 }
 
-function renderSitemap(entries) {
-  const urls = [
-    `${SITE_URL}/`,
-    `${SITE_URL}/photos/`,
-    ...entries.map((e) => `${SITE_URL}/photos/${e.content.slug}.html`),
-    `${SITE_URL}/guides/`,
-    ...GUIDE_PAGES.map((g) => `${SITE_URL}/${g.dir || 'guides'}/${g.slug}.html`),
-    `${SITE_URL}/about.html`,
-    `${SITE_URL}/contact.html`,
-    `${SITE_URL}/methodology.html`,
-    `${SITE_URL}/privacy-policy.html`,
+function sitemapPaths(entries) {
+  return [
+    '/',
+    '/photos/',
+    ...entries.map((e) => `/photos/${e.content.slug}.html`),
+    '/guides/',
+    ...GUIDE_PAGES.map((g) => `/${g.dir || 'guides'}/${g.slug}.html`),
+    '/about.html',
+    '/contact.html',
+    '/methodology.html',
+    '/privacy-policy.html',
   ]
+}
 
+function renderSitemap(paths, dates) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map((loc) => `  <url><loc>${loc}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join('\n')}
+${paths.map((p) => `  <url><loc>${SITE_URL}${p}</loc><lastmod>${dates[p]}</lastmod></url>`).join('\n')}
 </urlset>
 `
+}
+
+function builtFileForPath(urlPath) {
+  const rel = urlPath.endsWith('/') ? `${urlPath}index.html` : urlPath
+  return path.join(PUBLIC_DIR, ...rel.split('/').filter(Boolean))
+}
+
+// Hash of what a reader sees, so env-dependent markup (ad/analytics scripts, the
+// site URL, the date token itself, the footer year) can't make a page look changed.
+// Ad slots go entirely, label included: renderAdSlot() emits a dev-only placeholder
+// label locally and nothing/a real label in production builds.
+function visibleTextHash(html) {
+  const text = html
+    .replace(/<div class="seo-ad-slot"[\s\S]*?<\/div>/gi, ' ')
+    .replace(/<script\b[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<ins\b[\s\S]*?<\/ins>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .split(SITE_URL).join(' ')
+    .split('%REACT_APP_SITE_URL%').join(' ')
+    .split(LASTMOD_TOKEN).join(' ')
+    .replace(/&copy; \d{4}/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return crypto.createHash('sha256').update(text).digest('hex').slice(0, 16)
+}
+
+// Picks each page's lastmod from scripts/page-dates.json (keeping the stored date
+// while the visible-text hash matches), stamps it into the page, and returns
+// { path: date }. Local runs update the manifest; CI builds (Vercel) only read it,
+// so an uncommitted manifest change shows up as a warning rather than being lost.
+function finalizePageDates(paths) {
+  const onCi = Boolean(process.env.VERCEL || process.env.CI)
+  const manifest = fs.existsSync(PAGE_DATES_PATH) ? JSON.parse(fs.readFileSync(PAGE_DATES_PATH, 'utf8')) : {}
+  const next = {}
+  const dates = {}
+  const stale = []
+
+  paths.forEach((urlPath) => {
+    const file = builtFileForPath(urlPath)
+    const html = fs.readFileSync(file, 'utf8')
+    const hash = visibleTextHash(html)
+    const known = manifest[urlPath]
+    let date
+    if (known && known.hash === hash) {
+      date = known.date
+    } else if (known && known.date && !known.hash) {
+      date = known.date
+    } else {
+      date = BUILD_DATE
+      stale.push(urlPath)
+    }
+    next[urlPath] = { hash, date }
+    dates[urlPath] = date
+    if (html.includes(LASTMOD_TOKEN)) fs.writeFileSync(file, html.split(LASTMOD_TOKEN).join(date))
+  })
+
+  if (onCi) {
+    if (stale.length) {
+      console.warn(`[generate-seo] scripts/page-dates.json is out of date for ${stale.length} page(s), which get today's date (${BUILD_DATE}) in this build. Run \`npm run generate-seo\` locally and commit scripts/page-dates.json:\n  ${stale.join('\n  ')}`)
+    }
+  } else {
+    const serialized = `${JSON.stringify(next, null, 2)}\n`
+    const existing = fs.existsSync(PAGE_DATES_PATH) ? fs.readFileSync(PAGE_DATES_PATH, 'utf8') : ''
+    if (serialized !== existing) fs.writeFileSync(PAGE_DATES_PATH, serialized)
+    if (stale.length) console.log(`[generate-seo] Stamped ${BUILD_DATE} on ${stale.length} new/changed page(s) in scripts/page-dates.json: ${stale.join(', ')}`)
+  }
+
+  return dates
 }
 
 function updateRobotsTxt() {
@@ -1869,9 +1974,13 @@ async function main() {
   fs.writeFileSync(path.join(PUBLIC_DIR, 'contact.html'), renderContactPage())
   fs.writeFileSync(path.join(PUBLIC_DIR, 'methodology.html'), renderMethodologyPage(entries))
   fs.writeFileSync(path.join(PUBLIC_DIR, 'llms.txt'), renderLlmsTxt(entries))
-  fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), renderSitemap(entries))
   updateIndexHtml(entries)
   updateRobotsTxt()
+
+  // After every page write: dates are derived from the finished pages.
+  const paths = sitemapPaths(entries)
+  const dates = finalizePageDates(paths)
+  fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), renderSitemap(paths, dates))
 
   console.log(`[generate-seo] Generated ${entries.length} landing pages + OG images + index + sitemap + about/contact/methodology + llms.txt (SITE_URL=${SITE_URL}).`)
 }

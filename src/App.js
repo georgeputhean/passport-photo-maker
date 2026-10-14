@@ -1390,7 +1390,7 @@ const Changelog = ({
 }) => {
   return (<>
     <dialog open={modals.changelog} className='modal'>
-      <article>
+      {modals.changelog && (<article>
         <h2>{translate("changelog")}</h2>
         <div className='changelog'>
           {ChangeLog.changelog.map((entry, index) => (
@@ -1409,7 +1409,7 @@ const Changelog = ({
         <footer>
           <button onClick={() => setModals((prevModals) => ({ ...prevModals, changelog: false }))}>OK</button>
         </footer>
-      </article>
+      </article>)}
     </dialog>
     <div
       role="button"
