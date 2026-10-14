@@ -1,6 +1,7 @@
 {
   "US Passport/Visa Photo": {
     "slug": "us-passport-photo",
+    "country": "United States",
     "metaTitle": "US Passport Photo Size & Requirements (2026) - Free Online Maker",
     "metaDescription": "US passport and visa photos must be 2x2 inches (51x51mm) at 300 DPI on a white background. Make one online free, with automatic background removal.",
     "h1": "US Passport & Visa Photo Size and Requirements",
@@ -20,6 +21,7 @@
   },
   "UK Passport Photo": {
     "slug": "uk-passport-photo",
+    "country": "United Kingdom",
     "metaTitle": "UK Passport Photo Size & Requirements (2026) - Free Online Maker",
     "metaDescription": "UK passport photos must be 35x45mm on a plain light-colored background. Make a compliant UK passport photo online free, with automatic background removal.",
     "h1": "UK Passport Photo Size and Requirements",
@@ -39,6 +41,7 @@
   },
   "Canada Passport Photo": {
     "slug": "canada-passport-photo",
+    "country": "Canada",
     "metaTitle": "Canada Passport Photo Size & Requirements (2026) - Free Maker",
     "metaDescription": "Canadian passport photos must be 50x70mm on a plain white background. Create a compliant photo online free, with automatic background removal.",
     "h1": "Canada Passport Photo Size and Requirements",
@@ -58,6 +61,7 @@
   },
   "Canada Visa Photo": {
     "slug": "canada-visa-photo",
+    "country": "Canada",
     "metaTitle": "Canada Visa Photo Size & Requirements (2026) - Free Online Maker",
     "metaDescription": "Canadian visa (temporary resident) photos must be 35x45mm on a plain white background. Make one online free, with automatic background removal.",
     "h1": "Canada Visa Photo Size and Requirements",
@@ -77,6 +81,7 @@
   },
   "Indian Passport Photo": {
     "slug": "india-passport-photo",
+    "country": "India",
     "metaTitle": "Indian Passport Photo Size & Requirements (2026) - Free Maker",
     "metaDescription": "Indian passport photos must be 35x45mm (2x2 inch) on a white background. Make a compliant photo online free, with automatic background removal.",
     "h1": "Indian Passport Photo Size and Requirements",
@@ -96,6 +101,7 @@
   },
   "Chinese Passport/Visa Photo": {
     "slug": "china-passport-visa-photo",
+    "country": "China",
     "metaTitle": "Chinese Passport & Visa Photo Size (2026) - Free Online Maker",
     "metaDescription": "Chinese passport and visa photos must be 33x48mm on a plain light-colored background. Make one online free, with automatic background removal.",
     "h1": "Chinese Passport & Visa Photo Size and Requirements",
@@ -115,6 +121,7 @@
   },
   "Chinese Travel Document Photo": {
     "slug": "china-travel-document-photo",
+    "country": "China",
     "metaTitle": "Chinese Travel Document Photo Size - Free Online Maker",
     "metaDescription": "Create a Chinese travel document photo online free, sized to a proportional scaling of the standard passport photo, with automatic background removal.",
     "h1": "Chinese Travel Document Photo Size",
@@ -133,6 +140,7 @@
   },
   "Japan Passport/Visa Photo": {
     "slug": "japan-passport-visa-photo",
+    "country": "Japan",
     "metaTitle": "Japan Passport & Visa Photo Size (2026) - Free Online Maker",
     "metaDescription": "Japanese passport and visa photos must be 35x45mm on a plain white background. Make one online free, with automatic background removal.",
     "h1": "Japan Passport & Visa Photo Size and Requirements",
@@ -152,6 +160,7 @@
   },
   "Malaysia Passport Photo": {
     "slug": "malaysia-passport-photo",
+    "country": "Malaysia",
     "metaTitle": "Malaysia Passport Photo Size & Requirements - Free Maker",
     "metaDescription": "Malaysian passport photos must be 35x50mm on a plain white background. Make a compliant photo online free, with automatic background removal.",
     "h1": "Malaysia Passport Photo Size and Requirements",
@@ -171,6 +180,7 @@
   },
   "Mexico TN Visa Photo": {
     "slug": "mexico-tn-visa-photo",
+    "country": "Mexico",
     "metaTitle": "Mexico TN Visa Photo Size & Requirements - Free Online Maker",
     "metaDescription": "Mexico TN visa photos must be 31x39mm on a plain white background. Make a compliant photo online free, with automatic background removal.",
     "h1": "Mexico TN Visa Photo Size and Requirements",
@@ -190,6 +200,7 @@
   },
   "Spain Passport Photo": {
     "slug": "spain-passport-photo",
+    "country": "Spain",
     "metaTitle": "Spain Passport Photo Size & Requirements - Free Online Maker",
     "metaDescription": "Spanish passport photos must be 26x32mm on a plain light background. Make a compliant photo online free, with automatic background removal.",
     "h1": "Spain Passport Photo Size and Requirements",
@@ -209,6 +220,7 @@
   },
   "Australia Passport/Visa Photo": {
     "slug": "australia-passport-visa-photo",
+    "country": "Australia",
     "metaTitle": "Australia Passport & Visa Photo Size - Free Online Maker",
     "metaDescription": "Australian passport and visa photos must be 35x45mm on a plain white background. Make one online free, with automatic background removal.",
     "h1": "Australia Passport & Visa Photo Size and Requirements",
@@ -228,6 +240,7 @@
   },
   "Germany Passport/Visa Photo": {
     "slug": "germany-passport-visa-photo",
+    "country": "Germany",
     "metaTitle": "Germany Passport & Visa Photo Size - Free Online Maker",
     "metaDescription": "German passport and visa (biometric) photos must be 35x45mm on a plain light background. Make one online free, with automatic background removal.",
     "h1": "Germany Passport & Visa Photo Size and Requirements",
@@ -247,6 +260,7 @@
   },
   "Netherlands Passport Photo": {
     "slug": "netherlands-passport-photo",
+    "country": "Netherlands",
     "metaTitle": "Netherlands Passport Photo Size & Requirements (2026) - Free Maker",
     "metaDescription": "Dutch passport photos must be 35x45mm at a minimum of 400 DPI, on a white, light grey, or light blue background. Make one online free.",
     "h1": "Netherlands Passport Photo Size and Requirements",
@@ -266,6 +280,7 @@
   },
   "South Korea Passport Photo": {
     "slug": "south-korea-passport-photo",
+    "country": "South Korea",
     "metaTitle": "South Korea Passport Photo Size & Requirements (2026) - Free Maker",
     "metaDescription": "South Korean passport photos must be 35x45mm with head height 32-36mm, on a plain white background. Make one online free.",
     "h1": "South Korea Passport Photo Size and Requirements",
@@ -286,6 +301,7 @@
   },
   "Singapore Passport Photo": {
     "slug": "singapore-passport-photo",
+    "country": "Singapore",
     "metaTitle": "Singapore Passport Photo Size & Requirements (2026) - Free Maker",
     "metaDescription": "Singapore (ICA) passport photos must be 35x45mm, 400x514px for e-Services upload, on a white background, with no photo editing. Make one online free.",
     "h1": "Singapore Passport Photo Size and Requirements",
@@ -305,6 +321,7 @@
   },
   "Switzerland Passport Photo": {
     "slug": "switzerland-passport-photo",
+    "country": "Switzerland",
     "metaTitle": "Switzerland Passport Photo Size & Requirements (2026) - Free Maker",
     "metaDescription": "Swiss passport photos must be 35x45mm with face height 29-34mm chin to crown, on a plain, neutral, uniform background. Make one online free.",
     "h1": "Switzerland Passport Photo Size and Requirements",
@@ -325,6 +342,7 @@
   },
   "Vietnam Passport Photo": {
     "slug": "vietnam-passport-photo",
+    "country": "Vietnam",
     "metaTitle": "Vietnam Passport Photo Size & Requirements (2026) - Free Maker",
     "metaDescription": "Vietnamese passport photos must be 4x6cm (40x60mm) on a white background, frontal, head uncovered. Make one online free.",
     "h1": "Vietnam Passport Photo Size and Requirements",
@@ -344,6 +362,7 @@
   },
   "France Passport Photo": {
     "slug": "france-passport-photo",
+    "country": "France",
     "metaTitle": "France Passport Photo Size & Requirements (2026) - Free Maker",
     "metaDescription": "French passport photos must be 35x45mm with face height 32-36mm, on a light grey or light blue background - white is prohibited. Make one online free.",
     "h1": "France Passport Photo Size and Requirements",
@@ -363,6 +382,7 @@
   },
   "OCI Card Photo": {
     "slug": "oci-card-photo",
+    "country": "India",
     "metaTitle": "OCI Card Photo Size & Requirements (2026) - Free Maker",
     "metaDescription": "OCI (Overseas Citizen of India) card photos must be square, at least 51x51mm, 200-900px, under 200KB, on a plain light (not white) background. Make one online free.",
     "h1": "OCI Card Photo Size and Requirements",
