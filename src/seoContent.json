@@ -23,20 +23,22 @@
     "slug": "uk-passport-photo",
     "country": "United Kingdom",
     "metaTitle": "UK Passport Photo Size & Requirements (2026) - Free Online Maker",
-    "metaDescription": "UK passport photos must be 35x45mm on a plain light-colored background. Make a compliant UK passport photo online free, with automatic background removal.",
+    "metaDescription": "UK passport photos must be 35x45mm, taken in the last month, unaltered by software, on a plain cream or light grey background. Digital photos: at least 600x750 pixels.",
     "h1": "UK Passport Photo Size and Requirements",
     "sourceLabel": "GOV.UK",
     "sourceUrl": "https://www.gov.uk/photos-for-passports/photo-requirements",
+    "photoAge": "Taken in the last month - GOV.UK's rule, stricter than the 6 months many countries allow",
     "intro": [
       "A UK passport photo must measure 35x45mm, showing a full front-facing view of your face against a plain, light-colored (usually cream or light grey) background.",
-      "This tool crops and resizes your photo to the exact 35x45mm dimensions at high resolution, with an AI background remover so you don't need a studio backdrop."
+      "This tool sizes your photo to 35x45mm and exports it at 630x810 pixels, above GOV.UK's 600x750 pixel minimum for digital photos. GOV.UK requires photos to be unaltered by computer software, so take your photo against a plain cream or light grey wall rather than replacing the background."
     ],
     "faqs": [
       { "q": "What size is a UK passport photo?", "a": "35mm wide by 45mm tall, per GOV.UK's official photo requirements." },
       { "q": "What background does GOV.UK require?", "a": "A plain, light-colored background such as cream or light grey, with no patterns or shadows." },
       { "q": "Can I smile in a UK passport photo?", "a": "No - GOV.UK requires a neutral expression with your mouth closed, looking straight at the camera." },
       { "q": "Are glasses allowed?", "a": "Glasses are discouraged and may cause rejection due to glare or frame covering the eyes; check the current GOV.UK guidance before submitting." },
-      { "q": "Can I upload the photo for an online passport renewal?", "a": "Yes - GOV.UK's online service accepts a digital photo upload that matches these dimensions and specifications." }
+      { "q": "How recent must a UK passport photo be?", "a": "It must have been taken in the last month, per GOV.UK - stricter than the 6 months many other countries allow. You also need a new photo for every new passport, even if your appearance hasn't changed." },
+      { "q": "What are the rules for a digital photo for an online UK application?", "a": "GOV.UK says a digital photo must be at least 600 pixels wide and 750 pixels tall, between 50KB and 10MB, in colour, and unaltered by computer software. You can get one from a photo booth or shop that gives you a photo code, or take one on your own device during the application - in which case GOV.UK says not to crop it, because that is done for you. This tool's UK export is 630x810 pixels." }
     ]
   },
   "Canada Passport Photo": {
@@ -83,16 +85,16 @@
     "slug": "india-passport-photo",
     "country": "India",
     "metaTitle": "Indian Passport Photo Size & Requirements (2026) - Free Maker",
-    "metaDescription": "Indian passport photos must be 35x45mm (2x2 inch) on a white background. Make a compliant photo online free, with automatic background removal.",
+    "metaDescription": "Indian passport photos must be 35x45mm on a white background, unaltered by software. VFS Global's US applications ask for 630x810 pixels. Make one online free.",
     "h1": "Indian Passport Photo Size and Requirements",
     "sourceLabel": "Passport Seva / VFS Global",
     "sourceUrl": "https://services.vfsglobal.com/usa/en/ind/apply-passport",
     "intro": [
       "An Indian passport photo must be 35x45mm with a plain white background, front-facing, with a neutral expression and both ears visible.",
-      "This tool crops your photo to the exact 35x45mm specification and removes the background automatically so it meets Passport Seva's photo standard."
+      "This tool sizes your photo to 35x45mm and exports it at 630x810 pixels, the size VFS Global's US application asks for. VFS Global says photos should be unaltered by computer software, so take your photo against a plain white wall rather than removing the background."
     ],
     "faqs": [
-      { "q": "What size is an Indian passport photo?", "a": "35mm wide by 45mm tall (roughly 2x2 inches), per Passport Seva / VFS Global's application guidance." },
+      { "q": "What size is an Indian passport photo?", "a": "35mm wide by 45mm tall (3.5 x 4.5cm, about 1.38 x 1.77 inches). That is not the same as 2x2 inches, which is the larger 51x51mm US size. VFS Global's Indian passport application for the USA asks for a digital photo of 630 x 810 pixels." },
       { "q": "What background color is needed?", "a": "A plain white background, evenly lit with no shadows." },
       { "q": "Should ears be visible in the photo?", "a": "Yes - both ears should generally be visible, and hair should not cover the face." },
       { "q": "How recent should the photo be?", "a": "It should be a recent photo, typically taken within the last 6 months." },

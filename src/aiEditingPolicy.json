@@ -7,6 +7,14 @@
     "restricted": true,
     "note": "South Korea's Ministry of Foreign Affairs passport guidance excludes photos edited with software, filters, or AI-generated/composited images - the photo must be an original, unedited capture. Cropping and resizing to the exact size are format changes and are fine; changing the background or retouching your appearance is not. This tool defaults to Compliance Mode for this document - crop and resize only, no background changes. We recommend staying in Compliance Mode and retaking your photo against a plain white wall instead of switching to Edit Mode."
   },
+  "UK Passport Photo": {
+    "restricted": true,
+    "note": "GOV.UK's official rules say both printed and digital UK passport photos must be \"unaltered by computer software\". Replacing or removing the background counts as altering the photo. GOV.UK is also strict about framing: a printed photo must not be a cut-down version of a larger picture, and if you take a digital photo on your own device during an online application, GOV.UK says not to crop it because that is done for you. This tool defaults to Compliance Mode for this document - no background changes. We recommend staying in Compliance Mode and taking your photo against a plain cream or light grey wall (printed photos) or a plain light-coloured wall (digital photos) instead of switching to Edit Mode."
+  },
+  "Indian Passport Photo": {
+    "restricted": true,
+    "note": "VFS Global's Indian passport application guidance for the USA states that photos \"should be unaltered by computer software\", on a white background at 630 x 810 pixels. Resizing to that exact size is a format change; changing the background or retouching your appearance is not allowed. This tool defaults to Compliance Mode for this document - crop and resize only, no background changes. We recommend staying in Compliance Mode and retaking your photo against a plain white wall instead of switching to Edit Mode."
+  },
   "Singapore Passport Photo": {
     "restricted": true,
     "note": "Singapore's Immigration & Checkpoints Authority (ICA) states your photograph \"must not be altered or enhanced in any way,\" explicitly including modification of facial features and the use of photo-editing software. Cropping and resizing to the exact size are format changes and are fine; changing the background or retouching your appearance is not. This tool defaults to Compliance Mode for this document - crop and resize only, no background changes. We recommend staying in Compliance Mode and retaking your photo against a plain white wall instead of switching to Edit Mode."
