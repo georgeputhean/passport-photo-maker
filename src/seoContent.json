@@ -2,19 +2,31 @@
   "US Passport/Visa Photo": {
     "slug": "us-passport-photo",
     "country": "United States",
-    "metaTitle": "US Passport Photo Size & Requirements (2026) - Free Online Maker",
-    "metaDescription": "US passport and visa photos must be 2x2 inches (51x51mm) at 300 DPI on a white background. Make one online free, with automatic background removal.",
+    "metaTitle": "US Passport Photo Size and Requirements (2026): 2x2 Inches",
+    "metaDescription": "A US passport photo is 2x2 inches (51x51mm) on a plain white or off-white background, taken in the last 6 months and unedited. Make one free online.",
     "h1": "US Passport & Visa Photo Size and Requirements",
     "sourceLabel": "U.S. Department of State",
     "sourceUrl": "https://travel.state.gov/content/travel/en/passports/how-apply/photos.html",
+    "sizeSummary": "A US (American) passport photo is 2 x 2 inches (51 x 51 mm, 600 x 600 px at 300 DPI), with your head 1 to 1 3/8 inches (25-35 mm) from chin to top of head.",
+    "rules": [
+      "Taken in the last 6 months",
+      "Printed at 2 x 2 inches (51 x 51 mm)",
+      "Your head is 1 to 1 3/8 inches (25-35 mm) from the bottom of your chin to the top of your head",
+      "A plain white or off-white background, with no shadows, texture, objects or lines",
+      "You can smile, as long as your mouth is closed and your eyes are open - avoid exaggerated expressions",
+      "No glasses - take off eyeglasses, sunglasses and tinted glasses (a signed doctor's note is needed if you can't remove them for medical reasons)",
+      "No edits with computer software, phone apps or filters - the State Department checks photos for digital changes",
+      "Printed on matte or glossy photo-quality paper, with no visible printer dots"
+    ],
     "intro": [
       "A US passport or visa photo must be exactly 2x2 inches (51x51mm), with the head sized and centered to specific proportions, printed on plain white or off-white background.",
-      "This tool lets you upload any photo of yourself, automatically removes the background, and crops it to the exact 2x2 inch, 300 DPI specification the State Department requires - all in your browser, for free."
+      "This tool crops and resizes your photo to the exact 2x2 inch, 300 DPI size in your browser, for free. The State Department doesn't accept edited photos, so for a US passport or visa the tool stays in Compliance Mode - crop and resize only, with no background changes."
     ],
     "faqs": [
       { "q": "What size does a US passport photo need to be?", "a": "2 x 2 inches (51 x 51 mm), with your head between 1 inch and 1 3/8 inches from chin to top of head, per the U.S. Department of State's photo requirements." },
       { "q": "What background color is required?", "a": "A plain white or off-white background, with no shadows, patterns, or objects behind you." },
-      { "q": "Can I wear glasses in a US passport photo?", "a": "As of recent State Department guidance, glasses are generally not permitted in passport photos except for documented medical reasons. Check the official page above for the current rule before submitting." },
+      { "q": "Can I wear glasses in a US passport photo?", "a": "No. The State Department says to take off eyeglasses, sunglasses and tinted glasses, and not to rest them on your head. If you can't remove your glasses for medical reasons, include a signed note from your doctor with your application." },
+      { "q": "Can I smile in a US passport photo?", "a": "Yes. The State Department says you can smile, as long as your mouth is closed and your eyes are open. Avoid exaggerated facial expressions." },
       { "q": "How recent does the photo need to be?", "a": "It should be taken within the last 6 months and reflect your current appearance." },
       { "q": "Can I take the photo myself and print it at home?", "a": "Yes - the State Department accepts photos printed on photo-quality paper at the correct size, or submitted electronically for online renewals where eligible. This tool exports both a single 2x2 photo and a 4x6 print layout with multiple copies." }
     ]
@@ -22,12 +34,27 @@
   "UK Passport Photo": {
     "slug": "uk-passport-photo",
     "country": "United Kingdom",
-    "metaTitle": "UK Passport Photo Size & Requirements (2026) - Free Online Maker",
-    "metaDescription": "UK passport photos must be 35x45mm, taken in the last month, unaltered by software, on a plain cream or light grey background. Digital photos: at least 600x750 pixels.",
+    "metaTitle": "UK Passport Photo Size and Requirements (2026): 35x45mm",
+    "metaDescription": "A UK passport photo is 35x45mm, taken in the last month, on a plain cream or light grey background. Digital photos: at least 600x750 px. Make one free.",
     "h1": "UK Passport Photo Size and Requirements",
     "sourceLabel": "GOV.UK",
     "sourceUrl": "https://www.gov.uk/photos-for-passports/photo-requirements",
-    "photoAge": "Taken in the last month - GOV.UK's rule, stricter than the 6 months many countries allow",
+    "sizeSummary": "A UK (British) passport photo is 45mm high by 35mm wide (4.5 x 3.5 cm, about 1.8 x 1.4 in), with your head 29-34mm from chin to crown. For an online application, the digital photo must be at least 600 x 750 pixels.",
+    "rules": [
+      "Taken in the last month - and a new photo for every new passport, even if your appearance hasn't changed",
+      "Printed photos measure 45mm high by 35mm wide",
+      "Your head, from crown to chin, is 29-34mm high in the printed photo",
+      "A plain cream or light grey background for printed photos, or a plain light-coloured background for digital photos",
+      "A plain expression with your mouth closed, eyes open and visible, facing forwards",
+      "No glasses unless you have to wear them - and then no sunglasses or tinted lenses, and no frames, glare, reflection or shadow over your eyes",
+      "No head covering unless it's for religious or medical reasons, and nothing covering your face",
+      "Printed photos in colour on plain white photographic paper with no border, and not cut down from a larger picture",
+      "Children under 6 don't have to look directly at the camera or have a plain expression",
+      "Babies under one don't have to have their eyes open"
+    ],
+    "extraSources": [
+      {"label":"GOV.UK - rules for digital photos","url":"https://www.gov.uk/photos-for-passports/rules-for-digital-photos"}
+    ],
     "intro": [
       "A UK passport photo must measure 35x45mm, showing a full front-facing view of your face against a plain, light-colored (usually cream or light grey) background.",
       "This tool sizes your photo to 35x45mm and exports it at 630x810 pixels, above GOV.UK's 600x750 pixel minimum for digital photos. GOV.UK requires photos to be unaltered by computer software, so take your photo against a plain cream or light grey wall rather than replacing the background."
@@ -36,9 +63,10 @@
       { "q": "What size is a UK passport photo?", "a": "35mm wide by 45mm tall, per GOV.UK's official photo requirements." },
       { "q": "What background does GOV.UK require?", "a": "A plain, light-colored background such as cream or light grey, with no patterns or shadows." },
       { "q": "Can I smile in a UK passport photo?", "a": "No - GOV.UK requires a neutral expression with your mouth closed, looking straight at the camera." },
-      { "q": "Are glasses allowed?", "a": "Glasses are discouraged and may cause rejection due to glare or frame covering the eyes; check the current GOV.UK guidance before submitting." },
+      { "q": "Are glasses allowed?", "a": "Only if you have to wear them. GOV.UK says no sunglasses or tinted glasses, and your eyes must not be covered by the frames or by any glare, reflection or shadow." },
       { "q": "How recent must a UK passport photo be?", "a": "It must have been taken in the last month, per GOV.UK - stricter than the 6 months many other countries allow. You also need a new photo for every new passport, even if your appearance hasn't changed." },
-      { "q": "What are the rules for a digital photo for an online UK application?", "a": "GOV.UK says a digital photo must be at least 600 pixels wide and 750 pixels tall, between 50KB and 10MB, in colour, and unaltered by computer software. You can get one from a photo booth or shop that gives you a photo code, or take one on your own device during the application - in which case GOV.UK says not to crop it, because that is done for you. This tool's UK export is 630x810 pixels." }
+      { "q": "What are the rules for a digital photo for an online UK passport application?", "a": "GOV.UK says the digital photo must be at least 600 pixels wide and 750 pixels tall, between 50KB and 10MB, in colour, unaltered by computer software, and taken in the last month. You can get one with a photo code from a photo booth or shop, or take one on your own device during the application - if you do, don't crop it yourself, because that is done for you. GOV.UK says booth or shop photos are more likely to be approved than ones taken on your own device." },
+      { "q": "What are the UK passport photo dimensions in pixels?", "a": "GOV.UK sets a minimum of 600 x 750 pixels for a digital photo and no fixed maximum, other than the 10MB file size limit. Printed photos are specified in millimetres (35 x 45mm) rather than pixels. This tool exports UK photos at 630 x 810 pixels." }
     ]
   },
   "Canada Passport Photo": {
@@ -84,21 +112,37 @@
   "Indian Passport Photo": {
     "slug": "india-passport-photo",
     "country": "India",
-    "metaTitle": "Indian Passport Photo Size & Requirements (2026) - Free Maker",
-    "metaDescription": "Indian passport photos must be 35x45mm on a white background, unaltered by software. VFS Global's US applications ask for 630x810 pixels. Make one online free.",
+    "metaTitle": "Indian Passport Photo Size (2026): 35x45mm in India, 2x2 in the US",
+    "metaDescription": "Indian passport photos are 35x45mm (630x810 px) on a white background in India, or 2x2 inches through VFS Global in the US. Make one free online.",
     "h1": "Indian Passport Photo Size and Requirements",
-    "sourceLabel": "Passport Seva / VFS Global",
-    "sourceUrl": "https://services.vfsglobal.com/usa/en/ind/apply-passport",
+    "sourceLabel": "Passport Seva (Ministry of External Affairs)",
+    "sourceUrl": "https://www.passportindia.gov.in/psp/FaqApplicationForm",
+    "sizeSummary": "In India, Passport Seva uses 35 x 45 mm (3.5 x 4.5 cm, 630 x 810 px). If you apply through VFS Global in the US, the photo must be 2 x 2 inches (51 x 51 mm) on a white background.",
+    "rules": [
+      "A plain white background",
+      "A close-up of your head and the top of your shoulders, with your face taking up 80-85% of the photo",
+      "A digital photo is 630 x 810 pixels, in colour",
+      "In India, printed photos are 35 x 45 mm (4.5 x 3.5 cm)",
+      "No glasses - take them off to avoid reflections",
+      "Mouth closed and eyes open and clearly visible, with no hair across your eyes",
+      "No head covering except for religious reasons, and then your face must show clearly from the bottom of your chin to the top of your forehead, with both edges of your face visible",
+      "Unaltered by computer software",
+      "Applying from the US through VFS Global: 2 x 2 inch (51 x 51 mm) photos on a pure white background, taken within 6 months, with your shoulders visible and no glasses"
+    ],
+    "extraSources": [
+      {"label":"Embassy of India, Washington DC - ICAO photo guidelines","url":"https://www.indianembassyusa.gov.in/pdf/Guidelines_for_ICAO_Compliant_Photographs_for_Passport_Applications.pdf"},
+      {"label":"VFS Global USA - Indian passport checklist","url":"https://services.vfsglobal.com/one-pager/india/united-states-of-america/passport-services/pdf/MINOR-CHECKLIST-RE-ISSUE-OF-PASSPORT-Jan-2025-June-19.doc-revised.pdf"}
+    ],
     "intro": [
-      "An Indian passport photo must be 35x45mm with a plain white background, front-facing, with a neutral expression and both ears visible.",
-      "This tool sizes your photo to 35x45mm and exports it at 630x810 pixels, the size VFS Global's US application asks for. VFS Global says photos should be unaltered by computer software, so take your photo against a plain white wall rather than removing the background."
+      "An Indian passport photo is a close-up of your head and the top of your shoulders on a plain white background, with your face taking up 80-85% of the photo, looking straight at the camera.",
+      "This tool sizes your photo to 35x45mm and exports it at 630x810 pixels, the digital size in the Embassy of India's photo guidelines. Photos must be unaltered by computer software, so take yours against a plain white wall rather than removing the background."
     ],
     "faqs": [
-      { "q": "What size is an Indian passport photo?", "a": "35mm wide by 45mm tall (3.5 x 4.5cm, about 1.38 x 1.77 inches). That is not the same as 2x2 inches, which is the larger 51x51mm US size. VFS Global's Indian passport application for the USA asks for a digital photo of 630 x 810 pixels." },
+      { "q": "What size is an Indian passport photo?", "a": "In India, Passport Seva asks for printed photos of 4.5 x 3.5 cm (35 x 45 mm, about 1.8 x 1.4 inches), and the Embassy of India's guidelines give 630 x 810 pixels for a digital photo. That is not 2x2 inches - the 2x2 inch size only applies if you apply through VFS Global in the US." },
+      { "q": "What size photo do I need for an Indian passport in the USA?", "a": "If you apply through VFS Global in the US, its checklist asks for two identical 2 x 2 inch (51 x 51 mm) photos on a pure white background, taken within 6 months, with your shoulders visible and no glasses. This tool's US 2x2 template produces that size, but check the VFS checklist for the full requirements." },
       { "q": "What background color is needed?", "a": "A plain white background, evenly lit with no shadows." },
-      { "q": "Should ears be visible in the photo?", "a": "Yes - both ears should generally be visible, and hair should not cover the face." },
-      { "q": "How recent should the photo be?", "a": "It should be a recent photo, typically taken within the last 6 months." },
-      { "q": "Can I wear glasses?", "a": "Glasses are generally discouraged due to glare and reflection rules - confirm current guidance on the official application page." }
+      { "q": "Can I wear a head covering?", "a": "Only for religious reasons. Your face must still be clearly visible from the bottom of your chin to the top of your forehead, with both edges of your face showing, per the Embassy of India's photo guidelines." },
+      { "q": "Can I wear glasses?", "a": "No. The Embassy of India's guidelines say glasses should be taken off to avoid reflections, and VFS Global's US checklist says photos must be taken without glasses." }
     ]
   },
   "Chinese Passport/Visa Photo": {
